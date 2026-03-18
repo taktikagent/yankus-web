@@ -1,0 +1,16 @@
+{
+  "name": "yankus-web",
+  "version": "1.6.0",
+  "description": "Yankuş Web - Yerli Sosyal Medya Platformu",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["social-media", "turkish", "pwa"],
+  "author": "Yankuş",
+  "license": "MIT"
+}
