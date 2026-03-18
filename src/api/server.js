@@ -17,6 +17,60 @@ const admin      = require('../admin/adminPanel');
 
 const patchNotes = [
   {
+    version: "1.7.3",
+    date: "2026-03-18",
+    features: [
+      "🌓 Tema Düzeltmesi — Koyu/Açık/AMOLED tam çalışıyor",
+      "🎨 Renk Sistemi — Vurgu rengi tüm UI'ı güncelliyor"
+    ],
+    fixes: [
+      "🔧 Light tema artık beyaz arka plan gösteriyor",
+      "🔧 AMOLED tema gerçek siyah (#000)",
+      "🔧 setTheme tüm CSS değişkenlerini güncelliyor",
+      "🔧 loadSettings düzgün çalışıyor"
+    ]
+  },
+  {
+    version: "1.7.2",
+    date: "2026-03-18",
+    features: [
+      "🎯 Ortalanmış Layout — Sidebar + içerik ekranda ortalanmış",
+      "📏 Dinamik Font Size — Tüm yazılar ayara göre değişiyor",
+      "🎨 Gelişmiş Renk Sistemi — Tüm elementler vurgu rengini kullanıyor",
+      "🔄 Sticky Sidebar — Kaydırırken yerinde kalıyor"
+    ],
+    fixes: [
+      "🔧 Font-size artık tüm elementleri etkiliyor",
+      "🔧 Hardcoded rgba() değerleri CSS değişkenlerine dönüştürüldü",
+      "🔧 Dashboard container ile ortalama düzeltildi",
+      "🔧 Scrollbar rengi vurgu rengine bağlandı"
+    ]
+  },
+  {
+    version: "1.6.0",
+    date: "2026-03-18",
+    features: [
+      "🧵 Thread Sistemi — Çoklu yankı zincirleme (max 10)",
+      "💾 Taslak Sistemi — Yankıları kaydet, sonra paylaş",
+      "⏰ Zamanlı Gönderim — İstediğin zaman otomatik paylaş",
+      "📁 Koleksiyon Sistemi — Kayıtları organize et",
+      "🏰 Klan Sistemi — Takipçi seviyeleri ve rozetler",
+      "🧬 Kişilik DNA — İçerik analizi ve görselleştirme",
+      "💬 Gelişmiş DM — İki sütunlu layout, arama, sekmeler",
+      "📰 Akıllı Feed Algoritması — Kronolojik, Smart, Explore, Medya",
+      "🔔 Yeni Yankı Bandı — Kaçırılan yankıları gör",
+      "📊 Gelişmiş Profil — Stat kartları, medya grid, sekmeler",
+      "🎨 Yeni UI Tasarımı — DM Sans + Syne fontları",
+      "🌙 Gelişmiş Tema — Daha zengin renk paleti"
+    ],
+    fixes: [
+      "🔧 Sidebar yeniden tasarlandı (210px geniş, etiketli)",
+      "🔧 Profil sayfası tamamen yenilendi",
+      "🔧 Animasyonlar ve geçişler iyileştirildi",
+      "🔧 Responsive tasarım güncellemeleri"
+    ]
+  },
+  {
     version: "1.5.2",
     date: "2026-03-12",
     features: [
