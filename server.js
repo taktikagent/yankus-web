@@ -1,116 +1,91 @@
 // ═══════════════════════════════════════════════════════════════
-// HTTP API SUNUCUSU — Tüm Route'lar
+// YANKUŞ WEB SERVER — Vercel Uyumlu
 // ═══════════════════════════════════════════════════════════════
 
 const http = require('http');
-const { app } = require('electron');
-const { processScheduled } = require('../modules/yanki');
-const { startBotSimulation, stopBotSimulation, isRunning, triggerBotAction } = require('../bots/botSimulation');
+const fs = require('fs');
+const path = require('path');
 
-const users      = require('../modules/users');
-const yanki      = require('../modules/yanki');
-const messages   = require('../modules/messages');
-const notif      = require('../modules/notifications');
-const trending   = require('../modules/trending');
-const clanDna    = require('../modules/clanDna');
-const admin      = require('../admin/adminPanel');
+// ─── In-Memory Database ────────────────────────────────────────
+const db = {
+  users: [],
+  yankis: [],
+  comments: [],
+  likes: [],
+  follows: [],
+  notifications: [],
+  saves: [],
+  blocks: [],
+  polls: [],
+  pollVotes: [],
+  contacts: [],
+  messages: [],
+  feedback: [],
+  collections: [],
+  saveNotes: [],
+  collectionItems: [],
+  drafts: [],
+  scheduled: [],
+  threads: []
+};
 
-const patchNotes = [
-  {
-    version: "1.7.3",
-    date: "2026-03-18",
-    features: [
-      "🌓 Tema Düzeltmesi — Koyu/Açık/AMOLED tam çalışıyor",
-      "🎨 Renk Sistemi — Vurgu rengi tüm UI'ı güncelliyor"
-    ],
-    fixes: [
-      "🔧 Light tema artık beyaz arka plan gösteriyor",
-      "🔧 AMOLED tema gerçek siyah (#000)",
-      "🔧 setTheme tüm CSS değişkenlerini güncelliyor",
-      "🔧 loadSettings düzgün çalışıyor"
-    ]
-  },
-  {
-    version: "1.7.2",
-    date: "2026-03-18",
-    features: [
-      "🎯 Ortalanmış Layout — Sidebar + içerik ekranda ortalanmış",
-      "📏 Dinamik Font Size — Tüm yazılar ayara göre değişiyor",
-      "🎨 Gelişmiş Renk Sistemi — Tüm elementler vurgu rengini kullanıyor",
-      "🔄 Sticky Sidebar — Kaydırırken yerinde kalıyor"
-    ],
-    fixes: [
-      "🔧 Font-size artık tüm elementleri etkiliyor",
-      "🔧 Hardcoded rgba() değerleri CSS değişkenlerine dönüştürüldü",
-      "🔧 Dashboard container ile ortalama düzeltildi",
-      "🔧 Scrollbar rengi vurgu rengine bağlandı"
-    ]
-  },
-  {
-    version: "1.6.0",
-    date: "2026-03-18",
-    features: [
-      "🧵 Thread Sistemi — Çoklu yankı zincirleme (max 10)",
-      "💾 Taslak Sistemi — Yankıları kaydet, sonra paylaş",
-      "⏰ Zamanlı Gönderim — İstediğin zaman otomatik paylaş",
-      "📁 Koleksiyon Sistemi — Kayıtları organize et",
-      "🏰 Klan Sistemi — Takipçi seviyeleri ve rozetler",
-      "🧬 Kişilik DNA — İçerik analizi ve görselleştirme",
-      "💬 Gelişmiş DM — İki sütunlu layout, arama, sekmeler",
-      "📰 Akıllı Feed Algoritması — Kronolojik, Smart, Explore, Medya",
-      "🔔 Yeni Yankı Bandı — Kaçırılan yankıları gör",
-      "📊 Gelişmiş Profil — Stat kartları, medya grid, sekmeler",
-      "🎨 Yeni UI Tasarımı — DM Sans + Syne fontları",
-      "🌙 Gelişmiş Tema — Daha zengin renk paleti"
-    ],
-    fixes: [
-      "🔧 Sidebar yeniden tasarlandı (210px geniş, etiketli)",
-      "🔧 Profil sayfası tamamen yenilendi",
-      "🔧 Animasyonlar ve geçişler iyileştirildi",
-      "🔧 Responsive tasarım güncellemeleri"
-    ]
-  },
-  {
-    version: "1.5.2",
-    date: "2026-03-12",
-    features: [
-      "🧠 AI destekli akıllı botlar",
-      "💭 Botlar artık kişiliklerine göre düşünüyor",
-      "💬 Akıllı yorum sistemi - içeriğe göre yorum",
-      "📊 Gelişmiş admin paneli",
-      "🎭 Her bot için benzersiz kişilik"
-    ],
-    fixes: [
-      "🔧 UI tooltip kayma sorunu",
-      "🔧 Admin panel tasarım düzeltmeleri",
-      "🔧 Z-index hiyerarşisi düzenlendi",
-      "🔧 Emoji picker pozisyon hatası"
-    ]
-  },
-  {
-    version: "1.5.1",
-    date: "2026-03-12",
-    features: [],
-    fixes: [
-      "🔧 UI kutuları kayma sorunu",
-      "🔧 Tooltip z-index düzeltmesi",
-      "🔧 Modal ve popup düzeltmeleri"
-    ]
-  },
-  {
-    version: "1.5.0",
-    date: "2026-03-12",
-    features: [
-      "🤖 Bot simülasyon sistemi",
-      "👤 Admin hesabı ve paneli",
-      "💬 Özel mesajlaşma sistemi",
-      "📊 Admin istatistikleri",
-      "📝 Bot geri bildirim sistemi"
-    ],
-    fixes: []
-  }
+// ─── Bot Profiles ──────────────────────────────────────────────
+const BOT_PROFILES = [
+  { username: 'ayse_dev', displayName: 'Ayşe | Yazılımcı 👩‍💻', bio: 'Full-stack developer. React & Node.js', verified: true, personality: 'teknik', interests: ['yazılım', 'teknoloji'], mood: 'helpful', style: 'profesyonel' },
+  { username: 'mehmet_tasarim', displayName: 'Mehmet Tasarım 🎨', bio: 'UI/UX Designer | Figma', verified: true, personality: 'yaratıcı', interests: ['tasarım', 'sanat'], mood: 'inspiring', style: 'yaratıcı' },
+  { username: 'zeynep_muzik', displayName: 'Zeynep 🎵', bio: 'Müzisyen | Şarkı sözü yazarı', verified: false, personality: 'sanatsal', interests: ['müzik', 'sanat'], mood: 'dreamy', style: 'duygusal' },
+  { username: 'ahmet_foto', displayName: 'Ahmet | Fotoğrafçı 📸', bio: 'Doğa ve sokak fotoğrafçılığı', verified: true, personality: 'gözlemci', interests: ['fotoğraf', 'seyahat'], mood: 'calm', style: 'minimal' },
+  { username: 'elif_yazar', displayName: 'Elif Kalem ✍️', bio: 'Yazar | Hikaye anlatıcısı', verified: false, personality: 'hikayeci', interests: ['edebiyat', 'yazı'], mood: 'thoughtful', style: 'edebi' },
 ];
 
+// ─── Init Admin & Bots ─────────────────────────────────────────
+function initData() {
+  // Admin
+  if (!db.users.find(u => u.username === 'admin')) {
+    db.users.push({
+      id: 'admin_001', username: 'admin', password: 'admin123',
+      displayName: 'Admin', bio: '🔧 Yankuş Yöneticisi',
+      profileImage: null, bannerImage: null, verified: true, isAdmin: true,
+      createdAt: new Date().toISOString()
+    });
+  }
+  
+  // Bots
+  BOT_PROFILES.forEach((bot, i) => {
+    if (!db.users.find(u => u.username === bot.username)) {
+      db.users.push({
+        id: `bot_${i + 1}`, username: bot.username, password: 'bot123',
+        displayName: bot.displayName, bio: bot.bio,
+        profileImage: null, bannerImage: null, verified: bot.verified,
+        isBot: true, personality: bot.personality,
+        createdAt: new Date().toISOString()
+      });
+    }
+  });
+
+  // Sample Yankis
+  const sampleYankis = [
+    { userId: 'bot_1', text: 'React 19 çıktı! Yeni özellikler harika 🚀 #react #yazılım' },
+    { userId: 'bot_2', text: 'Bugünkü UI tasarımım nasıl olmuş? Figma ile yaptım ✨ #tasarım #ui' },
+    { userId: 'bot_3', text: 'Yeni şarkımı dinlediniz mi? Link bioda 🎵 #müzik #yenişarkı' },
+    { userId: 'bot_4', text: 'Kapadokya\'dan muhteşem bir gün batımı 🌅 #fotoğraf #kapadokya' },
+    { userId: 'bot_5', text: 'Yeni hikayem yayında! Okumak ister misiniz? ✍️ #edebiyat #hikaye' },
+  ];
+  
+  sampleYankis.forEach((y, i) => {
+    if (db.yankis.length < 5) {
+      db.yankis.push({
+        id: `yanki_${i + 1}`, ...y,
+        image: null, poll: null, deleted: false,
+        createdAt: new Date(Date.now() - i * 3600000).toISOString()
+      });
+    }
+  });
+}
+
+initData();
+
+// ─── Helper Functions ──────────────────────────────────────────
 const send = (res, status, data) => {
   res.writeHead(status, {
     'Content-Type': 'application/json',
@@ -121,150 +96,328 @@ const send = (res, status, data) => {
   res.end(JSON.stringify(data));
 };
 
-function startServer() {
-  const server = http.createServer((req, res) => {
-    if (req.method === 'OPTIONS') { send(res, 200, {}); return; }
+const enrichYanki = (y, viewerId) => {
+  const author = db.users.find(u => u.id === y.userId);
+  return {
+    ...y,
+    author: author ? { id: author.id, username: author.username, displayName: author.displayName, profileImage: author.profileImage, verified: author.verified, isBot: author.isBot } : null,
+    likes: db.likes.filter(l => l.yankiId === y.id).length,
+    comments: db.comments.filter(c => c.yankiId === y.id && !c.deleted).length,
+    isLiked: viewerId ? db.likes.some(l => l.yankiId === y.id && l.userId === viewerId) : false,
+    isSaved: viewerId ? db.saves.some(s => s.yankiId === y.id && s.userId === viewerId) : false
+  };
+};
 
-    const url = req.url.split('?')[0];
+// ─── API Handlers ──────────────────────────────────────────────
+const handlers = {
+  // Auth
+  register: (d) => {
+    const uname = (d.username || '').toLowerCase().replace('@', '').trim();
+    if (db.users.find(u => u.username === uname)) return { error: 'Bu kullanıcı adı alınmış' };
+    const user = {
+      id: Date.now().toString(), username: uname, password: d.password,
+      displayName: d.displayName || uname, bio: '', profileImage: null, bannerImage: null,
+      verified: false, isAdmin: false, isBot: false, createdAt: new Date().toISOString()
+    };
+    db.users.push(user);
+    return { success: true, user: { ...user, password: undefined } };
+  },
+  
+  login: (d) => {
+    const uname = (d.username || '').toLowerCase().replace('@', '').trim();
+    const user = db.users.find(u => u.username === uname && u.password === d.password);
+    if (!user) return { error: 'Kullanıcı adı veya şifre hatalı' };
+    if (user.banned) return { error: 'Hesabınız askıya alınmıştır' };
+    return { success: true, user: { ...user, password: undefined } };
+  },
 
-    // ─── GET ───────────────────────────────────────────────────
-    if (req.method === 'GET') {
-      if (url === '/ping')        return send(res, 200, { status: 'ok', version: app.getVersion() });
-      if (url === '/trending')    return send(res, 200, { trends: trending.getTrending(null) });
-      if (url === '/patchnotes')  return send(res, 200, { patchNotes });
+  // Profile
+  profile: (d) => {
+    const user = db.users.find(u => u.id === d.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    return {
+      ...user, password: undefined,
+      stats: {
+        yankis: db.yankis.filter(y => y.userId === d.userId && !y.deleted).length,
+        followers: db.follows.filter(f => f.followingId === d.userId).length,
+        following: db.follows.filter(f => f.followerId === d.userId).length
+      },
+      isFollowing: d.viewerId ? db.follows.some(f => f.followerId === d.viewerId && f.followingId === d.userId) : false
+    };
+  },
+
+  'profile/username': (d) => {
+    const user = db.users.find(u => u.username === (d.username || '').toLowerCase().replace('@', ''));
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    return handlers.profile({ userId: user.id, viewerId: d.viewerId });
+  },
+
+  'profile/update': (d) => {
+    const user = db.users.find(u => u.id === d.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    if (d.displayName) user.displayName = d.displayName;
+    if (d.bio !== undefined) user.bio = d.bio;
+    if (d.profileImage !== undefined) user.profileImage = d.profileImage;
+    if (d.bannerImage !== undefined) user.bannerImage = d.bannerImage;
+    return { success: true, user: { ...user, password: undefined } };
+  },
+
+  // Yankı
+  'yanki/create': (d) => {
+    if (!d.text?.trim() && !d.image) return { error: 'Boş yankı gönderilemez' };
+    const yanki = {
+      id: 'y_' + Date.now(), userId: d.userId, text: d.text?.trim() || '',
+      image: d.image || null, poll: d.poll || null, deleted: false,
+      createdAt: new Date().toISOString()
+    };
+    db.yankis.unshift(yanki);
+    return { success: true, yanki: enrichYanki(yanki, d.userId) };
+  },
+
+  feed: (d) => {
+    const followingIds = db.follows.filter(f => f.followerId === d.userId).map(f => f.followingId);
+    followingIds.push(d.userId);
+    const yankis = db.yankis
+      .filter(y => !y.deleted && followingIds.includes(y.userId))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, d.limit || 50)
+      .map(y => enrichYanki(y, d.userId));
+    return { yankis };
+  },
+
+  explore: (d) => {
+    const yankis = db.yankis
+      .filter(y => !y.deleted)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, d.limit || 50)
+      .map(y => enrichYanki(y, d.viewerId));
+    return { yankis };
+  },
+
+  yankis: (d) => {
+    const yankis = db.yankis
+      .filter(y => !y.deleted && (!d.userId || y.userId === d.userId))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, d.limit || 50)
+      .map(y => enrichYanki(y, d.viewerId));
+    return { yankis };
+  },
+
+  'yanki/like': (d) => {
+    const exists = db.likes.find(l => l.userId === d.userId && l.yankiId === d.yankiId);
+    if (exists) {
+      db.likes = db.likes.filter(l => !(l.userId === d.userId && l.yankiId === d.yankiId));
+      return { success: true, liked: false };
     }
+    db.likes.push({ userId: d.userId, yankiId: d.yankiId, createdAt: new Date().toISOString() });
+    return { success: true, liked: true };
+  },
 
-    // ─── POST ──────────────────────────────────────────────────
-    if (req.method === 'POST') {
-      let body = '';
-      req.on('data', c => body += c);
-      req.on('end', () => {
-        try {
-          const d = JSON.parse(body);
+  'yanki/save': (d) => {
+    const exists = db.saves.find(s => s.userId === d.userId && s.yankiId === d.yankiId);
+    if (exists) {
+      db.saves = db.saves.filter(s => !(s.userId === d.userId && s.yankiId === d.yankiId));
+      return { success: true, saved: false };
+    }
+    db.saves.push({ userId: d.userId, yankiId: d.yankiId, createdAt: new Date().toISOString() });
+    return { success: true, saved: true };
+  },
 
-          // Auth
-          if (url === '/register') return send(res, 200, users.register(d.username, d.password, d.displayName));
-          if (url === '/login')    return send(res, 200, users.login(d.username, d.password));
+  // Follow
+  follow: (d) => {
+    if (d.followerId === d.followingId) return { error: 'Kendinizi takip edemezsiniz' };
+    const exists = db.follows.find(f => f.followerId === d.followerId && f.followingId === d.followingId);
+    if (exists) {
+      db.follows = db.follows.filter(f => !(f.followerId === d.followerId && f.followingId === d.followingId));
+      return { success: true, following: false };
+    }
+    db.follows.push({ followerId: d.followerId, followingId: d.followingId, createdAt: new Date().toISOString() });
+    return { success: true, following: true };
+  },
 
-          // Profil
-          if (url === '/profile')           return send(res, 200, users.getProfile(d.userId, d.viewerId));
-          if (url === '/profile/username')  return send(res, 200, users.getProfileByUsername(d.username, d.viewerId));
-          if (url === '/profile/update')    return send(res, 200, users.updateProfile(d.userId, d));
-          if (url === '/followers')         return send(res, 200, { followers: users.getFollowers(d.userId) });
-          if (url === '/following')         return send(res, 200, { following: users.getFollowing(d.userId) });
-          if (url === '/follow')            return send(res, 200, users.follow(d.followerId, d.followingId));
-          if (url === '/block')             return send(res, 200, users.block(d.blockerId, d.blockedId));
-          if (url === '/blocked')           return send(res, 200, { users: users.getBlocked(d.userId) });
+  followers: (d) => {
+    const ids = db.follows.filter(f => f.followingId === d.userId).map(f => f.followerId);
+    return { followers: db.users.filter(u => ids.includes(u.id)).map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage, verified: u.verified })) };
+  },
 
-          // Yankı
-          if (url === '/yanki/create')  return send(res, 200, yanki.createYanki(d.userId, d.text, d.image, d.poll, d.reyanki));
-          if (url === '/yanki')         return send(res, 200, yanki.getYanki(d.yankiId, d.viewerId));
-          if (url === '/yanki/like')    return send(res, 200, yanki.likeYanki(d.userId, d.yankiId));
-          if (url === '/yanki/save')    return send(res, 200, yanki.saveYanki(d.userId, d.yankiId));
-          if (url === '/yanki/delete')  return send(res, 200, yanki.deleteYanki(d.userId, d.yankiId));
-          if (url === '/yanki/pin')     return send(res, 200, yanki.pinYanki(d.userId, d.yankiId));
-          if (url === '/yankis')        return send(res, 200, { yankis: yanki.getYankis(d.userId, d.viewerId, d.limit) });
-          if (url === '/feed')          return send(res, 200, { yankis: yanki.getFeed(d.userId, d.limit, d.algo || 'chrono') });
-          if (url === '/explore')       return send(res, 200, { yankis: yanki.getYankis(null, d.viewerId, d.limit || 50) });
+  following: (d) => {
+    const ids = db.follows.filter(f => f.followerId === d.userId).map(f => f.followingId);
+    return { following: db.users.filter(u => ids.includes(u.id)).map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage, verified: u.verified })) };
+  },
 
-          // Kayıt & Koleksiyonlar
-          if (url === '/yankis/saved')          return send(res, 200, { yankis: yanki.getSavedYankis(d.userId, d.sortBy, d.collectionId, d.search) });
-          if (url === '/collections/get')       return send(res, 200, { collections: yanki.getCollections(d.userId) });
-          if (url === '/collection/create')     return send(res, 200, yanki.createCollection(d.userId, d.name, d.emoji));
-          if (url === '/collection/rename')     return send(res, 200, yanki.renameCollection(d.userId, d.collectionId, d.name, d.emoji));
-          if (url === '/collection/delete')     return send(res, 200, yanki.deleteCollection(d.userId, d.collectionId));
-          if (url === '/collection/toggle-item')return send(res, 200, yanki.toggleCollectionItem(d.userId, d.collectionId, d.yankiId));
-          if (url === '/collection/item-cols')  return send(res, 200, { colIds: yanki.getItemCollectionIds(d.userId, d.yankiId) });
-          if (url === '/save/note')             return send(res, 200, yanki.setSaveNote(d.userId, d.yankiId, d.note));
-          if (url === '/saves/bulk-delete')     return send(res, 200, yanki.bulkUnsave(d.userId, d.yankiIds));
+  // Comments
+  'comment/create': (d) => {
+    const comment = {
+      id: 'c_' + Date.now(), userId: d.userId, yankiId: d.yankiId,
+      text: d.text, deleted: false, createdAt: new Date().toISOString()
+    };
+    db.comments.push(comment);
+    return { success: true, comment };
+  },
 
-          // Anket & Yorum
-          if (url === '/poll/vote')      return send(res, 200, yanki.votePoll(d.userId, d.pollId, d.optionId));
-          if (url === '/comment/create') return send(res, 200, yanki.addComment(d.userId, d.yankiId, d.text, d.replyToId));
-          if (url === '/comments')       return send(res, 200, { comments: yanki.getComments(d.yankiId) });
-
-          // Thread / Taslak / Zamanlı
-          if (url === '/thread/create')   return send(res, 200, yanki.createThread(d.userId, d.items));
-          if (url === '/draft/save')      return send(res, 200, yanki.saveDraftFn(d.userId, d.text, d.image, d.poll, d.threadItems));
-          if (url === '/draft/list')      return send(res, 200, { drafts: yanki.getDrafts(d.userId) });
-          if (url === '/draft/delete')    return send(res, 200, yanki.deleteDraft(d.userId, d.draftId));
-          if (url === '/schedule/create') return send(res, 200, yanki.scheduleYankiFn(d.userId, d.text, d.image, d.poll, d.threadItems, d.scheduledAt));
-          if (url === '/schedule/list')   return send(res, 200, { scheduled: yanki.getScheduled(d.userId) });
-          if (url === '/schedule/cancel') return send(res, 200, yanki.cancelScheduled(d.userId, d.schedId));
-
-          // Arama & Hashtag
-          if (url === '/search')       return send(res, 200, yanki.search(d.query, d.type || 'all', d.viewerId));
-          if (url === '/hashtag')      return send(res, 200, { yankis: yanki.getHashtagYankis(d.hashtag, d.viewerId, d.limit) });
-          if (url === '/hashtag/info') return send(res, 200, yanki.getHashtagInfo(d.hashtag));
-
-          // Trend & Keşif
-          if (url === '/trending/advanced')        return send(res, 200, { trends: trending.getTrendingAdvanced(d.userId) });
-          if (url === '/explore/trending-yankis')  return send(res, 200, { yankis: trending.getTrendingYankis(d.viewerId, d.limit || 10) });
-          if (url === '/explore/suggested-users')  return send(res, 200, { users: users.getSuggestedUsers(d.userId, d.limit || 6) });
-
-          // Bildirimler
-          if (url === '/notifications')       return send(res, 200, { notifications: notif.getNotifications(d.userId, d.filter, d.onlyUnread), unreadCount: notif.unreadCount(d.userId) });
-          if (url === '/notifications/read')  return send(res, 200, notif.markRead(d.userId));
-          if (url === '/notifications/read-one') return send(res, 200, notif.markOneRead(d.userId, d.notifId));
-          if (url === '/notifications/clear') return send(res, 200, notif.clearNotifications(d.userId));
-
-          // Mesajlar
-          if (url === '/messages/send')          return send(res, 200, messages.sendMessage(d.fromUserId, d.toUserId, d.text, d.replyTo, d.image));
-          if (url === '/messages/delete')        return send(res, 200, messages.deleteMessage(d.userId, d.msgId));
-          if (url === '/messages/react')         return send(res, 200, messages.reactMessage(d.userId, d.msgId, d.emoji));
-          if (url === '/messages/read')          return send(res, 200, messages.markMessagesRead(d.userId, d.otherId));
-          if (url === '/messages/search')        return send(res, 200, messages.searchConversations(d.userId, d.query));
-          if (url === '/messages/conversations') return send(res, 200, { conversations: messages.getConversations(d.userId) });
-          if (url === '/messages/get')           return send(res, 200, { messages: messages.getMessages(d.userId, d.otherId) });
-
-          // İletişim & Klan & DNA
-          if (url === '/contact') return send(res, 200, clanDna.submitContact(d.userId, d.subject, d.message, d.email));
-          if (url === '/clan')    return send(res, 200, clanDna.getClanInfo(d.userId));
-          if (url === '/dna')     return send(res, 200, clanDna.getPersonalityDNA(d.userId));
-
-          // Admin — temel
-          if (url === '/admin/stats')          return send(res, 200, admin.getAdminStats());
-          if (url === '/admin/bots')           return send(res, 200, { bots: admin.getBotList() });
-          if (url === '/admin/feedback')       return send(res, 200, { feedback: admin.getFeedback() });
-          if (url === '/admin/feedback/read')  return send(res, 200, admin.markFeedbackRead(d.feedbackId));
-          if (url === '/admin/bot/toggle')     return send(res, 200, isRunning() ? (stopBotSimulation(), { running: false }) : (startBotSimulation(), { running: true }));
-          if (url === '/admin/bot/trigger')    return send(res, 200, triggerBotAction(d.action, d.botId));
-
-          // Admin — kullanıcı yönetimi
-          if (url === '/admin/users')          return send(res, 200, { users: admin.adminGetUsers(d.filter, d.search) });
-          if (url === '/admin/user/detail')    return send(res, 200, admin.adminGetUserDetail(d.userId));
-          if (url === '/admin/user/ban')       return send(res, 200, admin.adminBanUser(d.userId, d.ban !== false));
-          if (url === '/admin/user/delete')    return send(res, 200, admin.adminDeleteUser(d.userId));
-          if (url === '/admin/user/make-admin')return send(res, 200, admin.adminMakeAdmin(d.userId, d.makeAdmin !== false));
-
-          // Admin — içerik moderasyonu
-          if (url === '/admin/yankis/recent')      return send(res, 200, { yankis: admin.adminGetRecentYankis(d.limit, d.search) });
-          if (url === '/admin/yanki/delete')       return send(res, 200, admin.adminDeleteYanki(d.yankiId));
-          if (url === '/admin/yankis/bulk-delete') return send(res, 200, admin.adminBulkDeleteYankis(d.yankiIds));
-          if (url === '/admin/reports')            return send(res, 200, { reports: admin.adminGetReports() });
-          if (url === '/admin/yanki/report')       return send(res, 200, admin.adminReportYanki(d.yankiId, d.reporterId));
-
-          // Admin — analitik
-          if (url === '/admin/analytics') return send(res, 200, admin.adminGetAnalytics());
-
-          send(res, 404, { error: 'Bulunamadı' });
-        } catch (e) {
-          send(res, 500, { error: e.message });
-        }
+  comments: (d) => {
+    const comments = db.comments
+      .filter(c => c.yankiId === d.yankiId && !c.deleted)
+      .map(c => {
+        const author = db.users.find(u => u.id === c.userId);
+        return { ...c, author: author ? { id: author.id, username: author.username, displayName: author.displayName, profileImage: author.profileImage, verified: author.verified } : null };
       });
-      return;
-    }
+    return { comments };
+  },
 
-    send(res, 404, { error: 'Bulunamadı' });
-  });
+  // Notifications
+  notifications: (d) => {
+    return { notifications: db.notifications.filter(n => n.userId === d.userId).slice(0, 50), unreadCount: db.notifications.filter(n => n.userId === d.userId && !n.read).length };
+  },
 
-  return new Promise((resolve) => {
-    server.listen(3000, () => {
-      console.log('Yankuş: http://localhost:3000');
-      setInterval(processScheduled, 60000);
-      resolve();
+  'notifications/read': (d) => {
+    db.notifications.filter(n => n.userId === d.userId).forEach(n => n.read = true);
+    return { success: true };
+  },
+
+  // Messages
+  'messages/conversations': (d) => {
+    const userMsgs = db.messages.filter(m => (m.fromUserId === d.userId || m.toUserId === d.userId) && !m.deleted);
+    const convos = {};
+    userMsgs.forEach(m => {
+      const otherId = m.fromUserId === d.userId ? m.toUserId : m.fromUserId;
+      if (!convos[otherId] || new Date(m.createdAt) > new Date(convos[otherId].createdAt)) {
+        convos[otherId] = m;
+      }
     });
-  });
-}
+    return {
+      conversations: Object.entries(convos).map(([oderId, msg]) => {
+        const other = db.users.find(u => u.id === oderId);
+        return { userId: oderId, displayName: other?.displayName, username: other?.username, profileImage: other?.profileImage, lastMessage: msg };
+      })
+    };
+  },
 
-module.exports = { startServer };
+  'messages/get': (d) => {
+    return {
+      messages: db.messages
+        .filter(m => (m.fromUserId === d.userId && m.toUserId === d.otherId) || (m.fromUserId === d.otherId && m.toUserId === d.userId))
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    };
+  },
+
+  'messages/send': (d) => {
+    const msg = {
+      id: 'msg_' + Date.now(), fromUserId: d.fromUserId, toUserId: d.toUserId,
+      text: d.text, deleted: false, read: false, createdAt: new Date().toISOString()
+    };
+    db.messages.push(msg);
+    return { success: true, message: msg };
+  },
+
+  // Trending
+  trending: () => {
+    const counts = {};
+    db.yankis.filter(y => !y.deleted).forEach(y => {
+      (y.text?.match(/#[\wğüşıöçĞÜŞİÖÇ]+/gi) || []).forEach(tag => {
+        counts[tag.toLowerCase()] = (counts[tag.toLowerCase()] || 0) + 1;
+      });
+    });
+    const trends = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([tag, count], i) => ({ rank: i + 1, topic: tag, count: count + ' yankı' }));
+    if (trends.length < 3) {
+      trends.push({ rank: trends.length + 1, topic: '#yankuş', count: 'Yeni' });
+      trends.push({ rank: trends.length + 1, topic: '#merhaba', count: 'Popüler' });
+    }
+    return { trends };
+  },
+
+  // Admin Stats
+  'admin/stats': () => ({
+    totalUsers: db.users.filter(u => !u.isBot && !u.isAdmin).length,
+    totalBots: db.users.filter(u => u.isBot).length,
+    totalYankis: db.yankis.filter(y => !y.deleted).length,
+    totalComments: db.comments.filter(c => !c.deleted).length,
+    totalLikes: db.likes.length,
+    totalFollows: db.follows.length
+  }),
+
+  // Clan
+  clan: (d) => {
+    const followerCount = db.follows.filter(f => f.followingId === d.userId).length;
+    const tiers = [
+      { min: 0, max: 4, name: 'Yalnız Gezgin', icon: '🏕️' },
+      { min: 5, max: 19, name: 'Küçük Köy', icon: '🏘️' },
+      { min: 20, max: 49, name: 'Kasaba', icon: '🏙️' },
+      { min: 50, max: 99, name: 'Şehir', icon: '🌆' },
+      { min: 100, max: 249, name: 'Büyük Şehir', icon: '🌃' },
+      { min: 250, max: 499, name: 'Metropol', icon: '🌇' },
+      { min: 500, max: 999, name: 'İmparatorluk', icon: '👑' },
+      { min: 1000, max: Infinity, name: 'Efsane', icon: '⚡' },
+    ];
+    const tier = tiers.find(t => followerCount >= t.min && followerCount <= t.max) || tiers[0];
+    return { followerCount, tier };
+  },
+
+  // DNA
+  dna: (d) => {
+    const yankis = db.yankis.filter(y => y.userId === d.userId && !y.deleted);
+    return { totalYankis: yankis.length, dna: [], topTopics: [] };
+  }
+};
+
+// ─── Request Handler ───────────────────────────────────────────
+const handleRequest = (req, res) => {
+  // CORS
+  if (req.method === 'OPTIONS') {
+    return send(res, 200, {});
+  }
+
+  const url = req.url.split('?')[0];
+
+  // Serve static files
+  if (req.method === 'GET' && (url === '/' || url === '/index.html')) {
+    const filePath = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(filePath)) {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      return res.end(fs.readFileSync(filePath));
+    }
+  }
+
+  // API: GET
+  if (req.method === 'GET') {
+    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.7.3' });
+    if (url === '/trending') return send(res, 200, handlers.trending());
+  }
+
+  // API: POST
+  if (req.method === 'POST') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      try {
+        const d = JSON.parse(body || '{}');
+        const route = url.replace(/^\//, '');
+        
+        if (handlers[route]) {
+          return send(res, 200, handlers[route](d));
+        }
+        
+        send(res, 404, { error: 'Bulunamadı' });
+      } catch (e) {
+        send(res, 500, { error: e.message });
+      }
+    });
+    return;
+  }
+
+  send(res, 404, { error: 'Bulunamadı' });
+};
+
+// ─── Server ────────────────────────────────────────────────────
+const server = http.createServer(handleRequest);
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🐦 Yankuş: http://localhost:${PORT}`);
+});
+
+// Vercel serverless export
+module.exports = handleRequest;

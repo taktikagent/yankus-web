@@ -50,7 +50,3 @@ node server.js
 ---
 
 Made with ❤️ by Yankuş Team
-
----
-
-Made with ❤️ by Yankuş Team
