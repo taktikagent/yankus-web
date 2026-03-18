@@ -1,97 +1,55 @@
-# 🐦 Yankuş Web v1.6.0
+# 🐦 Yankuş Web v1.7.3
 
 Yerli Sosyal Medya Platformu - **Sesin Yankılansın!**
+
+## ✨ v1.7.3 Yenilikler
+
+- 🌓 **Tema Düzeltmesi** — Koyu/Açık/AMOLED tam çalışıyor
+- 🎨 **Renk Sistemi** — Vurgu rengi tüm UI'ı güncelliyor
+- 📏 **Dinamik Font** — Yazı boyutu ayarlanabilir
+- 🎯 **Ortalanmış Layout** — Sidebar + içerik ekranda ortalanmış
 
 ## 🚀 Hızlı Başlangıç
 
 ### Yerel Çalıştırma
 
 ```bash
-# Klasöre git
 cd yankus-web
-
-# Başlat
 node server.js
-
-# Tarayıcıda aç
 # http://localhost:3000
 ```
 
-### Ücretsiz Hosting Seçenekleri
+### Ücretsiz Hosting
 
-#### 1. Railway (Önerilen)
-1. https://railway.app'e git
-2. GitHub'dan repo'yu bağla
-3. Deploy et - otomatik!
+#### 1. Vercel (Önerilen)
+1. https://vercel.com → GitHub ile giriş
+2. "Add New Project" → yankus-web seç
+3. Root Directory: public
+4. Deploy!
 
-#### 2. Render
-1. https://render.com'a git
-2. "New Web Service" → GitHub repo
-3. Build: `npm install`, Start: `npm start`
+#### 2. Netlify
+1. https://netlify.com → "Add new site"
+2. public klasörünü sürükle bırak
 
-#### 3. Vercel
-1. https://vercel.com'a git
-2. `vercel.json` ekle:
-```json
-{
-  "builds": [{"src": "server.js", "use": "@vercel/node"}],
-  "routes": [{"src": "/(.*)", "dest": "server.js"}]
-}
-```
-
-#### 4. Glitch
-1. https://glitch.com'a git
-2. "New Project" → "Import from GitHub"
+#### 3. GitHub Pages
+1. Settings → Pages
+2. Source: main branch, /public folder
 
 ## 📱 PWA Özellikleri
 
 - ✅ Ana ekrana ekleme
 - ✅ Offline temel destek
-- ✅ Push bildirim altyapısı
 - ✅ Standalone uygulama görünümü
 
-## 📁 Dosya Yapısı
+## 🎮 Test Hesapları
 
-```
-yankus-web/
-├── server.js           # Ana sunucu
-├── package.json
-├── public/
-│   ├── index.html      # Frontend
-│   ├── manifest.webmanifest
-│   ├── sw.js           # Service Worker
-│   └── assets/
-│       ├── icon-192.png
-│       └── icon-512.png
-└── src/
-    ├── admin/
-    ├── api/
-    ├── bots/
-    ├── db/
-    └── modules/
-```
+| Kullanıcı | Şifre |
+|-----------|-------|
+| admin | admin123 |
 
-## ⚙️ Ortam Değişkenleri
+---
 
-| Değişken | Varsayılan | Açıklama |
-|----------|------------|----------|
-| PORT | 3000 | Sunucu portu |
-
-## 🔧 API Endpoints
-
-Tüm Electron versiyonundaki endpoint'ler aynen çalışır.
-
-## 📝 Notlar
-
-- Veritabanı bellekte tutulur (sunucu yeniden başlatılınca sıfırlanır)
-- Kalıcı veri için MongoDB/PostgreSQL eklenebilir
-- Bot simülasyonu otomatik başlar
-
-## 🎨 İkon Oluşturma
-
-`public/assets/` klasörüne şu ikonları ekle:
-- `icon-192.png` (192x192 px)
-- `icon-512.png` (512x512 px)
+Made with ❤️ by Yankuş Team
 
 ---
 
