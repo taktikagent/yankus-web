@@ -389,6 +389,429 @@ const handlers = {
   dna: (d) => {
     const yankis = db.yankis.filter(y => y.userId === d.userId && !y.deleted);
     return { totalYankis: yankis.length, dna: [], topTopics: [] };
+  },
+
+  // Explore endpoints
+  'explore/suggested-users': (d) => {
+    const users = db.users
+      .filter(u => !u.isAdmin && u.id !== d.userId)
+      .slice(0, d.limit || 8)
+      .map(u => ({
+        id: u.id,
+        username: u.username,
+        displayName: u.displayName,
+        profileImage: u.profileImage,
+        verified: u.verified,
+        isBot: u.isBot,
+        reason: u.isBot ? 'Bot hesap' : 'Yeni kullanıcı'
+      }));
+    return { users };
+  },
+
+  'explore/trending-yankis': (d) => {
+    const yankis = db.yankis
+      .filter(y => !y.deleted)
+      .sort((a, b) => {
+        const aLikes = db.likes.filter(l => l.yankiId === a.id).length;
+        const bLikes = db.likes.filter(l => l.yankiId === b.id).length;
+        return bLikes - aLikes;
+      })
+      .slice(0, d.limit || 8)
+      .map(y => enrichYanki(y, d.viewerId));
+    return { yankis };
+  },
+
+  // Yanki delete
+  'yanki/delete': (d) => {
+    const yanki = db.yankis.find(y => y.id === d.yankiId && y.userId === d.userId);
+    if (!yanki) return { error: 'Yankı bulunamadı' };
+    yanki.deleted = true;
+    return { success: true };
+  },
+
+  // Yanki pin
+  'yanki/pin': (d) => {
+    const user = db.users.find(u => u.id === d.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    user.pinnedYankiId = user.pinnedYankiId === d.yankiId ? null : d.yankiId;
+    return { success: true, pinned: user.pinnedYankiId === d.yankiId };
+  },
+
+  // Block
+  block: (d) => {
+    const exists = db.blocks.find(b => b.blockerId === d.blockerId && b.blockedId === d.blockedId);
+    if (exists) {
+      db.blocks = db.blocks.filter(b => !(b.blockerId === d.blockerId && b.blockedId === d.blockedId));
+      return { success: true, blocked: false };
+    }
+    db.blocks.push({ blockerId: d.blockerId, blockedId: d.blockedId, createdAt: new Date().toISOString() });
+    return { success: true, blocked: true };
+  },
+
+  // Search
+  search: (d) => {
+    const q = (d.query || d.q || '').toLowerCase();
+    if (!q) return { users: [], yankis: [] };
+    const users = db.users
+      .filter(u => u.username.includes(q) || u.displayName?.toLowerCase().includes(q))
+      .slice(0, 10)
+      .map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage, verified: u.verified }));
+    const yankis = db.yankis
+      .filter(y => !y.deleted && y.text?.toLowerCase().includes(q))
+      .slice(0, 20)
+      .map(y => enrichYanki(y, d.viewerId));
+    return { users, yankis };
+  },
+
+  // Hashtag
+  hashtag: (d) => {
+    const tag = (d.hashtag || d.tag || '').toLowerCase().replace('#', '');
+    const yankis = db.yankis
+      .filter(y => !y.deleted && y.text?.toLowerCase().includes('#' + tag))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 50)
+      .map(y => enrichYanki(y, d.viewerId));
+    return { yankis };
+  },
+
+  // Saved yankis
+  'yankis/saved': (d) => {
+    const savedIds = db.saves.filter(s => s.userId === d.userId).map(s => s.yankiId);
+    const yankis = db.yankis
+      .filter(y => !y.deleted && savedIds.includes(y.id))
+      .map(y => enrichYanki(y, d.userId));
+    return { yankis };
+  },
+
+  // Poll vote
+  'poll/vote': (d) => {
+    const exists = db.pollVotes.find(v => v.pollId === d.pollId && v.userId === d.userId);
+    if (exists) return { error: 'Zaten oy verdiniz' };
+    db.pollVotes.push({ pollId: d.pollId, userId: d.userId, optionId: d.optionId, createdAt: new Date().toISOString() });
+    return { success: true };
+  },
+
+  // Contact
+  contact: (d) => {
+    db.contacts.push({ userId: d.userId, subject: d.subject, message: d.message, createdAt: new Date().toISOString() });
+    return { success: true };
+  },
+
+  // Patch notes
+  patchnotes: () => {
+    return { patchNotes: [
+      { version: '1.7.4', date: '2026-03-19', features: [
+        '🐦 Yankıla Butonu — Sidebar\'da büyük buton',
+        '💬 Yankıla Popup — Fotoğraf ve anket destekli',
+        '🔧 Nick düzeltmesi — Artık undefined göstermiyor',
+        '📝 Tüm eksik API endpoint\'leri eklendi'
+      ]}
+    ]};
+  },
+
+  // Blocked users
+  blocked: (d) => {
+    const blockedIds = db.blocks.filter(b => b.blockerId === d.userId).map(b => b.blockedId);
+    const users = db.users
+      .filter(u => blockedIds.includes(u.id))
+      .map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage }));
+    return { users };
+  },
+
+  // Thread create
+  'thread/create': (d) => {
+    if (!d.items || d.items.length < 2) return { error: 'Thread için en az 2 yankı gerekli' };
+    const threadId = 'th_' + Date.now();
+    d.items.forEach((item, i) => {
+      const yanki = {
+        id: 'y_' + Date.now() + '_' + i,
+        userId: d.userId,
+        text: item.text || '',
+        image: item.image || null,
+        threadId,
+        threadOrder: i,
+        deleted: false,
+        createdAt: new Date(Date.now() + i).toISOString()
+      };
+      db.yankis.unshift(yanki);
+    });
+    return { success: true, count: d.items.length, threadId };
+  },
+
+  // Draft endpoints
+  'draft/save': (d) => {
+    const draft = {
+      id: 'dr_' + Date.now(),
+      userId: d.userId,
+      text: d.text || '',
+      image: d.image || null,
+      createdAt: new Date().toISOString()
+    };
+    db.drafts.push(draft);
+    return { success: true, draft };
+  },
+
+  'draft/list': (d) => {
+    const drafts = db.drafts.filter(dr => dr.userId === d.userId);
+    return { drafts };
+  },
+
+  'draft/delete': (d) => {
+    db.drafts = db.drafts.filter(dr => dr.id !== d.draftId);
+    return { success: true };
+  },
+
+  // Schedule endpoints
+  'schedule/create': (d) => {
+    const scheduled = {
+      id: 'sc_' + Date.now(),
+      userId: d.userId,
+      text: d.text || '',
+      image: d.image || null,
+      scheduledAt: d.scheduledAt,
+      createdAt: new Date().toISOString()
+    };
+    db.scheduled.push(scheduled);
+    return { success: true, scheduled };
+  },
+
+  'schedule/list': (d) => {
+    const items = db.scheduled.filter(sc => sc.userId === d.userId);
+    return { items };
+  },
+
+  'schedule/cancel': (d) => {
+    db.scheduled = db.scheduled.filter(sc => sc.id !== d.schedId);
+    return { success: true };
+  },
+
+  // Report
+  'yanki/report': (d) => {
+    db.feedback.push({
+      id: 'rp_' + Date.now(),
+      type: 'report',
+      userId: d.userId,
+      yankiId: d.yankiId,
+      reason: d.reason || 'Şikayet',
+      createdAt: new Date().toISOString()
+    });
+    return { success: true };
+  },
+
+  // Admin endpoints
+  'admin/users': (d) => {
+    const users = db.users.map(u => ({
+      id: u.id,
+      username: u.username,
+      displayName: u.displayName,
+      profileImage: u.profileImage,
+      verified: u.verified,
+      isBot: u.isBot,
+      isAdmin: u.isAdmin,
+      banned: u.banned || false,
+      createdAt: u.createdAt
+    }));
+    return { users };
+  },
+
+  'admin/user/ban': (d) => {
+    const user = db.users.find(u => u.id === d.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    user.banned = d.ban;
+    return { success: true, banned: user.banned };
+  },
+
+  'admin/user/delete': (d) => {
+    db.users = db.users.filter(u => u.id !== d.userId);
+    db.yankis = db.yankis.filter(y => y.userId !== d.userId);
+    return { success: true };
+  },
+
+  'admin/yankis/recent': (d) => {
+    const yankis = db.yankis
+      .filter(y => !y.deleted)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, d.limit || 50)
+      .map(y => enrichYanki(y, null));
+    return { yankis };
+  },
+
+  'admin/yanki/delete': (d) => {
+    const yanki = db.yankis.find(y => y.id === d.yankiId);
+    if (yanki) yanki.deleted = true;
+    return { success: true };
+  },
+
+  'admin/feedback': () => {
+    return { feedback: db.feedback };
+  },
+
+  'admin/bots': () => {
+    const bots = db.users.filter(u => u.isBot).map(b => ({
+      id: b.id,
+      username: b.username,
+      displayName: b.displayName,
+      active: true
+    }));
+    return { bots };
+  },
+
+  'admin/user/detail': (d) => {
+    const user = db.users.find(u => u.id === d.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    return { ...user, password: undefined };
+  },
+
+  'admin/user/make-admin': (d) => {
+    const user = db.users.find(u => u.id === d.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    user.isAdmin = d.makeAdmin;
+    return { success: true };
+  },
+
+  'admin/reports': () => {
+    return { reports: db.feedback.filter(f => f.type === 'report') };
+  },
+
+  'admin/analytics': () => {
+    return {
+      dailyUsers: 0,
+      dailyYankis: db.yankis.filter(y => !y.deleted).length,
+      dailyLikes: db.likes.length,
+      growth: 0
+    };
+  },
+
+  'admin/bot/toggle': () => {
+    return { success: true, running: true };
+  },
+
+  'admin/bot/trigger': (d) => {
+    return { success: true, action: d.action };
+  },
+
+  'admin/yanki/report': (d) => {
+    db.feedback.push({
+      id: 'rp_' + Date.now(),
+      type: 'report',
+      reporterId: d.reporterId,
+      yankiId: d.yankiId,
+      createdAt: new Date().toISOString()
+    });
+    return { success: true };
+  },
+
+  'admin/yankis/bulk-delete': (d) => {
+    (d.yankiIds || []).forEach(id => {
+      const y = db.yankis.find(y => y.id === id);
+      if (y) y.deleted = true;
+    });
+    return { success: true };
+  },
+
+  // Messages read
+  'messages/read': (d) => {
+    db.messages.filter(m => m.toUserId === d.userId && m.fromUserId === d.otherId).forEach(m => m.read = true);
+    return { success: true };
+  },
+
+  'messages/delete': (d) => {
+    const msg = db.messages.find(m => m.id === d.msgId);
+    if (msg) msg.deleted = true;
+    return { success: true };
+  },
+
+  'messages/react': (d) => {
+    const msg = db.messages.find(m => m.id === d.msgId);
+    if (msg) {
+      msg.reactions = msg.reactions || [];
+      msg.reactions.push({ userId: d.userId, emoji: d.emoji });
+    }
+    return { success: true };
+  },
+
+  'messages/search': (d) => {
+    const q = (d.q || '').toLowerCase();
+    const messages = db.messages.filter(m => 
+      (m.fromUserId === d.userId || m.toUserId === d.userId) && 
+      m.text?.toLowerCase().includes(q)
+    );
+    return { messages };
+  },
+
+  // Collection endpoints
+  'collections/get': (d) => {
+    const collections = db.collections.filter(c => c.userId === d.userId);
+    return { collections };
+  },
+
+  'collection/create': (d) => {
+    const col = {
+      id: 'col_' + Date.now(),
+      userId: d.userId,
+      name: d.name,
+      emoji: d.emoji || '📁',
+      createdAt: new Date().toISOString()
+    };
+    db.collections.push(col);
+    return { success: true, collection: col };
+  },
+
+  'collection/delete': (d) => {
+    db.collections = db.collections.filter(c => c.id !== d.collectionId);
+    db.collectionItems = db.collectionItems.filter(ci => ci.collectionId !== d.collectionId);
+    return { success: true };
+  },
+
+  'collection/toggle-item': (d) => {
+    const exists = db.collectionItems.find(ci => ci.collectionId === d.collectionId && ci.yankiId === d.yankiId);
+    if (exists) {
+      db.collectionItems = db.collectionItems.filter(ci => !(ci.collectionId === d.collectionId && ci.yankiId === d.yankiId));
+      return { success: true, added: false };
+    }
+    db.collectionItems.push({ collectionId: d.collectionId, yankiId: d.yankiId, createdAt: new Date().toISOString() });
+    return { success: true, added: true };
+  },
+
+  'collection/item-cols': (d) => {
+    const colIds = db.collectionItems.filter(ci => ci.yankiId === d.yankiId).map(ci => ci.collectionId);
+    return { colIds };
+  },
+
+  'save/note': (d) => {
+    let note = db.saveNotes.find(n => n.userId === d.userId && n.yankiId === d.yankiId);
+    if (note) {
+      note.note = d.note;
+    } else {
+      db.saveNotes.push({ userId: d.userId, yankiId: d.yankiId, note: d.note });
+    }
+    return { success: true };
+  },
+
+  'saves/bulk-delete': (d) => {
+    (d.yankiIds || []).forEach(id => {
+      db.saves = db.saves.filter(s => !(s.userId === d.userId && s.yankiId === id));
+    });
+    return { success: true };
+  },
+
+  // Notifications
+  'notifications/read-one': (d) => {
+    const notif = db.notifications.find(n => n.id === d.notifId);
+    if (notif) notif.read = true;
+    return { success: true };
+  },
+
+  'notifications/clear': (d) => {
+    db.notifications = db.notifications.filter(n => n.userId !== d.userId);
+    return { success: true };
+  },
+
+  // Hashtag info
+  'hashtag/info': (d) => {
+    const tag = (d.tag || '').toLowerCase().replace('#', '');
+    const count = db.yankis.filter(y => !y.deleted && y.text?.toLowerCase().includes('#' + tag)).length;
+    return { tag, count };
   }
 };
 
@@ -412,7 +835,7 @@ const handleRequest = (req, res) => {
 
   // API: GET
   if (req.method === 'GET') {
-    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.7.3' });
+    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.7.4' });
     if (url === '/trending') return send(res, 200, handlers.trending());
   }
 

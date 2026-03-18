@@ -1959,7 +1959,7 @@ const submitYankila=async()=>{
   if(r.success){
     closeModal('yankila');
     toast('Yankın paylaşıldı! 🐦');
-    loadHome();
+    loadFeed();
   }else{
     toast(r.error||'Hata');
   }
@@ -2515,7 +2515,8 @@ let _reyankiTargetId = null;
 const reyanki = async id => {
   _reyankiTargetId = id;
   // Önizleme için yankıyı bul
-  const r = await api('/yanki', { yankiId: id, viewerId: user.id });
+  const res = await api('/yanki/get', { yankiId: id, viewerId: user.id });
+  const r = res?.yanki || res;
   const preview = document.getElementById('reyanki-preview');
   if (preview) {
     const text = r?.text || '';
@@ -2572,12 +2573,13 @@ document.addEventListener('click', e => {
 const openYanki=async id=>{
   goPanel('yanki');
   $('yanki-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
-  const r=await api('/yanki',{yankiId:id,viewerId:user.id});
-  if(r.error){$('yanki-content').innerHTML='<div class="empty">Yankı bulunamadı</div>';return;}
+  const r=await api('/yanki/get',{yankiId:id,viewerId:user.id});
+  if(r.error||!r.yanki){$('yanki-content').innerHTML='<div class="empty">Yankı bulunamadı</div>';return;}
   $('top-title').textContent='Yankı';
   let commentImg=null;
+  const y=r.yanki;
   $('yanki-content').innerHTML=
-    `<div class="yanki" style="cursor:default">${yankiCard(r).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
+    `<div class="yanki" style="cursor:default">${yankiCard(y).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
     +`<div class="comment-form-rich" id="rich-comment-form-${id}">
         <div class="avatar avatar-sm">${avatar(user.profileImage)}</div>
         <div style="flex:1;display:flex;flex-direction:column;gap:8px">
