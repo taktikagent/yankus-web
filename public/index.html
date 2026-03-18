@@ -1608,7 +1608,7 @@ let settings={theme:'dark',accent:'#A91101',accentLight:'#b57281',fontSize:'norm
 
 const $=id=>document.getElementById(id);
 const _noop=()=>{};
-const api=async(url,data)=>{const r=await fetch('http://localhost:3000'+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
+const API_BASE=window.location.hostname==='localhost'?'http://localhost:3000':'';const api=async(url,data)=>{const r=await fetch(API_BASE+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
 const timeAgo=d=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return'şimdi';if(s<3600)return Math.floor(s/60)+'dk';if(s<86400)return Math.floor(s/3600)+'sa';return Math.floor(s/86400)+'g'};
 const toast=m=>{document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
 
