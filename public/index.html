@@ -88,6 +88,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .menu-item .mi-label{flex:1}
 .menu-item .badge{min-width:18px;height:18px;background:var(--accent2);border-radius:9px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#fff;padding:0 5px;margin-left:auto}
 .menu-item::after{display:none}.nav-section-label{font-size:calc(var(--font-size) - 5px);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 12px 4px;opacity:.7}
+/* Yankıla Butonu */
+.yankila-btn{width:calc(100% - 16px);margin:16px 8px 8px;padding:14px 20px;background:var(--gradient);border-radius:50px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px var(--glow)}
+.yankila-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px var(--glow)}
+.yankila-btn:active{transform:scale(.97)}
+.yankila-icon{font-size:20px}
+.yankila-text{font-family:var(--font-display);font-weight:700;font-size:16px;color:#fff;letter-spacing:-.3px}
 .sidebar-end{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--border)}
 .main-wrap{flex:1;display:flex;justify-content:flex-start;min-height:100vh;background:var(--bg)}
 .main-col{border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;width:600px;max-width:600px;flex-shrink:0;background:var(--bg)}
@@ -838,6 +844,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .modal-title{flex:1;font-size:17px;font-weight:700}
 .modal-close{width:32px;height:32px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .modal-body{padding:16px 20px;overflow-y:auto;max-height:60vh}
+/* Yankıla Modal Stilleri */
+.yankila-compose{display:flex;gap:12px}
+.yankila-avatar{width:44px;height:44px;border-radius:50%;background:var(--elevated);flex-shrink:0;overflow:hidden}
+.yankila-avatar img{width:100%;height:100%;object-fit:cover}
+.yankila-input{flex:1;background:transparent;border:none;color:var(--text);font-size:16px;font-family:var(--font);resize:none;line-height:1.5}
+.yankila-input:focus{outline:none}
+.yankila-input::placeholder{color:var(--muted)}
+.yankila-tools{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.yankila-tool{width:36px;height:36px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .15s}
+.yankila-tool:hover{background:var(--accent-hover);transform:scale(1.05)}
+.yankila-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.yankila-counter{font-size:13px;color:var(--muted)}
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
 .empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
 .loading{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--muted);gap:10px}
@@ -1130,7 +1148,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="sidebar-brand-icon">🐦</div>
   <div class="sidebar-brand-text">
     <div class="sidebar-brand-name">Yankuş</div>
-    <div class="sidebar-brand-version">v1.7.3 ✨</div>
+    <div class="sidebar-brand-version">v1.7.4 ✨</div>
   </div>
 </div>
 <nav class="sidebar-menu">
@@ -1145,6 +1163,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="menu-item" onclick="goPanel('drafts')"><span class="mi-icon">✏️</span><span class="mi-label">Taslaklar</span></div>
 <div class="menu-item" onclick="goPanel('settings')"><span class="mi-icon">⚙️</span><span class="mi-label">Ayarlar</span></div>
 <div class="menu-item" onclick="goPanel('contact')"><span class="mi-icon">📧</span><span class="mi-label">İletişim</span></div>
+<!-- Yankıla Butonu -->
+<div class="yankila-btn" onclick="openYankilaModal()">
+  <span class="yankila-icon">🐦</span>
+  <span class="yankila-text">Yankıla</span>
+</div>
 </nav>
 <div class="sidebar-end">
 <div class="menu-item" onclick="goPanel('patchnotes')"><span class="mi-icon">🗒️</span><span class="mi-label">Yenilikler</span></div>
@@ -1583,6 +1606,35 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 </div>
 </div>
 
+<!-- Yankıla Modal -->
+<div class="modal-overlay" id="modal-yankila">
+<div class="modal" style="max-width:500px">
+<div class="modal-header"><div class="modal-title">🐦 Yankıla</div><div class="modal-close" onclick="closeModal('yankila')">✕</div></div>
+<div class="modal-body">
+<div class="yankila-compose">
+<div class="yankila-avatar" id="yankila-avatar"></div>
+<textarea class="yankila-input" id="yankila-text" placeholder="Ne düşünüyorsun?" rows="4"></textarea>
+</div>
+<div class="yankila-tools">
+<label class="yankila-tool" title="Fotoğraf ekle"><input type="file" accept="image/*" style="display:none" onchange="yankilaImagePreview(event)">🖼️</label>
+<span class="yankila-tool" onclick="toggleYankilaPoll()" title="Anket ekle">📊</span>
+<span class="yankila-tool" onclick="insertEmoji()" title="Emoji">😊</span>
+</div>
+<div id="yankila-image-preview" style="margin:10px 0"></div>
+<div id="yankila-poll-area" style="display:none;margin:10px 0">
+<input class="form-input" placeholder="Seçenek 1" id="yankila-poll-1" style="margin-bottom:8px">
+<input class="form-input" placeholder="Seçenek 2" id="yankila-poll-2" style="margin-bottom:8px">
+<input class="form-input" placeholder="Seçenek 3 (isteğe bağlı)" id="yankila-poll-3" style="margin-bottom:8px">
+<input class="form-input" placeholder="Seçenek 4 (isteğe bağlı)" id="yankila-poll-4">
+</div>
+<div class="yankila-footer">
+<span class="yankila-counter" id="yankila-counter">0/280</span>
+<button class="btn btn-main" onclick="submitYankila()">Yankıla</button>
+</div>
+</div>
+</div>
+</div>
+
 <div class="modal-overlay" id="modal-edit">
 <div class="modal">
 <div class="modal-header"><div class="modal-title">Profili Düzenle</div><div class="modal-close" onclick="closeModal('edit')">✕</div></div>
@@ -1608,7 +1660,7 @@ let settings={theme:'dark',accent:'#A91101',accentLight:'#b57281',fontSize:'norm
 
 const $=id=>document.getElementById(id);
 const _noop=()=>{};
-const API_BASE=window.location.hostname==='localhost'?'http://localhost:3000':'';const api=async(url,data)=>{const r=await fetch(API_BASE+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
+const api=async(url,data)=>{const r=await fetch('http://localhost:3000'+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
 const timeAgo=d=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return'şimdi';if(s<3600)return Math.floor(s/60)+'dk';if(s<86400)return Math.floor(s/3600)+'sa';return Math.floor(s/86400)+'g'};
 const toast=m=>{document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
 
@@ -1859,6 +1911,59 @@ const doLogin=async()=>{
 };
 const doRegister=async()=>{const n=$('register-name').value.trim(),u=$('register-username').value.trim(),p=$('register-password').value;if(!n||!u||!p)return showError('register','Tüm alanları doldurun');if(p.length<6)return showError('register','Şifre en az 6 karakter');const r=await api('/register',{username:u,password:p,displayName:n});if(r.error)return showError('register',r.error);user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('Hoş geldin!')};
 const doLogout=()=>{user=null;localStorage.removeItem('yankus-user');showScreen('login')};
+
+// ═══════════════════════════════════════════════════════════════
+// YANKILA MODAL
+// ═══════════════════════════════════════════════════════════════
+let yankilaImage=null,yankilaPollMode=false;
+const openYankilaModal=()=>{
+  $('yankila-avatar').innerHTML=avatar(user?.profileImage);
+  $('yankila-text').value='';
+  $('yankila-counter').textContent='0/280';
+  $('yankila-image-preview').innerHTML='';
+  $('yankila-poll-area').style.display='none';
+  yankilaImage=null;
+  yankilaPollMode=false;
+  $('modal-yankila').classList.add('active');
+  setTimeout(()=>$('yankila-text').focus(),100);
+};
+$('yankila-text')?.addEventListener('input',e=>{
+  const len=e.target.value.length;
+  $('yankila-counter').textContent=len+'/280';
+  $('yankila-counter').style.color=len>280?'var(--error)':'var(--muted)';
+});
+const yankilaImagePreview=(e)=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    yankilaImage=ev.target.result;
+    $('yankila-image-preview').innerHTML=`<img src="${yankilaImage}" style="max-width:100%;max-height:200px;border-radius:12px"><span onclick="yankilaImage=null;$('yankila-image-preview').innerHTML=''" style="cursor:pointer;margin-left:8px">✕</span>`;
+  };
+  reader.readAsDataURL(file);
+};
+const toggleYankilaPoll=()=>{
+  yankilaPollMode=!yankilaPollMode;
+  $('yankila-poll-area').style.display=yankilaPollMode?'block':'none';
+};
+const submitYankila=async()=>{
+  const text=$('yankila-text').value.trim();
+  if(!text&&!yankilaImage)return toast('Bir şeyler yaz!');
+  if(text.length>280)return toast('Çok uzun!');
+  let poll=null;
+  if(yankilaPollMode){
+    const opts=[$('yankila-poll-1').value,$('yankila-poll-2').value,$('yankila-poll-3').value,$('yankila-poll-4').value].filter(o=>o.trim());
+    if(opts.length>=2)poll={options:opts.map(o=>({text:o,votes:0})),totalVotes:0};
+  }
+  const r=await api('/yanki/create',{userId:user.id,text,image:yankilaImage,poll});
+  if(r.success){
+    closeModal('yankila');
+    toast('Yankın paylaşıldı! 🐦');
+    loadHome();
+  }else{
+    toast(r.error||'Hata');
+  }
+};
 
 // Init
 const init=()=>{

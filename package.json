@@ -1,6 +1,6 @@
 {
   "name": "yankus-web",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "Yankuş - Yerli Sosyal Medya Platformu",
   "main": "server.js",
   "scripts": {

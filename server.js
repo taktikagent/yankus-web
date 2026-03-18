@@ -100,11 +100,22 @@ const enrichYanki = (y, viewerId) => {
   const author = db.users.find(u => u.id === y.userId);
   return {
     ...y,
+    // Düz alanlar (frontend uyumluluğu için)
+    displayName: author?.displayName || 'Bilinmeyen',
+    username: author?.username || 'bilinmeyen',
+    profileImage: author?.profileImage || null,
+    verified: author?.verified || false,
+    isBot: author?.isBot || false,
+    // Author objesi (detaylı bilgi için)
     author: author ? { id: author.id, username: author.username, displayName: author.displayName, profileImage: author.profileImage, verified: author.verified, isBot: author.isBot } : null,
+    // İstatistikler
     likes: db.likes.filter(l => l.yankiId === y.id).length,
+    commentCount: db.comments.filter(c => c.yankiId === y.id && !c.deleted).length,
     comments: db.comments.filter(c => c.yankiId === y.id && !c.deleted).length,
     isLiked: viewerId ? db.likes.some(l => l.yankiId === y.id && l.userId === viewerId) : false,
-    isSaved: viewerId ? db.saves.some(s => s.yankiId === y.id && s.userId === viewerId) : false
+    isSaved: viewerId ? db.saves.some(s => s.yankiId === y.id && s.userId === viewerId) : false,
+    liked: viewerId ? db.likes.some(l => l.yankiId === y.id && l.userId === viewerId) : false,
+    saved: viewerId ? db.saves.some(s => s.yankiId === y.id && s.userId === viewerId) : false
   };
 };
 
@@ -172,6 +183,24 @@ const handlers = {
     };
     db.yankis.unshift(yanki);
     return { success: true, yanki: enrichYanki(yanki, d.userId) };
+  },
+
+  'yanki/get': (d) => {
+    const yanki = db.yankis.find(y => y.id === d.yankiId && !y.deleted);
+    if (!yanki) return { error: 'Yankı bulunamadı' };
+    const comments = db.comments
+      .filter(c => c.yankiId === d.yankiId && !c.deleted)
+      .map(c => {
+        const author = db.users.find(u => u.id === c.userId);
+        return {
+          ...c,
+          displayName: author?.displayName || 'Bilinmeyen',
+          username: author?.username || 'bilinmeyen',
+          profileImage: author?.profileImage || null,
+          isBot: author?.isBot || false
+        };
+      });
+    return { yanki: enrichYanki(yanki, d.viewerId), comments };
   },
 
   feed: (d) => {
