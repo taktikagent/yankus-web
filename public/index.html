@@ -30,8 +30,6 @@
   --font-size:15px;
   --radius:16px;--radius-sm:10px;--radius-lg:24px;
   --frame-gold:#ffd700;--frame-fire:#ff6b35;--frame-ice:#00d4ff;--frame-purple:#8b5cf6;--frame-rainbow:linear-gradient(45deg,#ff6b35,#ffd700,#22c58b,#00d4ff,#8b5cf6);
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 [data-theme="light"]{
   --bg:#fdf8f7;--card:#ffffff;--elevated:#f5eeec;--hover:#f0e6e3;--border:#e8d5d0;
@@ -84,7 +82,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
    ORTALANMIŞ LAYOUT — Sidebar + İçerik ortada
 ══════════════════════════════════════════════════════════════ */
 #screen-dashboard{justify-content:center;background:var(--bg)}
-.dashboard-container{display:flex;max-width:1200px;width:100%;margin:0 auto}
+.dashboard-container{display:flex;max-width:1400px;width:100%;margin:0 auto}
 .sidebar{position:sticky;top:0;width:210px;min-width:210px;height:100vh;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 10px;z-index:100;gap:4px}
 .sidebar-brand{display:flex;align-items:center;gap:12px;padding:8px 12px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
 .sidebar-brand-icon{width:40px;height:40px;background:var(--accent2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 20px var(--accent-glow);position:relative;overflow:hidden}.sidebar-brand-icon::before{content:"";position:absolute;top:0;left:0;right:50%;bottom:50%;background:rgba(255,255,255,.15);border-radius:0 0 50% 0}
@@ -210,7 +208,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .profile-header{border-bottom:1px solid var(--border);background:var(--card)}
 
 /* Banner */
-.profile-banner{height:200px;background:linear-gradient(135deg,#1a0c08 0%,#2e1510 30%,var(--accent2) 70%,var(--accent) 100%);position:relative;overflow:hidden;cursor:pointer}
+.profile-banner{height:140px;background:linear-gradient(135deg,#1a0c08 0%,#2e1510 30%,var(--accent2) 70%,var(--accent) 100%);position:relative;overflow:hidden;cursor:pointer}
 .profile-banner img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
 .profile-banner:hover img{transform:scale(1.03)}
 .profile-banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(15,10,9,0.6) 100%)}
@@ -925,6 +923,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .level-up-reward-icon{font-size:16px}
 
 /* ═══════════════════════════════════════════════════════════════
+   YANKILA BUTONU — Sidebar'da büyük buton
+═══════════════════════════════════════════════════════════════ */
+.yankila-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--gradient);color:#fff;border-radius:30px;padding:14px 20px;margin:16px 10px;cursor:pointer;font-weight:700;font-size:16px;box-shadow:0 4px 20px var(--glow);transition:all .2s;font-family:var(--font-display)}
+.yankila-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px var(--glow)}
+.yankila-btn:active{transform:scale(.97)}
+.yankila-icon{font-size:20px}
+
+/* ═══════════════════════════════════════════════════════════════
    MOBİL RESPONSIVE — KAPSAMLI PWA OPTİMİZASYONU
 ═══════════════════════════════════════════════════════════════ */
 
@@ -1008,10 +1014,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   .btn{padding:14px 24px;font-size:16px}
   
   /* Profil mobil */
-  .profile-banner{height:140px;border-radius:0}
+  .profile-banner{height:120px;border-radius:0}
   .profile-header{padding:0 16px}
-  .profile-avatar{width:90px;height:90px;margin-top:-45px;border-width:4px}
-  .profile-name{font-size:22px}
+  .profile-avatar{width:80px;height:80px;margin-top:-40px;border-width:4px}
+  .profile-name{font-size:20px}
   .profile-handle{font-size:14px}
   .profile-bio{font-size:14px;padding:0 16px}
   .profile-stats{padding:12px 16px;gap:24px}
@@ -1038,9 +1044,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   /* Explore */
   .suggest-scroll{padding:0 16px}
   .suggest-card{min-width:140px}
-  
-  /* Trending section mobilde göster */
-  .trending-mobile{display:block;padding:16px}
   
   /* Arama */
   .sv-searchbox{padding:10px 16px}
@@ -1070,7 +1073,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 @media(max-width:375px){
   .auth-header h1{font-size:28px}
   .logo{width:64px;height:64px;font-size:32px}
-  .profile-avatar{width:80px;height:80px;margin-top:-40px}
+  .profile-avatar{width:70px;height:70px;margin-top:-35px}
   .yanki-actions{gap:6px}
   .action-btn{padding:6px 10px}
   .mobile-nav-item{padding:6px 8px}
@@ -1328,6 +1331,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="menu-item" onclick="goPanel('settings')"><span class="mi-icon">⚙️</span><span class="mi-label">Ayarlar</span></div>
 <div class="menu-item" onclick="goPanel('contact')"><span class="mi-icon">📧</span><span class="mi-label">İletişim</span></div>
 </nav>
+
+<!-- Yankıla Butonu -->
+<div class="yankila-btn" onclick="openYankilaModal()">
+  <span class="yankila-icon">✏️</span>
+  <span class="yankila-text">Yankıla</span>
+</div>
+
 <div class="sidebar-end">
 <div class="menu-item" onclick="goPanel('patchnotes')"><span class="mi-icon">🗒️</span><span class="mi-label">Yenilikler</span></div>
 <div class="menu-item admin-only" onclick="goPanel('admin')" style="display:none"><span class="mi-icon">🔧</span><span class="mi-label">Admin</span></div>
@@ -1790,7 +1800,8 @@ let settings={theme:'dark',accent:'#A91101',accentLight:'#b57281',fontSize:'norm
 
 const $=id=>document.getElementById(id);
 const _noop=()=>{};
-const api=async(url,data)=>{const r=await fetch('http://localhost:3000'+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
+const API_BASE=window.location.hostname==='localhost'?'http://localhost:3000':'';
+const api=async(url,data)=>{const r=await fetch(API_BASE+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
 const timeAgo=d=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return'şimdi';if(s<3600)return Math.floor(s/60)+'dk';if(s<86400)return Math.floor(s/3600)+'sa';return Math.floor(s/86400)+'g'};
 const toast=m=>{document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
 
@@ -2592,7 +2603,8 @@ let _reyankiTargetId = null;
 const reyanki = async id => {
   _reyankiTargetId = id;
   // Önizleme için yankıyı bul
-  const r = await api('/yanki', { yankiId: id, viewerId: user.id });
+  const res = await api('/yanki/get', { yankiId: id, viewerId: user.id });
+  const r = res?.yanki || res;
   const preview = document.getElementById('reyanki-preview');
   if (preview) {
     const text = r?.text || '';
@@ -2649,12 +2661,13 @@ document.addEventListener('click', e => {
 const openYanki=async id=>{
   goPanel('yanki');
   $('yanki-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
-  const r=await api('/yanki',{yankiId:id,viewerId:user.id});
-  if(r.error){$('yanki-content').innerHTML='<div class="empty">Yankı bulunamadı</div>';return;}
+  const r=await api('/yanki/get',{yankiId:id,viewerId:user.id});
+  if(r.error||!r.yanki){$('yanki-content').innerHTML='<div class="empty">Yankı bulunamadı</div>';return;}
+  const y=r.yanki;
   $('top-title').textContent='Yankı';
   let commentImg=null;
   $('yanki-content').innerHTML=
-    `<div class="yanki" style="cursor:default">${yankiCard(r).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
+    `<div class="yanki" style="cursor:default">${yankiCard(y).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
     +`<div class="comment-form-rich" id="rich-comment-form-${id}">
         <div class="avatar avatar-sm">${avatar(user.profileImage)}</div>
         <div style="flex:1;display:flex;flex-direction:column;gap:8px">
@@ -3951,18 +3964,7 @@ const triggerBot=async(action,botId)=>{
     if(s){
       const parsed=JSON.parse(s);
       if(parsed&&parsed.id&&parsed.username){
-        // Önce sunucuya ping at - çalışıyor mu?
-        const ping = await api('/ping',{}).catch(()=>null);
-        if(!ping || ping.error){
-          // Sunucu çalışmıyor, localStorage'dan devam et
-          user = parsed;
-          showScreen('dashboard');
-          init();
-          initMobileUI();
-          return;
-        }
-        
-        // Sunucudan güncel kullanıcı verisini al
+        // Sunucudan güncel kullanıcı verisini al (isAdmin, banned vb. doğru gelsin)
         const r=await api('/profile',{userId:parsed.id,viewerId:parsed.id}).catch(()=>null);
         if(r&&!r.error&&r.id){
           // Sunucudan gelen güncel veriyle birleştir
@@ -3970,42 +3972,18 @@ const triggerBot=async(action,botId)=>{
           localStorage.setItem('yankus-user',JSON.stringify(user));
           showScreen('dashboard');
           init();
-          initMobileUI();
         } else {
-          // Sunucuda kullanıcı yok - otomatik login dene
-          const loginResult = await api('/login',{username:parsed.username,password:parsed.password||'cached'}).catch(()=>null);
-          if(loginResult && loginResult.success && loginResult.user){
-            user = loginResult.user;
-            localStorage.setItem('yankus-user',JSON.stringify(user));
-            showScreen('dashboard');
-            init();
-            initMobileUI();
-          } else {
-            // Login da başarısız - giriş ekranına yönlendir
-            localStorage.removeItem('yankus-user');
-            showScreen('login');
-          }
+          // Sunucuda kullanıcı yok (db sıfırlanmış olabilir) — çıkış yap
+          localStorage.removeItem('yankus-user');
+          showScreen('login');
         }
       } else {
         localStorage.removeItem('yankus-user');
-        showScreen('login');
       }
     }
   }catch(e){
-    // Hata durumunda localStorage'dan devam etmeye çalış
-    const s=localStorage.getItem('yankus-user');
-    if(s){
-      try{
-        user = JSON.parse(s);
-        showScreen('dashboard');
-        init();
-        initMobileUI();
-      }catch(e2){
-        localStorage.removeItem('yankus-user');
-        showScreen('login');
-      }
-    }
-    console.warn('Oturum kontrolü:',e);
+    localStorage.removeItem('yankus-user');
+    console.warn('Oturum sıfırlandı:',e);
   }
 })();
 
@@ -4260,16 +4238,14 @@ const cancelScheduledItem=id=>{
 <!-- Mobil Header -->
 <div class="mobile-header" id="mobile-header">
   <div class="mobile-header-inner">
-    <div class="mobile-header-avatar" id="mobile-avatar" onclick="goPanel('profile')">👤</div>
+    <div class="mobile-header-avatar" id="mobile-avatar" onclick="goPanel('profile');loadMyProfile()">👤</div>
     <div class="mobile-header-title">Yankuş</div>
     <div class="mobile-header-actions">
       <div class="mobile-header-btn" onclick="goPanel('notifications')" id="mobile-notif-btn">
         🔔
         <div class="notif-dot" id="mobile-notif-dot" style="display:none"></div>
       </div>
-      <div class="mobile-header-btn" onclick="goPanel('messages')" id="mobile-msg-btn">
-        💬
-      </div>
+      <div class="mobile-header-btn" onclick="goPanel('messages')" id="mobile-msg-btn">💬</div>
     </div>
   </div>
 </div>
@@ -4305,35 +4281,51 @@ const cancelScheduledItem=id=>{
   </div>
 </div>
 
+<!-- Yankıla Modal -->
+<div class="modal-overlay" id="modal-yankila" onclick="if(event.target===this)closeModal('yankila')">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span>✏️ Yeni Yankı</span>
+      <span class="modal-close" onclick="closeModal('yankila')">✕</span>
+    </div>
+    <div class="modal-body" style="padding:16px">
+      <div style="display:flex;gap:12px">
+        <div class="avatar" id="yankila-avatar">👤</div>
+        <div style="flex:1">
+          <textarea id="yankila-text" class="composer-input" placeholder="Ne düşünüyorsun?" style="min-height:100px;width:100%;resize:none"></textarea>
+          <div id="yankila-img-preview" style="display:none;margin-top:10px">
+            <img id="yankila-img" style="max-width:100%;max-height:200px;border-radius:12px">
+            <button onclick="clearYankilaImg()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer">✕</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <label style="cursor:pointer;width:36px;height:36px;border-radius:10px;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid var(--border)">
+          📷<input type="file" accept="image/*" style="display:none" onchange="previewYankilaImg(this)">
+        </label>
+        <span id="yankila-char" style="margin-left:auto;font-size:12px;color:var(--muted)">0/280</span>
+        <button class="btn btn-follow" onclick="submitYankila()" style="padding:10px 20px">Yankıla</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
-// MOBİL NAVİGASYON FONKSİYONLARI
+// MOBİL NAVİGASYON + YANKILA MODAL FONKSİYONLARI
 // ═══════════════════════════════════════════════════════════════
 
 // Mobil panel geçişi
 const mobileGoPanel = (panel) => {
-  // Nav itemları güncelle
   document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
   const navItem = document.getElementById('mnav-' + panel);
   if (navItem) navItem.classList.add('active');
   
-  // Header başlığını güncelle
-  const titles = {
-    home: 'Yankuş',
-    explore: 'Keşfet',
-    notifications: 'Bildirimler',
-    messages: 'Mesajlar',
-    profile: 'Profil'
-  };
+  const titles = { home: 'Yankuş', explore: 'Keşfet', notifications: 'Bildirimler', messages: 'Mesajlar', profile: 'Profil' };
   const headerTitle = document.querySelector('.mobile-header-title');
   if (headerTitle) headerTitle.textContent = titles[panel] || 'Yankuş';
   
-  // Profile için özel işlem
-  if (panel === 'profile') {
-    loadMyProfile();
-  }
-  
-  // Panel'e git
+  if (panel === 'profile') loadMyProfile();
   goPanel(panel);
 };
 
@@ -4341,79 +4333,88 @@ const mobileGoPanel = (panel) => {
 const updateMobileUI = () => {
   const av = document.getElementById('mobile-avatar');
   if (av && user) {
-    if (user.profileImage) {
-      av.innerHTML = `<img src="${user.profileImage}" alt="">`;
-    } else {
-      av.innerHTML = '👤';
-    }
+    av.innerHTML = user.profileImage ? `<img src="${user.profileImage}" alt="">` : '👤';
+  }
+  const yav = document.getElementById('yankila-avatar');
+  if (yav && user) {
+    yav.innerHTML = user.profileImage ? `<img src="${user.profileImage}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : '👤';
   }
 };
 
-// Mobil bildirim badge güncelle
-const updateMobileBadges = () => {
-  // Bildirim badge
-  const notifBadge = document.getElementById('mnav-notif-badge');
-  const notifDot = document.getElementById('mobile-notif-dot');
-  const unread = document.querySelectorAll('.nf-item.unread').length || 0;
-  
-  if (notifBadge) {
-    if (unread > 0) {
-      notifBadge.textContent = unread > 99 ? '99+' : unread;
-      notifBadge.style.display = 'flex';
-      if (notifDot) notifDot.style.display = 'block';
-    } else {
-      notifBadge.style.display = 'none';
-      if (notifDot) notifDot.style.display = 'none';
-    }
-  }
-};
+// Yankıla Modal
+let yankilaImage = null;
 
-// Sayfa yüklendiğinde mobil UI'ı başlat
-const initMobileUI = () => {
+const openYankilaModal = () => {
+  $('modal-yankila').classList.add('active');
+  $('yankila-text').value = '';
+  $('yankila-char').textContent = '0/280';
+  yankilaImage = null;
+  $('yankila-img-preview').style.display = 'none';
   updateMobileUI();
-  updateMobileBadges();
-  
-  // Her 10 saniyede badge'leri güncelle
-  setInterval(updateMobileBadges, 10000);
+  setTimeout(() => $('yankila-text')?.focus(), 100);
 };
+
+const previewYankilaImg = (input) => {
+  const f = input.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    yankilaImage = e.target.result;
+    $('yankila-img').src = yankilaImage;
+    $('yankila-img-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(f);
+};
+
+const clearYankilaImg = () => {
+  yankilaImage = null;
+  $('yankila-img-preview').style.display = 'none';
+};
+
+const submitYankila = async () => {
+  const text = $('yankila-text').value.trim();
+  if (!text && !yankilaImage) return toast('Bir şeyler yaz veya fotoğraf ekle');
+  const r = await api('/yanki/create', { userId: user.id, text, image: yankilaImage });
+  if (r.success) {
+    closeModal('yankila');
+    toast('Yankın paylaşıldı! 🐦');
+    loadFeed();
+  } else {
+    toast(r.error || 'Hata');
+  }
+};
+
+// Karakter sayacı
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('yankila-text');
+  if (ta) {
+    ta.addEventListener('input', () => {
+      const len = ta.value.length;
+      const counter = document.getElementById('yankila-char');
+      if (counter) {
+        counter.textContent = len + '/280';
+        counter.style.color = len > 280 ? 'var(--error)' : 'var(--muted)';
+      }
+    });
+  }
+});
 
 // Init'e ekle
-const originalInit = typeof init === 'function' ? init : () => {};
-const enhancedInit = () => {
-  originalInit();
-  setTimeout(initMobileUI, 100);
-};
+const _origInit = typeof init === 'function' ? init : null;
+if (_origInit) {
+  const _newInit = _origInit;
+  window.init = function() {
+    _newInit();
+    setTimeout(updateMobileUI, 100);
+  };
+}
 
 // PWA Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.log('SW kayıt hatası:', err);
-    });
+    navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW:', err));
   });
 }
-
-// PWA Install prompt
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-// Geri tuşu için history yönetimi (Android)
-window.addEventListener('popstate', (e) => {
-  if (navStack && navStack.length > 1) {
-    e.preventDefault();
-    goBack();
-  }
-});
-
-// Pull to refresh engelle (kendi implentasyonumuz için)
-document.body.addEventListener('touchmove', (e) => {
-  if (document.querySelector('.main-col')?.scrollTop === 0) {
-    // Pull to refresh logic here if needed
-  }
-}, { passive: true });
 </script>
 </body>
 </html>

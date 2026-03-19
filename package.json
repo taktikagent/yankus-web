@@ -1,16 +1,14 @@
 {
   "name": "yankus-web",
   "version": "1.8.0",
-  "description": "Yankuş - Türkiye'nin Sosyal Medya Platformu (Mobil PWA)",
+  "description": "Yankuş - Türkiye'nin Sosyal Medya Platformu",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["social-media", "pwa", "mobile"],
   "author": "TaktikAgent",
   "license": "MIT"
 }
