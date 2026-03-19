@@ -1,0 +1,21 @@
+{
+  "name": "Yankuş - Sesin Yankılansın",
+  "short_name": "Yankuş",
+  "description": "Türkiye'nin sosyal medya platformu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0a09",
+  "theme_color": "#A91101",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["social", "entertainment"],
+  "lang": "tr",
+  "dir": "ltr"
+}

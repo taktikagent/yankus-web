@@ -830,18 +830,43 @@ const handleRequest = (req, res) => {
 
   const url = req.url.split('?')[0];
 
+  // MIME types
+  const mimeTypes = {
+    '.html': 'text/html',
+    '.js': 'application/javascript',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon'
+  };
+
   // Serve static files
-  if (req.method === 'GET' && (url === '/' || url === '/index.html')) {
-    const filePath = path.join(__dirname, 'public', 'index.html');
-    if (fs.existsSync(filePath)) {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      return res.end(fs.readFileSync(filePath));
+  if (req.method === 'GET') {
+    // Ana sayfa
+    if (url === '/' || url === '/index.html') {
+      const filePath = path.join(__dirname, 'public', 'index.html');
+      if (fs.existsSync(filePath)) {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        return res.end(fs.readFileSync(filePath));
+      }
+    }
+    
+    // Diğer static dosyalar (manifest.json, sw.js, icons)
+    const staticFiles = ['/manifest.json', '/sw.js', '/icon-192.png', '/icon-512.png'];
+    if (staticFiles.includes(url) || url.endsWith('.png') || url.endsWith('.svg')) {
+      const filePath = path.join(__dirname, 'public', url);
+      if (fs.existsSync(filePath)) {
+        const ext = path.extname(url);
+        const mime = mimeTypes[ext] || 'application/octet-stream';
+        res.writeHead(200, { 'Content-Type': mime });
+        return res.end(fs.readFileSync(filePath));
+      }
     }
   }
 
   // API: GET
   if (req.method === 'GET') {
-    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.7.4' });
+    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.7.5' });
     if (url === '/trending') return send(res, 200, handlers.trending());
   }
 

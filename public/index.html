@@ -2,7 +2,16 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f0a09">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Yankuş">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon.svg">
 <title>Yankuş</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -21,6 +30,8 @@
   --font-size:15px;
   --radius:16px;--radius-sm:10px;--radius-lg:24px;
   --frame-gold:#ffd700;--frame-fire:#ff6b35;--frame-ice:#00d4ff;--frame-purple:#8b5cf6;--frame-rainbow:linear-gradient(45deg,#ff6b35,#ffd700,#22c58b,#00d4ff,#8b5cf6);
+  --safe-top:env(safe-area-inset-top);
+  --safe-bottom:env(safe-area-inset-bottom);
 }
 [data-theme="light"]{
   --bg:#fdf8f7;--card:#ffffff;--elevated:#f5eeec;--hover:#f0e6e3;--border:#e8d5d0;
@@ -1112,6 +1123,111 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 /* ── Rich comment form ── */
 .comment-form-rich{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBİL RESPONSIVE - PWA OPTİMİZASYONU
+═══════════════════════════════════════════════════════════════ */
+
+/* Mobil Bottom Navigation */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + var(--safe-bottom));z-index:1000;backdrop-filter:blur(20px)}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:500px;margin:0 auto}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 16px;border-radius:12px;cursor:pointer;transition:all .15s;color:var(--muted)}
+.mobile-nav-item.active{color:var(--accent2);background:var(--accent-hover)}
+.mobile-nav-item .nav-icon{font-size:22px}
+.mobile-nav-item .nav-label{font-size:10px;font-weight:600}
+
+/* Mobil FAB (Yankıla butonu) */
+.mobile-fab{display:none;position:fixed;bottom:80px;right:16px;width:56px;height:56px;background:var(--gradient);border-radius:50%;box-shadow:0 4px 20px var(--glow);align-items:center;justify-content:center;font-size:24px;cursor:pointer;z-index:999;transition:transform .2s}
+.mobile-fab:active{transform:scale(.9)}
+
+/* Mobil Header */
+.mobile-header{display:none;position:fixed;top:0;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;padding-top:calc(12px + var(--safe-top));z-index:1000;backdrop-filter:blur(20px)}
+.mobile-header-inner{display:flex;align-items:center;gap:12px}
+.mobile-header-avatar{width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--elevated)}
+.mobile-header-title{flex:1;font-family:var(--font-display);font-size:20px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.mobile-header-actions{display:flex;gap:8px}
+.mobile-header-btn{width:36px;height:36px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+
+/* Pull to Refresh Indicator */
+.ptr-indicator{display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:12px;color:var(--dim);z-index:999}
+
+/* Mobil Media Queries */
+@media (max-width: 768px) {
+  /* Sidebar gizle */
+  .sidebar{display:none !important}
+  .right-col{display:none !important}
+  
+  /* Main column full width */
+  .dashboard-container{max-width:100%;padding:0}
+  .main-wrap{width:100%}
+  .main-col{width:100%;max-width:100%;border:none;padding-top:60px;padding-bottom:70px}
+  
+  /* Mobil navigasyonu göster */
+  .mobile-nav{display:block}
+  .mobile-fab{display:flex}
+  .mobile-header{display:block}
+  
+  /* Yankıla butonu sidebar'da gizle */
+  .yankila-btn{display:none !important}
+  
+  /* Top bar düzenle */
+  .top-bar{display:none}
+  
+  /* Kartlar tam genişlik */
+  .yanki{margin:0;border-radius:0;border-left:none;border-right:none}
+  
+  /* Auth ekranı mobil */
+  .auth-box{padding:0 16px}
+  .auth-card{border-radius:16px}
+  .logo{width:72px;height:72px;font-size:36px}
+  .auth-header h1{font-size:32px}
+  
+  /* Modal mobil */
+  .modal{max-width:100%;border-radius:20px 20px 0 0;max-height:90vh}
+  .modal-overlay.active{align-items:flex-end}
+  
+  /* Composer mobil */
+  .composer{border-radius:0;margin:0;border-left:none;border-right:none}
+  
+  /* Profil mobil */
+  .profile-banner{height:120px}
+  .profile-avatar{width:80px;height:80px;margin-top:-40px}
+  .profile-name{font-size:20px}
+  
+  /* Right column content'i main'e taşı */
+  .trending-section{display:none}
+  
+  /* Toast mobil pozisyon */
+  .toast{bottom:90px}
+  #toast-container{bottom:90px}
+  
+  /* Swipe gestures için touch-action */
+  .main-col{touch-action:pan-y}
+  
+  /* Safe area için padding */
+  body{padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+}
+
+/* Küçük mobil (iPhone SE vb) */
+@media (max-width: 375px) {
+  .auth-header h1{font-size:28px}
+  .logo{width:64px;height:64px;font-size:32px}
+  .yanki-actions{gap:8px}
+  .action-icon{font-size:16px}
+  .profile-avatar{width:70px;height:70px;margin-top:-35px}
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .right-col{width:250px}
+  .main-col{width:500px}
+}
+
+/* PWA Standalone Mode */
+@media (display-mode: standalone) {
+  .mobile-header{padding-top:calc(16px + var(--safe-top))}
+  .main-col{padding-top:70px}
+}
 </style>
 </head>
 <body>
@@ -1148,7 +1264,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="sidebar-brand-icon">🐦</div>
   <div class="sidebar-brand-text">
     <div class="sidebar-brand-name">Yankuş</div>
-    <div class="sidebar-brand-version">v1.7.4 ✨</div>
+    <div class="sidebar-brand-version">v1.7.5 📱</div>
   </div>
 </div>
 <nav class="sidebar-menu">
@@ -4143,5 +4259,92 @@ const cancelScheduledItem=id=>{
     </div>
   </div>
 </div>
+
+<!-- Mobil Header -->
+<div class="mobile-header" id="mobile-header">
+  <div class="mobile-header-inner">
+    <div class="mobile-header-avatar" id="mobile-avatar" onclick="goPanel('profile')"></div>
+    <div class="mobile-header-title">Yankuş</div>
+    <div class="mobile-header-actions">
+      <div class="mobile-header-btn" onclick="goPanel('notifications')">🔔</div>
+      <div class="mobile-header-btn" onclick="goPanel('messages')">💬</div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobil FAB (Yankıla) -->
+<div class="mobile-fab" id="mobile-fab" onclick="openYankilaModal()">✏️</div>
+
+<!-- Mobil Bottom Navigation -->
+<div class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-inner">
+    <div class="mobile-nav-item active" id="nav-home" onclick="mobileNav('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Ana Sayfa</span>
+    </div>
+    <div class="mobile-nav-item" id="nav-explore" onclick="mobileNav('explore')">
+      <span class="nav-icon">🔍</span>
+      <span class="nav-label">Keşfet</span>
+    </div>
+    <div class="mobile-nav-item" id="nav-notifications" onclick="mobileNav('notifications')">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Bildirimler</span>
+    </div>
+    <div class="mobile-nav-item" id="nav-messages" onclick="mobileNav('messages')">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Mesajlar</span>
+    </div>
+    <div class="mobile-nav-item" id="nav-profile" onclick="mobileNav('profile')">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profil</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// Mobil navigasyon
+const mobileNav = (panel) => {
+  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-' + panel)?.classList.add('active');
+  goPanel(panel);
+};
+
+// Mobil avatar güncelle
+const updateMobileAvatar = () => {
+  const av = document.getElementById('mobile-avatar');
+  if (av && user?.profileImage) {
+    av.innerHTML = `<img src="${user.profileImage}" style="width:100%;height:100%;object-fit:cover">`;
+  } else if (av) {
+    av.innerHTML = '👤';
+    av.style.display = 'flex';
+    av.style.alignItems = 'center';
+    av.style.justifyContent = 'center';
+    av.style.fontSize = '16px';
+  }
+};
+
+// Mobil header'da panel başlığını güncelle
+const updateMobileTitle = (title) => {
+  const t = document.querySelector('.mobile-header-title');
+  if (t) t.textContent = title || 'Yankuş';
+};
+
+// PWA install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+// Service Worker kayıt
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// Init mobil
+document.addEventListener('DOMContentLoaded', () => {
+  updateMobileAvatar();
+});
+</script>
 </body>
-</html> 
+</html>

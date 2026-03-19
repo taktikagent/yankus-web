@@ -1,109 +1,73 @@
-// ═══════════════════════════════════════════════════════════════
-// YANKUŞ SERVICE WORKER — PWA Offline Desteği
-// ═══════════════════════════════════════════════════════════════
-
-const CACHE_NAME = 'yankus-v1.6.0';
-const OFFLINE_URL = '/offline.html';
-
-const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest'
-];
+// Yankuş Service Worker v1.7.4
+const CACHE_NAME = 'yankus-v1.7.4';
+const OFFLINE_URL = '/';
 
 // Install
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting())
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([
+        '/',
+        '/manifest.json'
+      ]);
+    })
   );
+  self.skipWaiting();
 });
 
 // Activate
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => {
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter(key => key !== CACHE_NAME)
-            .map(key => caches.delete(key))
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
-// Fetch
-self.addEventListener('fetch', event => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // API istekleri - network only
-  if (url.pathname.startsWith('/api') || 
-      request.method === 'POST' ||
-      url.pathname === '/ping' ||
-      url.pathname === '/trending' ||
-      url.pathname === '/patchnotes') {
-    event.respondWith(fetch(request));
+// Fetch - Network first, fallback to cache
+self.addEventListener('fetch', (e) => {
+  // API isteklerini cache'leme
+  if (e.request.url.includes('/ping') || 
+      e.request.method === 'POST') {
     return;
   }
 
-  // Static assets - cache first
-  event.respondWith(
-    caches.match(request)
-      .then(cached => {
-        if (cached) return cached;
-        
-        return fetch(request)
-          .then(response => {
-            // Sadece başarılı yanıtları cache'le
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => cache.put(request, responseToCache));
-
-            return response;
-          })
-          .catch(() => {
-            // Offline durumda ana sayfayı göster
-            if (request.mode === 'navigate') {
-              return caches.match('/');
-            }
+  e.respondWith(
+    fetch(e.request)
+      .then((res) => {
+        // Başarılı yanıtı cache'le
+        if (res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, clone);
           });
+        }
+        return res;
+      })
+      .catch(() => {
+        // Offline - cache'den döndür
+        return caches.match(e.request).then((cached) => {
+          return cached || caches.match(OFFLINE_URL);
+        });
       })
   );
 });
 
 // Push notifications (gelecekte)
-self.addEventListener('push', event => {
-  if (!event.data) return;
-
-  const data = event.data.json();
-  const options = {
+self.addEventListener('push', (e) => {
+  const data = e.data?.json() || {};
+  self.registration.showNotification(data.title || 'Yankuş', {
     body: data.body || 'Yeni bildirim',
-    icon: '/assets/icon-192.png',
-    badge: '/assets/badge.png',
-    vibrate: [100, 50, 100],
-    data: { url: data.url || '/' },
-    actions: [
-      { action: 'open', title: 'Aç' },
-      { action: 'close', title: 'Kapat' }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Yankuş', options)
-  );
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: data.url || '/'
+  });
 });
 
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  
-  if (event.action === 'close') return;
-  
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow(e.notification.data));
 });
