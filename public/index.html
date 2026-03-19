@@ -30,8 +30,8 @@
   --font-size:15px;
   --radius:16px;--radius-sm:10px;--radius-lg:24px;
   --frame-gold:#ffd700;--frame-fire:#ff6b35;--frame-ice:#00d4ff;--frame-purple:#8b5cf6;--frame-rainbow:linear-gradient(45deg,#ff6b35,#ffd700,#22c58b,#00d4ff,#8b5cf6);
-  --safe-top:env(safe-area-inset-top);
-  --safe-bottom:env(safe-area-inset-bottom);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 [data-theme="light"]{
   --bg:#fdf8f7;--card:#ffffff;--elevated:#f5eeec;--hover:#f0e6e3;--border:#e8d5d0;
@@ -99,12 +99,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .menu-item .mi-label{flex:1}
 .menu-item .badge{min-width:18px;height:18px;background:var(--accent2);border-radius:9px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#fff;padding:0 5px;margin-left:auto}
 .menu-item::after{display:none}.nav-section-label{font-size:calc(var(--font-size) - 5px);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 12px 4px;opacity:.7}
-/* Yankıla Butonu */
-.yankila-btn{width:calc(100% - 16px);margin:16px 8px 8px;padding:14px 20px;background:var(--gradient);border-radius:50px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px var(--glow)}
-.yankila-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px var(--glow)}
-.yankila-btn:active{transform:scale(.97)}
-.yankila-icon{font-size:20px}
-.yankila-text{font-family:var(--font-display);font-weight:700;font-size:16px;color:#fff;letter-spacing:-.3px}
 .sidebar-end{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--border)}
 .main-wrap{flex:1;display:flex;justify-content:flex-start;min-height:100vh;background:var(--bg)}
 .main-col{border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;width:600px;max-width:600px;flex-shrink:0;background:var(--bg)}
@@ -855,18 +849,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .modal-title{flex:1;font-size:17px;font-weight:700}
 .modal-close{width:32px;height:32px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .modal-body{padding:16px 20px;overflow-y:auto;max-height:60vh}
-/* Yankıla Modal Stilleri */
-.yankila-compose{display:flex;gap:12px}
-.yankila-avatar{width:44px;height:44px;border-radius:50%;background:var(--elevated);flex-shrink:0;overflow:hidden}
-.yankila-avatar img{width:100%;height:100%;object-fit:cover}
-.yankila-input{flex:1;background:transparent;border:none;color:var(--text);font-size:16px;font-family:var(--font);resize:none;line-height:1.5}
-.yankila-input:focus{outline:none}
-.yankila-input::placeholder{color:var(--muted)}
-.yankila-tools{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-.yankila-tool{width:36px;height:36px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .15s}
-.yankila-tool:hover{background:var(--accent-hover);transform:scale(1.05)}
-.yankila-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
-.yankila-counter{font-size:13px;color:var(--muted)}
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
 .empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
 .loading{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--muted);gap:10px}
@@ -942,9 +924,180 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .level-up-reward{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
 .level-up-reward-icon{font-size:16px}
 
-@media(max-width:1100px){.admin-stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:900px){.main-wrap{grid-template-columns:1fr}.right-col{display:none}}
-@media(max-width:600px){.sidebar{width:56px}.main-wrap{margin-left:56px}.admin-stats{grid-template-columns:1fr}}
+/* ═══════════════════════════════════════════════════════════════
+   MOBİL RESPONSIVE — KAPSAMLI PWA OPTİMİZASYONU
+═══════════════════════════════════════════════════════════════ */
+
+/* Mobil Bottom Navigation */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(15,10,9,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:9999}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:500px;margin:0 auto}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;border-radius:12px;cursor:pointer;transition:all .15s;color:var(--muted);position:relative;-webkit-tap-highlight-color:transparent}
+.mobile-nav-item:active{transform:scale(.92)}
+.mobile-nav-item.active{color:var(--accent2)}
+.mobile-nav-item.active::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--accent2);border-radius:50%}
+.mobile-nav-item .nav-icon{font-size:24px;line-height:1}
+.mobile-nav-item .nav-label{font-size:10px;font-weight:600}
+.mobile-nav-item .nav-badge{position:absolute;top:4px;right:8px;min-width:16px;height:16px;background:var(--accent2);border-radius:8px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#fff;padding:0 4px}
+
+/* Mobil FAB (Yankıla butonu) */
+.mobile-fab{display:none;position:fixed;bottom:calc(70px + env(safe-area-inset-bottom));right:16px;width:56px;height:56px;background:var(--gradient);border-radius:50%;box-shadow:0 4px 20px var(--glow);align-items:center;justify-content:center;font-size:24px;cursor:pointer;z-index:9998;transition:transform .2s;-webkit-tap-highlight-color:transparent}
+.mobile-fab:active{transform:scale(.9)}
+
+/* Mobil Header */
+.mobile-header{display:none;position:fixed;top:0;left:0;right:0;background:rgba(15,10,9,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));z-index:9999}
+.mobile-header-inner{display:flex;align-items:center;gap:12px}
+.mobile-header-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.mobile-header-avatar img{width:100%;height:100%;object-fit:cover}
+.mobile-header-title{flex:1;font-family:var(--font-display);font-size:22px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.mobile-header-actions{display:flex;gap:6px}
+.mobile-header-btn{width:40px;height:40px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:1px solid var(--border);position:relative;-webkit-tap-highlight-color:transparent}
+.mobile-header-btn:active{background:var(--accent-hover)}
+.mobile-header-btn .notif-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--accent2);border-radius:50%}
+
+/* ═══ TABLET ═══ */
+@media(max-width:1100px){
+  .admin-stats{grid-template-columns:repeat(2,1fr)}
+  .right-col{width:260px}
+}
+
+/* ═══ KÜÇÜK TABLET ═══ */
+@media(max-width:900px){
+  .right-col{display:none}
+  .main-col{width:100%;max-width:100%;border-right:none}
+}
+
+/* ═══ MOBİL ═══ */
+@media(max-width:768px){
+  /* Genel ayarlar */
+  html,body{overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  
+  /* Sidebar tamamen gizle */
+  .sidebar{display:none !important}
+  
+  /* Dashboard container */
+  .dashboard-container{max-width:100%;padding:0;flex-direction:column}
+  .main-wrap{width:100%;margin:0}
+  .main-col{width:100%;max-width:100%;border:none;height:auto;min-height:100vh;padding-top:60px;padding-bottom:80px}
+  
+  /* Mobil UI göster */
+  .mobile-nav{display:block}
+  .mobile-fab{display:flex}
+  .mobile-header{display:block}
+  
+  /* Masaüstü UI gizle */
+  .top-bar{display:none !important}
+  .yankila-btn{display:none !important}
+  
+  /* Kartlar tam genişlik */
+  .yanki{margin:0;border-radius:0;border-left:none;border-right:none;border-top:none}
+  .yanki:last-child{border-bottom:none}
+  
+  /* Composer mobil */
+  .composer{border-radius:0;margin:0;border-left:none;border-right:none}
+  .composer-avatar{width:40px;height:40px}
+  .composer-input{font-size:16px;min-height:60px}
+  
+  /* Auth ekranı */
+  .auth-screen{padding:16px}
+  .auth-box{padding:0}
+  .auth-card{border-radius:20px;padding:24px 20px}
+  .logo{width:72px;height:72px;font-size:36px}
+  .auth-header h1{font-size:32px}
+  .form-input{padding:14px;font-size:16px}
+  .btn{padding:14px 24px;font-size:16px}
+  
+  /* Profil mobil */
+  .profile-banner{height:140px;border-radius:0}
+  .profile-header{padding:0 16px}
+  .profile-avatar{width:90px;height:90px;margin-top:-45px;border-width:4px}
+  .profile-name{font-size:22px}
+  .profile-handle{font-size:14px}
+  .profile-bio{font-size:14px;padding:0 16px}
+  .profile-stats{padding:12px 16px;gap:24px}
+  .profile-stat-num{font-size:18px}
+  
+  /* Tab'lar */
+  .feed-tabs{padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .feed-tabs::-webkit-scrollbar{display:none}
+  .feed-tab{padding:12px 16px;font-size:14px;white-space:nowrap}
+  
+  /* Sağ kolon gizle */
+  .right-col{display:none !important}
+  
+  /* Modaller */
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal{width:100%;max-width:100%;border-radius:20px 20px 0 0;max-height:90vh;margin:0}
+  
+  /* Toast pozisyon */
+  .toast{bottom:100px;left:50%;right:auto;transform:translateX(-50%)}
+  
+  /* Yankı detay */
+  .yanki-content{padding-bottom:20px}
+  
+  /* Explore */
+  .suggest-scroll{padding:0 16px}
+  .suggest-card{min-width:140px}
+  
+  /* Trending section mobilde göster */
+  .trending-mobile{display:block;padding:16px}
+  
+  /* Arama */
+  .sv-searchbox{padding:10px 16px}
+  
+  /* Mesajlar */
+  .dm-conv{padding:14px 16px}
+  .dm-chat-input{padding:12px 16px;font-size:16px}
+  
+  /* Bildirimler */
+  .nf-item{padding:14px 16px}
+  
+  /* Ayarlar */
+  .settings-section{margin:16px;border-radius:16px}
+  .settings-item{padding:16px}
+  
+  /* Form elemanları büyüt (iOS zoom engellemek için) */
+  input,textarea,select{font-size:16px !important}
+  
+  /* Touch feedback */
+  .yanki:active,.dm-conv:active,.nf-item:active,.menu-item:active{background:var(--accent-hover)}
+  
+  /* Scroll momentum */
+  .main-col,.panel{-webkit-overflow-scrolling:touch}
+}
+
+/* ═══ KÜÇÜK MOBİL (iPhone SE vb) ═══ */
+@media(max-width:375px){
+  .auth-header h1{font-size:28px}
+  .logo{width:64px;height:64px;font-size:32px}
+  .profile-avatar{width:80px;height:80px;margin-top:-40px}
+  .yanki-actions{gap:6px}
+  .action-btn{padding:6px 10px}
+  .mobile-nav-item{padding:6px 8px}
+  .mobile-nav-item .nav-icon{font-size:22px}
+  .mobile-fab{width:52px;height:52px;font-size:22px}
+}
+
+/* ═══ PWA STANDALONE MODE ═══ */
+@media(display-mode:standalone){
+  .mobile-header{padding-top:calc(16px + env(safe-area-inset-top))}
+  .main-col{padding-top:70px}
+  .mobile-nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .mobile-fab{bottom:calc(80px + env(safe-area-inset-bottom))}
+}
+
+/* ═══ LANDSCAPE MOBİL ═══ */
+@media(max-width:900px) and (orientation:landscape){
+  .mobile-nav{padding:4px 0}
+  .mobile-nav-item .nav-label{display:none}
+  .mobile-fab{bottom:calc(50px + env(safe-area-inset-bottom))}
+  .main-col{padding-bottom:60px}
+}
+
+/* ═══ DARK MODE SCROLLBAR ═══ */
+@media(max-width:768px){
+  ::-webkit-scrollbar{width:0;height:0}
+}
 
 /* ═══════════════════════════════════════════════════════════
    KAYDEDİLENLER — TAM YENİ TASARIM
@@ -1123,111 +1276,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 /* ── Rich comment form ── */
 .comment-form-rich{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
-
-/* ═══════════════════════════════════════════════════════════════
-   MOBİL RESPONSIVE - PWA OPTİMİZASYONU
-═══════════════════════════════════════════════════════════════ */
-
-/* Mobil Bottom Navigation */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + var(--safe-bottom));z-index:1000;backdrop-filter:blur(20px)}
-.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:500px;margin:0 auto}
-.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 16px;border-radius:12px;cursor:pointer;transition:all .15s;color:var(--muted)}
-.mobile-nav-item.active{color:var(--accent2);background:var(--accent-hover)}
-.mobile-nav-item .nav-icon{font-size:22px}
-.mobile-nav-item .nav-label{font-size:10px;font-weight:600}
-
-/* Mobil FAB (Yankıla butonu) */
-.mobile-fab{display:none;position:fixed;bottom:80px;right:16px;width:56px;height:56px;background:var(--gradient);border-radius:50%;box-shadow:0 4px 20px var(--glow);align-items:center;justify-content:center;font-size:24px;cursor:pointer;z-index:999;transition:transform .2s}
-.mobile-fab:active{transform:scale(.9)}
-
-/* Mobil Header */
-.mobile-header{display:none;position:fixed;top:0;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;padding-top:calc(12px + var(--safe-top));z-index:1000;backdrop-filter:blur(20px)}
-.mobile-header-inner{display:flex;align-items:center;gap:12px}
-.mobile-header-avatar{width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--elevated)}
-.mobile-header-title{flex:1;font-family:var(--font-display);font-size:20px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.mobile-header-actions{display:flex;gap:8px}
-.mobile-header-btn{width:36px;height:36px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
-
-/* Pull to Refresh Indicator */
-.ptr-indicator{display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:12px;color:var(--dim);z-index:999}
-
-/* Mobil Media Queries */
-@media (max-width: 768px) {
-  /* Sidebar gizle */
-  .sidebar{display:none !important}
-  .right-col{display:none !important}
-  
-  /* Main column full width */
-  .dashboard-container{max-width:100%;padding:0}
-  .main-wrap{width:100%}
-  .main-col{width:100%;max-width:100%;border:none;padding-top:60px;padding-bottom:70px}
-  
-  /* Mobil navigasyonu göster */
-  .mobile-nav{display:block}
-  .mobile-fab{display:flex}
-  .mobile-header{display:block}
-  
-  /* Yankıla butonu sidebar'da gizle */
-  .yankila-btn{display:none !important}
-  
-  /* Top bar düzenle */
-  .top-bar{display:none}
-  
-  /* Kartlar tam genişlik */
-  .yanki{margin:0;border-radius:0;border-left:none;border-right:none}
-  
-  /* Auth ekranı mobil */
-  .auth-box{padding:0 16px}
-  .auth-card{border-radius:16px}
-  .logo{width:72px;height:72px;font-size:36px}
-  .auth-header h1{font-size:32px}
-  
-  /* Modal mobil */
-  .modal{max-width:100%;border-radius:20px 20px 0 0;max-height:90vh}
-  .modal-overlay.active{align-items:flex-end}
-  
-  /* Composer mobil */
-  .composer{border-radius:0;margin:0;border-left:none;border-right:none}
-  
-  /* Profil mobil */
-  .profile-banner{height:120px}
-  .profile-avatar{width:80px;height:80px;margin-top:-40px}
-  .profile-name{font-size:20px}
-  
-  /* Right column content'i main'e taşı */
-  .trending-section{display:none}
-  
-  /* Toast mobil pozisyon */
-  .toast{bottom:90px}
-  #toast-container{bottom:90px}
-  
-  /* Swipe gestures için touch-action */
-  .main-col{touch-action:pan-y}
-  
-  /* Safe area için padding */
-  body{padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
-}
-
-/* Küçük mobil (iPhone SE vb) */
-@media (max-width: 375px) {
-  .auth-header h1{font-size:28px}
-  .logo{width:64px;height:64px;font-size:32px}
-  .yanki-actions{gap:8px}
-  .action-icon{font-size:16px}
-  .profile-avatar{width:70px;height:70px;margin-top:-35px}
-}
-
-/* Tablet */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .right-col{width:250px}
-  .main-col{width:500px}
-}
-
-/* PWA Standalone Mode */
-@media (display-mode: standalone) {
-  .mobile-header{padding-top:calc(16px + var(--safe-top))}
-  .main-col{padding-top:70px}
-}
 </style>
 </head>
 <body>
@@ -1264,7 +1312,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="sidebar-brand-icon">🐦</div>
   <div class="sidebar-brand-text">
     <div class="sidebar-brand-name">Yankuş</div>
-    <div class="sidebar-brand-version">v1.7.5 📱</div>
+    <div class="sidebar-brand-version">v1.8.0 📱</div>
   </div>
 </div>
 <nav class="sidebar-menu">
@@ -1279,11 +1327,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="menu-item" onclick="goPanel('drafts')"><span class="mi-icon">✏️</span><span class="mi-label">Taslaklar</span></div>
 <div class="menu-item" onclick="goPanel('settings')"><span class="mi-icon">⚙️</span><span class="mi-label">Ayarlar</span></div>
 <div class="menu-item" onclick="goPanel('contact')"><span class="mi-icon">📧</span><span class="mi-label">İletişim</span></div>
-<!-- Yankıla Butonu -->
-<div class="yankila-btn" onclick="openYankilaModal()">
-  <span class="yankila-icon">🐦</span>
-  <span class="yankila-text">Yankıla</span>
-</div>
 </nav>
 <div class="sidebar-end">
 <div class="menu-item" onclick="goPanel('patchnotes')"><span class="mi-icon">🗒️</span><span class="mi-label">Yenilikler</span></div>
@@ -1722,35 +1765,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 </div>
 </div>
 
-<!-- Yankıla Modal -->
-<div class="modal-overlay" id="modal-yankila">
-<div class="modal" style="max-width:500px">
-<div class="modal-header"><div class="modal-title">🐦 Yankıla</div><div class="modal-close" onclick="closeModal('yankila')">✕</div></div>
-<div class="modal-body">
-<div class="yankila-compose">
-<div class="yankila-avatar" id="yankila-avatar"></div>
-<textarea class="yankila-input" id="yankila-text" placeholder="Ne düşünüyorsun?" rows="4"></textarea>
-</div>
-<div class="yankila-tools">
-<label class="yankila-tool" title="Fotoğraf ekle"><input type="file" accept="image/*" style="display:none" onchange="yankilaImagePreview(event)">🖼️</label>
-<span class="yankila-tool" onclick="toggleYankilaPoll()" title="Anket ekle">📊</span>
-<span class="yankila-tool" onclick="insertEmoji()" title="Emoji">😊</span>
-</div>
-<div id="yankila-image-preview" style="margin:10px 0"></div>
-<div id="yankila-poll-area" style="display:none;margin:10px 0">
-<input class="form-input" placeholder="Seçenek 1" id="yankila-poll-1" style="margin-bottom:8px">
-<input class="form-input" placeholder="Seçenek 2" id="yankila-poll-2" style="margin-bottom:8px">
-<input class="form-input" placeholder="Seçenek 3 (isteğe bağlı)" id="yankila-poll-3" style="margin-bottom:8px">
-<input class="form-input" placeholder="Seçenek 4 (isteğe bağlı)" id="yankila-poll-4">
-</div>
-<div class="yankila-footer">
-<span class="yankila-counter" id="yankila-counter">0/280</span>
-<button class="btn btn-main" onclick="submitYankila()">Yankıla</button>
-</div>
-</div>
-</div>
-</div>
-
 <div class="modal-overlay" id="modal-edit">
 <div class="modal">
 <div class="modal-header"><div class="modal-title">Profili Düzenle</div><div class="modal-close" onclick="closeModal('edit')">✕</div></div>
@@ -1776,8 +1790,7 @@ let settings={theme:'dark',accent:'#A91101',accentLight:'#b57281',fontSize:'norm
 
 const $=id=>document.getElementById(id);
 const _noop=()=>{};
-const API_BASE=window.location.hostname==='localhost'?'http://localhost:3000':'';
-const api=async(url,data)=>{const r=await fetch(API_BASE+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
+const api=async(url,data)=>{const r=await fetch('http://localhost:3000'+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
 const timeAgo=d=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return'şimdi';if(s<3600)return Math.floor(s/60)+'dk';if(s<86400)return Math.floor(s/3600)+'sa';return Math.floor(s/86400)+'g'};
 const toast=m=>{document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
 
@@ -2028,59 +2041,6 @@ const doLogin=async()=>{
 };
 const doRegister=async()=>{const n=$('register-name').value.trim(),u=$('register-username').value.trim(),p=$('register-password').value;if(!n||!u||!p)return showError('register','Tüm alanları doldurun');if(p.length<6)return showError('register','Şifre en az 6 karakter');const r=await api('/register',{username:u,password:p,displayName:n});if(r.error)return showError('register',r.error);user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('Hoş geldin!')};
 const doLogout=()=>{user=null;localStorage.removeItem('yankus-user');showScreen('login')};
-
-// ═══════════════════════════════════════════════════════════════
-// YANKILA MODAL
-// ═══════════════════════════════════════════════════════════════
-let yankilaImage=null,yankilaPollMode=false;
-const openYankilaModal=()=>{
-  $('yankila-avatar').innerHTML=avatar(user?.profileImage);
-  $('yankila-text').value='';
-  $('yankila-counter').textContent='0/280';
-  $('yankila-image-preview').innerHTML='';
-  $('yankila-poll-area').style.display='none';
-  yankilaImage=null;
-  yankilaPollMode=false;
-  $('modal-yankila').classList.add('active');
-  setTimeout(()=>$('yankila-text').focus(),100);
-};
-$('yankila-text')?.addEventListener('input',e=>{
-  const len=e.target.value.length;
-  $('yankila-counter').textContent=len+'/280';
-  $('yankila-counter').style.color=len>280?'var(--error)':'var(--muted)';
-});
-const yankilaImagePreview=(e)=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=(ev)=>{
-    yankilaImage=ev.target.result;
-    $('yankila-image-preview').innerHTML=`<img src="${yankilaImage}" style="max-width:100%;max-height:200px;border-radius:12px"><span onclick="yankilaImage=null;$('yankila-image-preview').innerHTML=''" style="cursor:pointer;margin-left:8px">✕</span>`;
-  };
-  reader.readAsDataURL(file);
-};
-const toggleYankilaPoll=()=>{
-  yankilaPollMode=!yankilaPollMode;
-  $('yankila-poll-area').style.display=yankilaPollMode?'block':'none';
-};
-const submitYankila=async()=>{
-  const text=$('yankila-text').value.trim();
-  if(!text&&!yankilaImage)return toast('Bir şeyler yaz!');
-  if(text.length>280)return toast('Çok uzun!');
-  let poll=null;
-  if(yankilaPollMode){
-    const opts=[$('yankila-poll-1').value,$('yankila-poll-2').value,$('yankila-poll-3').value,$('yankila-poll-4').value].filter(o=>o.trim());
-    if(opts.length>=2)poll={options:opts.map(o=>({text:o,votes:0})),totalVotes:0};
-  }
-  const r=await api('/yanki/create',{userId:user.id,text,image:yankilaImage,poll});
-  if(r.success){
-    closeModal('yankila');
-    toast('Yankın paylaşıldı! 🐦');
-    loadFeed();
-  }else{
-    toast(r.error||'Hata');
-  }
-};
 
 // Init
 const init=()=>{
@@ -2632,8 +2592,7 @@ let _reyankiTargetId = null;
 const reyanki = async id => {
   _reyankiTargetId = id;
   // Önizleme için yankıyı bul
-  const res = await api('/yanki/get', { yankiId: id, viewerId: user.id });
-  const r = res?.yanki || res;
+  const r = await api('/yanki', { yankiId: id, viewerId: user.id });
   const preview = document.getElementById('reyanki-preview');
   if (preview) {
     const text = r?.text || '';
@@ -2690,13 +2649,12 @@ document.addEventListener('click', e => {
 const openYanki=async id=>{
   goPanel('yanki');
   $('yanki-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
-  const r=await api('/yanki/get',{yankiId:id,viewerId:user.id});
-  if(r.error||!r.yanki){$('yanki-content').innerHTML='<div class="empty">Yankı bulunamadı</div>';return;}
+  const r=await api('/yanki',{yankiId:id,viewerId:user.id});
+  if(r.error){$('yanki-content').innerHTML='<div class="empty">Yankı bulunamadı</div>';return;}
   $('top-title').textContent='Yankı';
   let commentImg=null;
-  const y=r.yanki;
   $('yanki-content').innerHTML=
-    `<div class="yanki" style="cursor:default">${yankiCard(y).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
+    `<div class="yanki" style="cursor:default">${yankiCard(r).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
     +`<div class="comment-form-rich" id="rich-comment-form-${id}">
         <div class="avatar avatar-sm">${avatar(user.profileImage)}</div>
         <div style="flex:1;display:flex;flex-direction:column;gap:8px">
@@ -3993,7 +3951,18 @@ const triggerBot=async(action,botId)=>{
     if(s){
       const parsed=JSON.parse(s);
       if(parsed&&parsed.id&&parsed.username){
-        // Sunucudan güncel kullanıcı verisini al (isAdmin, banned vb. doğru gelsin)
+        // Önce sunucuya ping at - çalışıyor mu?
+        const ping = await api('/ping',{}).catch(()=>null);
+        if(!ping || ping.error){
+          // Sunucu çalışmıyor, localStorage'dan devam et
+          user = parsed;
+          showScreen('dashboard');
+          init();
+          initMobileUI();
+          return;
+        }
+        
+        // Sunucudan güncel kullanıcı verisini al
         const r=await api('/profile',{userId:parsed.id,viewerId:parsed.id}).catch(()=>null);
         if(r&&!r.error&&r.id){
           // Sunucudan gelen güncel veriyle birleştir
@@ -4001,18 +3970,42 @@ const triggerBot=async(action,botId)=>{
           localStorage.setItem('yankus-user',JSON.stringify(user));
           showScreen('dashboard');
           init();
+          initMobileUI();
         } else {
-          // Sunucuda kullanıcı yok (db sıfırlanmış olabilir) — çıkış yap
-          localStorage.removeItem('yankus-user');
-          showScreen('login');
+          // Sunucuda kullanıcı yok - otomatik login dene
+          const loginResult = await api('/login',{username:parsed.username,password:parsed.password||'cached'}).catch(()=>null);
+          if(loginResult && loginResult.success && loginResult.user){
+            user = loginResult.user;
+            localStorage.setItem('yankus-user',JSON.stringify(user));
+            showScreen('dashboard');
+            init();
+            initMobileUI();
+          } else {
+            // Login da başarısız - giriş ekranına yönlendir
+            localStorage.removeItem('yankus-user');
+            showScreen('login');
+          }
         }
       } else {
         localStorage.removeItem('yankus-user');
+        showScreen('login');
       }
     }
   }catch(e){
-    localStorage.removeItem('yankus-user');
-    console.warn('Oturum sıfırlandı:',e);
+    // Hata durumunda localStorage'dan devam etmeye çalış
+    const s=localStorage.getItem('yankus-user');
+    if(s){
+      try{
+        user = JSON.parse(s);
+        showScreen('dashboard');
+        init();
+        initMobileUI();
+      }catch(e2){
+        localStorage.removeItem('yankus-user');
+        showScreen('login');
+      }
+    }
+    console.warn('Oturum kontrolü:',e);
   }
 })();
 
@@ -4260,14 +4253,23 @@ const cancelScheduledItem=id=>{
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     MOBİL UI ELEMENTLER
+═══════════════════════════════════════════════════════════════ -->
+
 <!-- Mobil Header -->
 <div class="mobile-header" id="mobile-header">
   <div class="mobile-header-inner">
-    <div class="mobile-header-avatar" id="mobile-avatar" onclick="goPanel('profile')"></div>
+    <div class="mobile-header-avatar" id="mobile-avatar" onclick="goPanel('profile')">👤</div>
     <div class="mobile-header-title">Yankuş</div>
     <div class="mobile-header-actions">
-      <div class="mobile-header-btn" onclick="goPanel('notifications')">🔔</div>
-      <div class="mobile-header-btn" onclick="goPanel('messages')">💬</div>
+      <div class="mobile-header-btn" onclick="goPanel('notifications')" id="mobile-notif-btn">
+        🔔
+        <div class="notif-dot" id="mobile-notif-dot" style="display:none"></div>
+      </div>
+      <div class="mobile-header-btn" onclick="goPanel('messages')" id="mobile-msg-btn">
+        💬
+      </div>
     </div>
   </div>
 </div>
@@ -4278,23 +4280,25 @@ const cancelScheduledItem=id=>{
 <!-- Mobil Bottom Navigation -->
 <div class="mobile-nav" id="mobile-nav">
   <div class="mobile-nav-inner">
-    <div class="mobile-nav-item active" id="nav-home" onclick="mobileNav('home')">
+    <div class="mobile-nav-item active" id="mnav-home" onclick="mobileGoPanel('home')">
       <span class="nav-icon">🏠</span>
       <span class="nav-label">Ana Sayfa</span>
     </div>
-    <div class="mobile-nav-item" id="nav-explore" onclick="mobileNav('explore')">
+    <div class="mobile-nav-item" id="mnav-explore" onclick="mobileGoPanel('explore')">
       <span class="nav-icon">🔍</span>
       <span class="nav-label">Keşfet</span>
     </div>
-    <div class="mobile-nav-item" id="nav-notifications" onclick="mobileNav('notifications')">
+    <div class="mobile-nav-item" id="mnav-notifications" onclick="mobileGoPanel('notifications')">
       <span class="nav-icon">🔔</span>
       <span class="nav-label">Bildirimler</span>
+      <span class="nav-badge" id="mnav-notif-badge" style="display:none">0</span>
     </div>
-    <div class="mobile-nav-item" id="nav-messages" onclick="mobileNav('messages')">
+    <div class="mobile-nav-item" id="mnav-messages" onclick="mobileGoPanel('messages')">
       <span class="nav-icon">💬</span>
       <span class="nav-label">Mesajlar</span>
+      <span class="nav-badge" id="mnav-msg-badge" style="display:none">0</span>
     </div>
-    <div class="mobile-nav-item" id="nav-profile" onclick="mobileNav('profile')">
+    <div class="mobile-nav-item" id="mnav-profile" onclick="mobileGoPanel('profile')">
       <span class="nav-icon">👤</span>
       <span class="nav-label">Profil</span>
     </div>
@@ -4302,49 +4306,114 @@ const cancelScheduledItem=id=>{
 </div>
 
 <script>
-// Mobil navigasyon
-const mobileNav = (panel) => {
+// ═══════════════════════════════════════════════════════════════
+// MOBİL NAVİGASYON FONKSİYONLARI
+// ═══════════════════════════════════════════════════════════════
+
+// Mobil panel geçişi
+const mobileGoPanel = (panel) => {
+  // Nav itemları güncelle
   document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('nav-' + panel)?.classList.add('active');
+  const navItem = document.getElementById('mnav-' + panel);
+  if (navItem) navItem.classList.add('active');
+  
+  // Header başlığını güncelle
+  const titles = {
+    home: 'Yankuş',
+    explore: 'Keşfet',
+    notifications: 'Bildirimler',
+    messages: 'Mesajlar',
+    profile: 'Profil'
+  };
+  const headerTitle = document.querySelector('.mobile-header-title');
+  if (headerTitle) headerTitle.textContent = titles[panel] || 'Yankuş';
+  
+  // Profile için özel işlem
+  if (panel === 'profile') {
+    loadMyProfile();
+  }
+  
+  // Panel'e git
   goPanel(panel);
 };
 
 // Mobil avatar güncelle
-const updateMobileAvatar = () => {
+const updateMobileUI = () => {
   const av = document.getElementById('mobile-avatar');
-  if (av && user?.profileImage) {
-    av.innerHTML = `<img src="${user.profileImage}" style="width:100%;height:100%;object-fit:cover">`;
-  } else if (av) {
-    av.innerHTML = '👤';
-    av.style.display = 'flex';
-    av.style.alignItems = 'center';
-    av.style.justifyContent = 'center';
-    av.style.fontSize = '16px';
+  if (av && user) {
+    if (user.profileImage) {
+      av.innerHTML = `<img src="${user.profileImage}" alt="">`;
+    } else {
+      av.innerHTML = '👤';
+    }
   }
 };
 
-// Mobil header'da panel başlığını güncelle
-const updateMobileTitle = (title) => {
-  const t = document.querySelector('.mobile-header-title');
-  if (t) t.textContent = title || 'Yankuş';
+// Mobil bildirim badge güncelle
+const updateMobileBadges = () => {
+  // Bildirim badge
+  const notifBadge = document.getElementById('mnav-notif-badge');
+  const notifDot = document.getElementById('mobile-notif-dot');
+  const unread = document.querySelectorAll('.nf-item.unread').length || 0;
+  
+  if (notifBadge) {
+    if (unread > 0) {
+      notifBadge.textContent = unread > 99 ? '99+' : unread;
+      notifBadge.style.display = 'flex';
+      if (notifDot) notifDot.style.display = 'block';
+    } else {
+      notifBadge.style.display = 'none';
+      if (notifDot) notifDot.style.display = 'none';
+    }
+  }
 };
 
-// PWA install prompt
+// Sayfa yüklendiğinde mobil UI'ı başlat
+const initMobileUI = () => {
+  updateMobileUI();
+  updateMobileBadges();
+  
+  // Her 10 saniyede badge'leri güncelle
+  setInterval(updateMobileBadges, 10000);
+};
+
+// Init'e ekle
+const originalInit = typeof init === 'function' ? init : () => {};
+const enhancedInit = () => {
+  originalInit();
+  setTimeout(initMobileUI, 100);
+};
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.log('SW kayıt hatası:', err);
+    });
+  });
+}
+
+// PWA Install prompt
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 });
 
-// Service Worker kayıt
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
-
-// Init mobil
-document.addEventListener('DOMContentLoaded', () => {
-  updateMobileAvatar();
+// Geri tuşu için history yönetimi (Android)
+window.addEventListener('popstate', (e) => {
+  if (navStack && navStack.length > 1) {
+    e.preventDefault();
+    goBack();
+  }
 });
+
+// Pull to refresh engelle (kendi implentasyonumuz için)
+document.body.addEventListener('touchmove', (e) => {
+  if (document.querySelector('.main-col')?.scrollTop === 0) {
+    // Pull to refresh logic here if needed
+  }
+}, { passive: true });
 </script>
 </body>
 </html>

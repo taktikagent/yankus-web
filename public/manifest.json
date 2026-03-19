@@ -7,15 +7,17 @@
   "background_color": "#0f0a09",
   "theme_color": "#A91101",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "categories": ["social", "entertainment"],
   "lang": "tr",
-  "dir": "ltr"
+  "dir": "ltr",
+  "prefer_related_applications": false
 }

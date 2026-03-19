@@ -500,7 +500,7 @@ const handlers = {
   // Patch notes
   patchnotes: () => {
     return { patchNotes: [
-      { version: '1.7.4', date: '2026-03-19', features: [
+      { version: '1.8.0', date: '2026-03-19', features: [
         '🐦 Yankıla Butonu — Sidebar\'da büyük buton',
         '💬 Yankıla Popup — Fotoğraf ve anket destekli',
         '🔧 Nick düzeltmesi — Artık undefined göstermiyor',
@@ -866,7 +866,7 @@ const handleRequest = (req, res) => {
 
   // API: GET
   if (req.method === 'GET') {
-    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.7.5' });
+    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.8.0' });
     if (url === '/trending') return send(res, 200, handlers.trending());
   }
 
