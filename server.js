@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// YANKUŞ WEB SERVER — Vercel Uyumlu
+// YANKUŞ v2.1 — SERVER
 // ═══════════════════════════════════════════════════════════════
 
 const http = require('http');
@@ -18,898 +18,1462 @@ const db = {
   blocks: [],
   polls: [],
   pollVotes: [],
-  contacts: [],
+  reports: [],
+  scheduled: [],
   messages: [],
-  feedback: [],
+  conversations: [],
   collections: [],
-  saveNotes: [],
   collectionItems: [],
   drafts: [],
-  scheduled: [],
-  threads: []
+  feedback: []
 };
 
-// ─── Bot Profiles ──────────────────────────────────────────────
-const BOT_PROFILES = [
-  { username: 'ayse_dev', displayName: 'Ayşe | Yazılımcı 👩‍💻', bio: 'Full-stack developer. React & Node.js', verified: true, personality: 'teknik', interests: ['yazılım', 'teknoloji'], mood: 'helpful', style: 'profesyonel' },
-  { username: 'mehmet_tasarim', displayName: 'Mehmet Tasarım 🎨', bio: 'UI/UX Designer | Figma', verified: true, personality: 'yaratıcı', interests: ['tasarım', 'sanat'], mood: 'inspiring', style: 'yaratıcı' },
-  { username: 'zeynep_muzik', displayName: 'Zeynep 🎵', bio: 'Müzisyen | Şarkı sözü yazarı', verified: false, personality: 'sanatsal', interests: ['müzik', 'sanat'], mood: 'dreamy', style: 'duygusal' },
-  { username: 'ahmet_foto', displayName: 'Ahmet | Fotoğrafçı 📸', bio: 'Doğa ve sokak fotoğrafçılığı', verified: true, personality: 'gözlemci', interests: ['fotoğraf', 'seyahat'], mood: 'calm', style: 'minimal' },
-  { username: 'elif_yazar', displayName: 'Elif Kalem ✍️', bio: 'Yazar | Hikaye anlatıcısı', verified: false, personality: 'hikayeci', interests: ['edebiyat', 'yazı'], mood: 'thoughtful', style: 'edebi' },
+let botSimulationRunning = false;
+
+// ─── Bot Agent Sistemi ──────────────────────────────────────────
+const BOT_AGENTS = [
+  {
+    username: 'ayse_dev',
+    displayName: 'Ayşe | Yazılımcı 👩‍💻',
+    bio: 'Full-stack developer. React & Node.js sevdalısı. Açık kaynak tutkunu.',
+    verified: true,
+    personality: { tone: 'teknik', humor: 0.3, replyChance: 0.7, likeChance: 0.8, reyankiChance: 0.2 },
+    interests: ['yazılım', 'teknoloji', 'yapay zeka', 'react', 'node'],
+    moods: ['odaklanmış', 'heyecanlı', 'yorgun', 'ilhamlı'],
+    yankiBank: [
+      'Bugün 3 saat boyunca bir bug\'la uğraştım, sonunda sorun tek bir noktalı virgüldü 😤💻',
+      'React Server Components gerçekten oyun değiştirici. Kim denedi?',
+      'Sabah 6\'da kalkıp kod yazmak > gece 3\'e kadar kod yazmak. Tartışmıyorum bile ☕',
+      'Yeni açık kaynak projemi duyuruyorum! Detaylar yakında 🚀',
+      'TypeScript olmadan JavaScript yazmak, emniyet kemeri takmadan araba sürmek gibi',
+      'Bugünkü commit sayısı: 47. Verimli bir gündü ✅',
+      'AI pair programming deniyorum, inanılmaz verimli 🤖',
+      'Her junior developer\'a tavsiyem: hata mesajlarını OKUYUN. Cevap genelde orada 📖',
+      'CSS Grid mi Flexbox mu? Cevap: ikisi de, duruma göre 🎯',
+      'Kahve bitince kod kalitesi de düşüyor, kanıtlanmış bilimsel gerçek ☕📉',
+      'Dockerize etmeden deployment yapmayın, geçen hafta 3 saat kaybettim 🐳',
+      'Temiz kod yazmak bir alışkanlıktır, başlangıçta zor ama sonra doğal geliyor ✨',
+    ],
+    replyBank: [
+      'Buna katılıyorum! 👍',
+      'İlginç bir bakış açısı, hiç düşünmemiştim 🤔',
+      'Tam da benim düşündüğüm şey!',
+      'Harika paylaşım! Kaydet butonuna bastım 🔖',
+      'Bu konuda bir blog yazısı yazmalısın bence 📝',
+      'Kesinlikle! Ben de benzer bir deneyim yaşadım',
+    ]
+  },
+  {
+    username: 'mehmet_tasarim',
+    displayName: 'Mehmet Tasarım 🎨',
+    bio: 'UI/UX Designer | Figma & Adobe | Minimalizm hayranı',
+    verified: true,
+    personality: { tone: 'yaratıcı', humor: 0.5, replyChance: 0.5, likeChance: 0.9, reyankiChance: 0.3 },
+    interests: ['tasarım', 'ui', 'ux', 'figma', 'renk', 'tipografi', 'minimalizm'],
+    moods: ['yaratıcı', 'eleştirel', 'ilhamlı', 'rahat'],
+    yankiBank: [
+      'Minimalizm sadece az eleman kullanmak değil, doğru elanları kullanmaktır 🎨',
+      'Bugünkü renk paleti: #1a1a2e #16213e #0f3460 #e94560 — koyu tema severler için 🌙',
+      'İyi bir tasarımcı kullanıcı gibi düşünür, harika bir tasarımcı kullanıcıyı gözlemler 👁️',
+      'Figma\'nın yeni auto-layout güncellemesi muhteşem, workflow\'umu tamamen değiştirdi',
+      'Beyaz alan korkusu en büyük tasarım hatalarından biri. Nefes alsın tasarım! 🫁',
+      'Tipografi seçimi bir projenin %80\'ini belirler. Font seçerken acele etmeyin 🔤',
+      'Gradient\'ler geri döndü ve bu sefer daha zarif! 2026 trend raporu hazırlıyorum 📊',
+      'Karanlık tema tasarlarken saf siyah (#000) kullanmayın, #121212 çok daha iyi 🖤',
+      'Kullanıcı testleri olmadan tasarım yapmak, gözleri kapalı resim çizmek gibidir 🎭',
+      'Her pixel\'in bir amacı olmalı. Gereksiz süsleme = gürültü 🔇',
+      'Mobil öncelikli tasarım artık bir tercih değil, zorunluluk 📱',
+      'Bugün 14 farklı buton varyasyonu çizdim. Mükemmeliyetçilik mi yoksa profesyonellik mi? 🤷‍♂️',
+    ],
+    replyBank: [
+      'Görsel olarak çok etkileyici! 😍',
+      'Renk uyumu harika olmuş',
+      'Tasarım açısından biraz daha sadeleştirilebilir gibi 🤔',
+      'Bu estetik tam benim tarzım ✨',
+      'Detaylara olan özen belli oluyor 👏',
+      'Bunu Figma\'da yeniden çizmem lazım, çok güzel!',
+    ]
+  },
+  {
+    username: 'zeynep_muzik',
+    displayName: 'Zeynep 🎵',
+    bio: 'Müzisyen | Şarkı sözü yazarı | Piyano & Gitar | Indie sevdalısı',
+    verified: false,
+    personality: { tone: 'duygusal', humor: 0.4, replyChance: 0.6, likeChance: 0.85, reyankiChance: 0.25 },
+    interests: ['müzik', 'şarkı', 'konser', 'piyano', 'gitar', 'sanat', 'şiir'],
+    moods: ['melankolik', 'enerjik', 'romantik', 'nostaljik', 'huzurlu'],
+    yankiBank: [
+      'Yeni şarkımın demo\'su hazır! Dinleyip fikir verecek var mı? 🎤',
+      'Yağmurlu havada piyano çalmak terapiden daha etkili 🌧️🎹',
+      'Bugün 4 saat boyunca bir nakarat üzerinde çalıştım. Sonunda buldum o melodiyi! 🎶',
+      'Müzik dinlemeden uyuyamayan bir neslin çocuğuyum 🎧',
+      'Eski Türk pop şarkıları modern prodüksiyonla buluşsa nasıl olur? Deniyorum... 🎵',
+      'Sokak müzisyenlerine her zaman durun ve dinleyin. O cesaret takdiri hak ediyor 🎸',
+      'Yeni keşif: Lo-fi + Türk makamları = saf huzur 🧘‍♀️',
+      'Şarkı sözü yazarken en iyi ilham kaynağı: gece 2\'de açık pencereden gelen şehir sesleri 🌃',
+      'Bir akorun insanı ağlatma gücü var. Müzik büyüdür 🪄',
+      'Konser bileti almak için biriktiriyorum. Canlı müzik bambaşka bir deneyim 🎪',
+      'Bugünkü playlist: %40 indie, %30 caz, %20 elektronik, %10 klasik 📻',
+      'Herkesin hayatının bir film müziği olsa, seninki ne olurdu? 🎬🎵',
+    ],
+    replyBank: [
+      'Bu bana bir şarkı ilhamı verdi! 🎵',
+      'Çok duygulandım, harika paylaşım ❤️',
+      'Kesinlikle katılıyorum, müzikle ifade edilemeyecek duygu yok',
+      'Bunu dinlerken yazmalıyım! 🎧',
+      'Sanatın gücüne bir örnek daha 🎨',
+      'Vay be, bu çok derin bir düşünce 🌊',
+    ]
+  },
+  {
+    username: 'ahmet_foto',
+    displayName: 'Ahmet | Fotoğrafçı 📸',
+    bio: 'Doğa ve sokak fotoğrafçılığı | Sony A7IV | Anı yakalayan adam',
+    verified: true,
+    personality: { tone: 'gözlemci', humor: 0.3, replyChance: 0.4, likeChance: 0.75, reyankiChance: 0.15 },
+    interests: ['fotoğraf', 'doğa', 'seyahat', 'kapadokya', 'istanbul', 'kamera', 'ışık'],
+    moods: ['maceraperest', 'sakin', 'gözlemci', 'heyecanlı'],
+    yankiBank: [
+      'Altın saat çekimleri için her sabah 5\'te kalkıyorum. Değiyor! 🌅',
+      'İstanbul\'un sokaklarında kaybolmak, en iyi fotoğraf terapisi 🏙️',
+      'Yeni lens aldım: 85mm f/1.4 — portre çekimleri bambaşka olacak 📷',
+      'Kapadokya\'da balon festivali zamanı. Bavulu hazırlıyorum! 🎈',
+      'Fotoğrafçılığın %90\'ı sabır, %10\'u deklanşöre basmaktır 📸',
+      'Bugünkü keşif: terk edilmiş bir fabrika. Harabe fotoğrafçılığı bambaşka ☠️',
+      'En iyi kamera her zaman yanınızdaki kameradır. Telefon da olabilir! 📱',
+      'Işık her şeydir. Aynı yeri farklı saatlerde çekin, 10 farklı fotoğraf alın ☀️🌙',
+      'Siyah-beyaz fotoğraf çekmek, dünyayı farklı görmeyi öğretiyor ⚫⚪',
+      'Doğa fotoğrafçılığında en zor şey: doğru anı beklemek 🦅',
+      'Street photography kuralı #1: Her zaman hazır ol, an bir kere gelir 🏃',
+      'Yeni blog yazısı: "Gece fotoğrafçılığı için 10 ipucu" — link bio\'da 🌃',
+    ],
+    replyBank: [
+      'Bu anı fotoğraflamak isterdim 📸',
+      'Görsel olarak çok güçlü bir sahne!',
+      'Işık harika yakalanmış 🌟',
+      'Bu perspektif çok farklı, beğendim',
+      'Bunu çerçeveleyip duvara asarım 🖼️',
+      'Doğanın güzelliği tarif edilemez 🌿',
+    ]
+  },
+  {
+    username: 'elif_yazar',
+    displayName: 'Elif Kalem ✍️',
+    bio: 'Yazar | Hikaye anlatıcısı | Kitap kurdu | Kahve bağımlısı',
+    verified: false,
+    personality: { tone: 'edebi', humor: 0.6, replyChance: 0.65, likeChance: 0.7, reyankiChance: 0.35 },
+    interests: ['edebiyat', 'kitap', 'hikaye', 'şiir', 'yazarlık', 'felsefe', 'kahve'],
+    moods: ['düşünceli', 'neşeli', 'derin', 'meraklı', 'üretken'],
+    yankiBank: [
+      'Yeni romanımın ilk 3 bölümünü bitirdim. Karakterler artık kendi kararlarını veriyor 📖',
+      'Bir kitabın ilk cümlesi, okuyucuyla yapılan ilk tokalaşmadır. Sıkı tutun ✍️',
+      'Bugünkü okuma listesi: Sabahattin Ali, Oğuz Atay, Ursula K. Le Guin 📚',
+      'Yazarın en büyük düşmanı: boş sayfa değil, mükemmeliyetçilik 😅',
+      'Kahve + sessiz bir köşe + açık bir not defteri = mutluluk formülü ☕✍️',
+      'Kısa hikaye yarışmasına başvurdum. Heyecandan ellerim titriyor! 🤞',
+      'İyi bir diyalog, sayfalarca betimlemenin yapamayacağını bir cümlede yapar 💬',
+      'Okumadan yazmaya çalışmak, dinlemeden konuşmaya çalışmak gibidir 📖➡️✍️',
+      'Bugün 2000 kelime yazdım. Yarısını sileceğim muhtemelen ama olsun, ilerleme ilerledir! 📝',
+      'Her insanın içinde anlatılmayı bekleyen bir hikaye var. Seninki ne? 🌟',
+      'Gece yarısı yazmak: kelimeler daha cesur, düşünceler daha derin 🌙',
+      'Edebiyat festivali biletlerini aldım! Kim geliyor? 🎭📚',
+    ],
+    replyBank: [
+      'Bu bir roman karakterinin ağzından çıkmış gibi! ✍️',
+      'Çok güzel ifade etmişsin, kelimelerle büyü yapıyorsun',
+      'Bunu hikayeme ekliyorum, izninle 📝',
+      'Derinlikli bir düşünce, beğendim 🤔',
+      'Bu konuda bir deneme yazmalıyım!',
+      'Sözcüklerinin gücü etkileyici 💫',
+    ]
+  }
 ];
 
-// ─── Init Admin & Bots ─────────────────────────────────────────
+// ─── Agent Etkileşim Motoru ────────────────────────────────────
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function chance(probability) { return Math.random() < probability; }
+const genId = () => Math.random().toString(36).substring(2, 15);
+
+function botAgentTick() {
+  const botUsers = db.users.filter(u => u.isBot);
+  if (botUsers.length === 0) return;
+
+  const agent = BOT_AGENTS[Math.floor(Math.random() * BOT_AGENTS.length)];
+  const botUser = botUsers.find(u => u.username === agent.username);
+  if (!botUser) return;
+
+  const actions = [];
+
+  // 1) Yeni yankı paylaş (%35 şans)
+  if (chance(0.35)) {
+    const mood = pickRandom(agent.moods);
+    const text = pickRandom(agent.yankiBank);
+    // Bazen mood'a göre ek ekle
+    const moodSuffix = chance(0.3) ? `\n\n#${pickRandom(agent.interests)}` : '';
+    db.yankis.push({
+      id: genId(),
+      userId: botUser.id,
+      text: text + moodSuffix,
+      image: null,
+      poll: null,
+      replyToId: null,
+      reyankiOfId: null,
+      pinned: false,
+      createdAt: new Date().toISOString()
+    });
+    actions.push('yanki');
+  }
+
+  // 2) Rastgele yankılara beğeni at
+  const allYankis = db.yankis.filter(y => y.userId !== botUser.id && !y.replyToId);
+  const unliked = allYankis.filter(y => !db.likes.find(l => l.userId === botUser.id && l.yankiId === y.id));
+  if (unliked.length > 0 && chance(agent.personality.likeChance)) {
+    const target = pickRandom(unliked);
+    db.likes.push({ id: genId(), userId: botUser.id, yankiId: target.id, createdAt: new Date().toISOString() });
+    if (target.userId !== botUser.id) {
+      db.notifications.push({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'like', yankiId: target.id, read: false, createdAt: new Date().toISOString() });
+    }
+    actions.push('like');
+  }
+
+  // 3) Yorum yap
+  if (allYankis.length > 0 && chance(agent.personality.replyChance * 0.4)) {
+    const target = pickRandom(allYankis);
+    const replyText = pickRandom(agent.replyBank);
+    const reply = {
+      id: genId(),
+      userId: botUser.id,
+      text: replyText,
+      image: null,
+      poll: null,
+      replyToId: target.id,
+      reyankiOfId: null,
+      pinned: false,
+      createdAt: new Date().toISOString()
+    };
+    db.yankis.push(reply);
+    db.comments.push({ id: reply.id, yankiId: target.id, userId: botUser.id, text: replyText, createdAt: reply.createdAt });
+    if (target.userId !== botUser.id) {
+      db.notifications.push({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'comment', yankiId: reply.id, read: false, createdAt: new Date().toISOString() });
+    }
+    actions.push('comment');
+  }
+
+  // 4) Reyankı yap
+  if (allYankis.length > 0 && chance(agent.personality.reyankiChance * 0.3)) {
+    const target = pickRandom(allYankis);
+    const alreadyReyanki = db.yankis.find(y => y.userId === botUser.id && y.reyankiOfId === target.id);
+    if (!alreadyReyanki) {
+      db.yankis.push({
+        id: genId(),
+        userId: botUser.id,
+        text: '',
+        image: null,
+        poll: null,
+        replyToId: null,
+        reyankiOfId: target.id,
+        pinned: false,
+        createdAt: new Date().toISOString()
+      });
+      if (target.userId !== botUser.id) {
+        db.notifications.push({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'reyanki', yankiId: target.id, read: false, createdAt: new Date().toISOString() });
+      }
+      actions.push('reyanki');
+    }
+  }
+
+  // 5) Takip et
+  const notFollowing = botUsers
+    .filter(u => u.id !== botUser.id)
+    .concat(db.users.filter(u => !u.isBot))
+    .filter(u => !db.follows.find(f => f.followerId === botUser.id && f.followingId === u.id));
+  if (notFollowing.length > 0 && chance(0.15)) {
+    const target = pickRandom(notFollowing);
+    db.follows.push({ id: genId(), followerId: botUser.id, followingId: target.id, createdAt: new Date().toISOString() });
+    db.notifications.push({ id: genId(), userId: target.id, fromId: botUser.id, type: 'follow', read: false, createdAt: new Date().toISOString() });
+    actions.push('follow');
+  }
+
+  if (actions.length > 0) {
+    console.log(`🤖 [${agent.displayName}] ${actions.join(', ')}`);
+  }
+}
+
+// Bot agent'ları her 15-45 saniyede bir çalıştır
+let botInterval = null;
+function startBotAgents() {
+  if (botInterval) return;
+  botSimulationRunning = true;
+  console.log('🤖 Bot Agent sistemi başlatıldı');
+  // İlk tick hemen
+  botAgentTick();
+  // Sonra rastgele aralıklarla
+  function scheduleNext() {
+    const delay = 15000 + Math.random() * 30000; // 15-45 saniye arası
+    botInterval = setTimeout(() => {
+      botAgentTick();
+      scheduleNext();
+    }, delay);
+  }
+  scheduleNext();
+}
+
+function stopBotAgents() {
+  if (botInterval) { clearTimeout(botInterval); botInterval = null; }
+  botSimulationRunning = false;
+  console.log('🤖 Bot Agent sistemi durduruldu');
+}
+
+// ─── Init Data ─────────────────────────────────────────────────
 function initData() {
   // Admin
   if (!db.users.find(u => u.username === 'admin')) {
     db.users.push({
-      id: 'admin_001', username: 'admin', password: 'admin123',
-      displayName: 'Admin', bio: '🔧 Yankuş Yöneticisi',
-      profileImage: null, bannerImage: null, verified: true, isAdmin: true,
+      id: 'admin_001',
+      username: 'admin',
+      password: 'admin123',
+      displayName: 'Admin',
+      bio: '🔧 Yankuş Yöneticisi',
+      profileImage: null,
+      bannerImage: null,
+      verified: true,
+      isAdmin: true,
+      theme: null,
       createdAt: new Date().toISOString()
     });
   }
-  
-  // Bots
-  BOT_PROFILES.forEach((bot, i) => {
-    if (!db.users.find(u => u.username === bot.username)) {
-      db.users.push({
-        id: `bot_${i + 1}`, username: bot.username, password: 'bot123',
-        displayName: bot.displayName, bio: bot.bio,
-        profileImage: null, bannerImage: null, verified: bot.verified,
-        isBot: true, personality: bot.personality,
-        createdAt: new Date().toISOString()
-      });
+
+  // Bot Agent'ları oluştur
+  BOT_AGENTS.forEach((agent, i) => {
+    if (!db.users.find(u => u.username === agent.username)) {
+      const botUser = {
+        id: `bot_${i + 1}`,
+        username: agent.username,
+        password: 'bot123',
+        displayName: agent.displayName,
+        bio: agent.bio,
+        profileImage: null,
+        bannerImage: null,
+        verified: agent.verified,
+        isBot: true,
+        theme: null,
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      };
+      db.users.push(botUser);
+
+      // Her agent kişiliğine göre başlangıç yankıları oluştur
+      const numYankis = 3 + Math.floor(Math.random() * 4); // 3-6 arası
+      const usedTexts = new Set();
+      for (let j = 0; j < numYankis; j++) {
+        let text;
+        do { text = pickRandom(agent.yankiBank); } while (usedTexts.has(text) && usedTexts.size < agent.yankiBank.length);
+        usedTexts.add(text);
+        // Rastgele hashtag ekle
+        if (chance(0.4)) text += `\n\n#${pickRandom(agent.interests)}`;
+        db.yankis.push({
+          id: `yanki_bot_${i}_${j}`,
+          userId: botUser.id,
+          text,
+          image: null,
+          poll: null,
+          replyToId: null,
+          reyankiOfId: null,
+          pinned: false,
+          createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+        });
+      }
     }
   });
 
-  // Sample Yankis
-  const sampleYankis = [
-    { userId: 'bot_1', text: 'React 19 çıktı! Yeni özellikler harika 🚀 #react #yazılım' },
-    { userId: 'bot_2', text: 'Bugünkü UI tasarımım nasıl olmuş? Figma ile yaptım ✨ #tasarım #ui' },
-    { userId: 'bot_3', text: 'Yeni şarkımı dinlediniz mi? Link bioda 🎵 #müzik #yenişarkı' },
-    { userId: 'bot_4', text: 'Kapadokya\'dan muhteşem bir gün batımı 🌅 #fotoğraf #kapadokya' },
-    { userId: 'bot_5', text: 'Yeni hikayem yayında! Okumak ister misiniz? ✍️ #edebiyat #hikaye' },
-  ];
-  
-  sampleYankis.forEach((y, i) => {
-    if (db.yankis.length < 5) {
-      db.yankis.push({
-        id: `yanki_${i + 1}`, ...y,
-        image: null, poll: null, deleted: false,
-        createdAt: new Date(Date.now() - i * 3600000).toISOString()
-      });
+  // Botlar arası başlangıç etkileşimleri: takipler, beğeniler, yorumlar
+  const botUsers = db.users.filter(u => u.isBot);
+  botUsers.forEach(bot => {
+    // Her bot rastgele 2-4 diğer botu takip etsin
+    const others = botUsers.filter(u => u.id !== bot.id);
+    const followCount = 2 + Math.floor(Math.random() * Math.min(3, others.length));
+    const shuffled = others.sort(() => Math.random() - 0.5).slice(0, followCount);
+    shuffled.forEach(target => {
+      if (!db.follows.find(f => f.followerId === bot.id && f.followingId === target.id)) {
+        db.follows.push({ id: genId(), followerId: bot.id, followingId: target.id, createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() });
+      }
+    });
+    // Admin'i de takip etsinler
+    if (!db.follows.find(f => f.followerId === bot.id && f.followingId === 'admin_001')) {
+      db.follows.push({ id: genId(), followerId: bot.id, followingId: 'admin_001', createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() });
     }
+  });
+
+  // Başlangıç beğenileri
+  const allBotYankis = db.yankis.filter(y => botUsers.some(b => b.id === y.userId) && !y.replyToId);
+  botUsers.forEach(bot => {
+    const othersYankis = allBotYankis.filter(y => y.userId !== bot.id);
+    const likeCount = 2 + Math.floor(Math.random() * 5);
+    othersYankis.sort(() => Math.random() - 0.5).slice(0, likeCount).forEach(y => {
+      if (!db.likes.find(l => l.userId === bot.id && l.yankiId === y.id)) {
+        db.likes.push({ id: genId(), userId: bot.id, yankiId: y.id, createdAt: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString() });
+      }
+    });
+  });
+
+  // Başlangıç yorumları (her bot 1-2 yorum yapsın)
+  botUsers.forEach(bot => {
+    const agentData = BOT_AGENTS.find(a => a.username === bot.username);
+    if (!agentData) return;
+    const othersYankis = allBotYankis.filter(y => y.userId !== bot.id);
+    const commentCount = 1 + Math.floor(Math.random() * 2);
+    othersYankis.sort(() => Math.random() - 0.5).slice(0, commentCount).forEach(y => {
+      const text = pickRandom(agentData.replyBank);
+      const commentId = genId();
+      db.yankis.push({
+        id: commentId, userId: bot.id, text, image: null, poll: null,
+        replyToId: y.id, reyankiOfId: null, pinned: false,
+        createdAt: new Date(Date.now() - Math.random() * 2 * 24 * 60 * 60 * 1000).toISOString()
+      });
+      db.comments.push({ id: commentId, yankiId: y.id, userId: bot.id, text, createdAt: new Date().toISOString() });
+    });
   });
 }
 
-initData();
-
 // ─── Helper Functions ──────────────────────────────────────────
-const send = (res, status, data) => {
-  res.writeHead(status, {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  });
-  res.end(JSON.stringify(data));
-};
+const getUser = id => db.users.find(u => u.id === id);
+const getUserByUsername = username => db.users.find(u => u.username === username);
 
-const enrichYanki = (y, viewerId) => {
-  const author = db.users.find(u => u.id === y.userId);
+// Init ve Agent başlatma
+initData();
+startBotAgents();
+
+const enrichYanki = (yanki, viewerId) => {
+  const author = getUser(yanki.userId);
+  if (!author) return null;
+
+  const likes = db.likes.filter(l => l.yankiId === yanki.id);
+  const comments = db.comments.filter(c => c.yankiId === yanki.id);
+  const reyankis = db.yankis.filter(y => y.reyankiOfId === yanki.id);
+  const save = db.saves.find(s => s.yankiId === yanki.id && s.userId === viewerId);
+  const userLike = likes.find(l => l.userId === viewerId);
+  const userReyanki = reyankis.find(r => r.userId === viewerId);
+
+  // Get reyanki source if exists
+  let reyanki = null;
+  if (yanki.reyankiOfId) {
+    const original = db.yankis.find(y => y.id === yanki.reyankiOfId);
+    if (original) {
+      const originalAuthor = getUser(original.userId);
+      reyanki = {
+        id: original.id,
+        text: original.text,
+        username: originalAuthor?.username,
+        displayName: originalAuthor?.displayName,
+        profileImage: originalAuthor?.profileImage
+      };
+    }
+  }
+
+  // Get reply target if exists
+  let replyTo = null;
+  if (yanki.replyToId) {
+    const parent = db.yankis.find(y => y.id === yanki.replyToId);
+    if (parent) {
+      const parentAuthor = getUser(parent.userId);
+      replyTo = {
+        id: parent.id,
+        username: parentAuthor?.username
+      };
+    }
+  }
+
   return {
-    ...y,
-    // Düz alanlar (frontend uyumluluğu için)
-    displayName: author?.displayName || 'Bilinmeyen',
-    username: author?.username || 'bilinmeyen',
-    profileImage: author?.profileImage || null,
-    verified: author?.verified || false,
-    isBot: author?.isBot || false,
-    // Author objesi (detaylı bilgi için)
-    author: author ? { id: author.id, username: author.username, displayName: author.displayName, profileImage: author.profileImage, verified: author.verified, isBot: author.isBot } : null,
-    // İstatistikler
-    likes: db.likes.filter(l => l.yankiId === y.id).length,
-    commentCount: db.comments.filter(c => c.yankiId === y.id && !c.deleted).length,
-    comments: db.comments.filter(c => c.yankiId === y.id && !c.deleted).length,
-    isLiked: viewerId ? db.likes.some(l => l.yankiId === y.id && l.userId === viewerId) : false,
-    isSaved: viewerId ? db.saves.some(s => s.yankiId === y.id && s.userId === viewerId) : false,
-    liked: viewerId ? db.likes.some(l => l.yankiId === y.id && l.userId === viewerId) : false,
-    saved: viewerId ? db.saves.some(s => s.yankiId === y.id && s.userId === viewerId) : false
+    id: yanki.id,
+    userId: yanki.userId,
+    username: author.username,
+    displayName: author.displayName,
+    profileImage: author.profileImage,
+    verified: author.verified,
+    text: yanki.text,
+    image: yanki.image,
+    poll: yanki.poll,
+    reyanki,
+    replyTo,
+    pinned: yanki.pinned || false,
+    likes: likes.length,
+    commentCount: comments.length,
+    reyankiCount: reyankis.length,
+    isLiked: !!userLike,
+    isSaved: !!save,
+    isReyanked: !!userReyanki,
+    createdAt: yanki.createdAt
   };
 };
 
-// ─── API Handlers ──────────────────────────────────────────────
-const handlers = {
-  // Auth
-  register: (d) => {
-    const uname = (d.username || '').toLowerCase().replace('@', '').trim();
-    if (db.users.find(u => u.username === uname)) return { error: 'Bu kullanıcı adı alınmış' };
+// Helper to build a profile response from a user object
+const buildProfileResponse = (user, viewerId) => {
+  const yankisCount = db.yankis.filter(y => y.userId === user.id && !y.replyToId).length;
+  const followersCount = db.follows.filter(f => f.followingId === user.id).length;
+  const followingCount = db.follows.filter(f => f.followerId === user.id).length;
+  const isFollowing = viewerId ? db.follows.some(f => f.followerId === viewerId && f.followingId === user.id) : false;
+
+  return {
+    user: {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      bio: user.bio,
+      profileImage: user.profileImage,
+      bannerImage: user.bannerImage,
+      verified: user.verified,
+      isAdmin: user.isAdmin || false,
+      isBot: user.isBot || false,
+      theme: user.theme || null,
+      createdAt: user.createdAt,
+      yankisCount,
+      followersCount,
+      followingCount
+    },
+    isFollowing
+  };
+};
+
+// ─── API Routes ────────────────────────────────────────────────
+const routes = {
+  // ═══ AUTH ═══
+  'register': (data) => {
+    const { username, password, displayName } = data;
+    if (!username || !password || !displayName) {
+      return { error: 'Tüm alanları doldurun' };
+    }
+    if (db.users.find(u => u.username === username)) {
+      return { error: 'Bu kullanıcı adı zaten alınmış' };
+    }
     const user = {
-      id: Date.now().toString(), username: uname, password: d.password,
-      displayName: d.displayName || uname, bio: '', profileImage: null, bannerImage: null,
-      verified: false, isAdmin: false, isBot: false, createdAt: new Date().toISOString()
-    };
-    db.users.push(user);
-    return { success: true, user: { ...user, password: undefined } };
-  },
-  
-  login: (d) => {
-    const uname = (d.username || '').toLowerCase().replace('@', '').trim();
-    const user = db.users.find(u => u.username === uname && u.password === d.password);
-    if (!user) return { error: 'Kullanıcı adı veya şifre hatalı' };
-    if (user.banned) return { error: 'Hesabınız askıya alınmıştır' };
-    return { success: true, user: { ...user, password: undefined } };
-  },
-
-  // Profile
-  profile: (d) => {
-    const user = db.users.find(u => u.id === d.userId);
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    return {
-      ...user, password: undefined,
-      stats: {
-        yankis: db.yankis.filter(y => y.userId === d.userId && !y.deleted).length,
-        followers: db.follows.filter(f => f.followingId === d.userId).length,
-        following: db.follows.filter(f => f.followerId === d.userId).length
-      },
-      isFollowing: d.viewerId ? db.follows.some(f => f.followerId === d.viewerId && f.followingId === d.userId) : false
-    };
-  },
-
-  'profile/username': (d) => {
-    const user = db.users.find(u => u.username === (d.username || '').toLowerCase().replace('@', ''));
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    return handlers.profile({ userId: user.id, viewerId: d.viewerId });
-  },
-
-  'profile/update': (d) => {
-    const user = db.users.find(u => u.id === d.userId);
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    if (d.displayName) user.displayName = d.displayName;
-    if (d.bio !== undefined) user.bio = d.bio;
-    if (d.profileImage !== undefined) user.profileImage = d.profileImage;
-    if (d.bannerImage !== undefined) user.bannerImage = d.bannerImage;
-    return { success: true, user: { ...user, password: undefined } };
-  },
-
-  // Yankı
-  'yanki/create': (d) => {
-    if (!d.text?.trim() && !d.image) return { error: 'Boş yankı gönderilemez' };
-    const yanki = {
-      id: 'y_' + Date.now(), userId: d.userId, text: d.text?.trim() || '',
-      image: d.image || null, poll: d.poll || null, deleted: false,
+      id: genId(),
+      username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+      password,
+      displayName,
+      bio: '',
+      profileImage: null,
+      bannerImage: null,
+      verified: false,
+      theme: null,
       createdAt: new Date().toISOString()
     };
-    db.yankis.unshift(yanki);
-    return { success: true, yanki: enrichYanki(yanki, d.userId) };
+    db.users.push(user);
+    return { user: { ...user, password: undefined } };
   },
 
-  'yanki/get': (d) => {
-    const yanki = db.yankis.find(y => y.id === d.yankiId && !y.deleted);
-    if (!yanki) return { error: 'Yankı bulunamadı' };
-    const comments = db.comments
-      .filter(c => c.yankiId === d.yankiId && !c.deleted)
-      .map(c => {
-        const author = db.users.find(u => u.id === c.userId);
-        return {
-          ...c,
-          displayName: author?.displayName || 'Bilinmeyen',
-          username: author?.username || 'bilinmeyen',
-          profileImage: author?.profileImage || null,
-          isBot: author?.isBot || false
-        };
-      });
-    return { yanki: enrichYanki(yanki, d.viewerId), comments };
-  },
-
-  feed: (d) => {
-    const followingIds = db.follows.filter(f => f.followerId === d.userId).map(f => f.followingId);
-    followingIds.push(d.userId);
-    const yankis = db.yankis
-      .filter(y => !y.deleted && followingIds.includes(y.userId))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, d.limit || 50)
-      .map(y => enrichYanki(y, d.userId));
-    return { yankis };
-  },
-
-  explore: (d) => {
-    const yankis = db.yankis
-      .filter(y => !y.deleted)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, d.limit || 50)
-      .map(y => enrichYanki(y, d.viewerId));
-    return { yankis };
-  },
-
-  yankis: (d) => {
-    const yankis = db.yankis
-      .filter(y => !y.deleted && (!d.userId || y.userId === d.userId))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, d.limit || 50)
-      .map(y => enrichYanki(y, d.viewerId));
-    return { yankis };
-  },
-
-  'yanki/like': (d) => {
-    const exists = db.likes.find(l => l.userId === d.userId && l.yankiId === d.yankiId);
-    if (exists) {
-      db.likes = db.likes.filter(l => !(l.userId === d.userId && l.yankiId === d.yankiId));
-      return { success: true, liked: false };
+  'login': (data) => {
+    const { username, password } = data;
+    const user = db.users.find(u => u.username === username && u.password === password);
+    if (!user) {
+      return { error: 'Kullanıcı adı veya şifre hatalı' };
     }
-    db.likes.push({ userId: d.userId, yankiId: d.yankiId, createdAt: new Date().toISOString() });
-    return { success: true, liked: true };
+    return { user: { ...user, password: undefined } };
   },
 
-  'yanki/save': (d) => {
-    const exists = db.saves.find(s => s.userId === d.userId && s.yankiId === d.yankiId);
-    if (exists) {
-      db.saves = db.saves.filter(s => !(s.userId === d.userId && s.yankiId === d.yankiId));
+  // ═══ PROFILE ═══
+  'profile': (data) => {
+    const { userId, viewerId } = data;
+    const user = getUser(userId);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+    return buildProfileResponse(user, viewerId);
+  },
+
+  'profile/update': (data) => {
+    const { userId, displayName, bio, profileImage, bannerImage, theme } = data;
+    const user = getUser(userId);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+
+    if (displayName) user.displayName = displayName;
+    if (bio !== undefined) user.bio = bio;
+    if (profileImage !== undefined) user.profileImage = profileImage;
+    if (bannerImage !== undefined) user.bannerImage = bannerImage;
+    if (theme !== undefined) user.theme = theme;
+
+    return { user: { ...user, password: undefined } };
+  },
+
+  'profile/username': (data) => {
+    const { username, viewerId } = data;
+    const user = getUserByUsername(username);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+    return buildProfileResponse(user, viewerId);
+  },
+
+  // ═══ FEED ═══
+  'feed': (data) => {
+    const { userId, algo } = data;
+    const blocked = db.blocks.filter(b => b.userId === userId).map(b => b.blockedId);
+    const following = db.follows.filter(f => f.followerId === userId).map(f => f.followingId);
+
+    let yankis;
+
+    switch (algo) {
+      case 'smart': {
+        // Trending/popular yankis - sort by like count
+        yankis = db.yankis
+          .filter(y => !y.replyToId && !blocked.includes(y.userId))
+          .map(y => ({
+            yanki: y,
+            score: db.likes.filter(l => l.yankiId === y.id).length +
+                   db.comments.filter(c => c.yankiId === y.id).length * 2 +
+                   db.yankis.filter(r => r.reyankiOfId === y.id).length * 3
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 50)
+          .map(item => item.yanki);
+        break;
+      }
+      case 'explore': {
+        // All yankis
+        yankis = db.yankis
+          .filter(y => !y.replyToId && !blocked.includes(y.userId))
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 50);
+        break;
+      }
+      case 'media': {
+        // Only yankis with images
+        yankis = db.yankis
+          .filter(y => !y.replyToId && !blocked.includes(y.userId) && y.image)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 50);
+        break;
+      }
+      case 'chrono':
+      default: {
+        // Current behavior - chronological, all posts (not just following)
+        yankis = db.yankis
+          .filter(y => !y.replyToId && !blocked.includes(y.userId))
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 50);
+        break;
+      }
+    }
+
+    return {
+      yankis: yankis.map(y => enrichYanki(y, userId)).filter(Boolean)
+    };
+  },
+
+  // ═══ YANKI CRUD ═══
+  'yanki/create': (data) => {
+    const { userId, text, image, poll, replyToId } = data;
+    // Accept both reyankiOfId and reyanki for the reyanki source
+    const reyankiOfId = data.reyankiOfId || data.reyanki || null;
+
+    if (!text && !image && !poll) {
+      return { error: 'İçerik gerekli' };
+    }
+
+    const yanki = {
+      id: genId(),
+      userId,
+      text: text || '',
+      image: image || null,
+      poll: poll || null,
+      replyToId: replyToId || null,
+      reyankiOfId: reyankiOfId,
+      pinned: false,
+      createdAt: new Date().toISOString()
+    };
+    db.yankis.push(yanki);
+
+    // Notification for reply
+    if (replyToId) {
+      const parent = db.yankis.find(y => y.id === replyToId);
+      if (parent && parent.userId !== userId) {
+        db.notifications.push({
+          id: genId(),
+          userId: parent.userId,
+          fromId: userId,
+          type: 'comment',
+          yankiId: yanki.id,
+          read: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    return { yanki: enrichYanki(yanki, userId) };
+  },
+
+  // Single yanki endpoint (frontend calls /yanki)
+  'yanki': (data) => {
+    const { yankiId, viewerId } = data;
+    const yanki = db.yankis.find(y => y.id === yankiId);
+    if (!yanki) {
+      return { error: 'Yankı bulunamadı' };
+    }
+
+    const comments = db.yankis
+      .filter(y => y.replyToId === yankiId)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .map(c => enrichYanki(c, viewerId))
+      .filter(Boolean);
+
+    return { ...enrichYanki(yanki, viewerId), comments };
+  },
+
+  'yanki/get': (data) => {
+    const { yankiId, viewerId } = data;
+    const yanki = db.yankis.find(y => y.id === yankiId);
+    if (!yanki) {
+      return { error: 'Yankı bulunamadı' };
+    }
+
+    const comments = db.yankis
+      .filter(y => y.replyToId === yankiId)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .map(c => enrichYanki(c, viewerId))
+      .filter(Boolean);
+
+    return { ...enrichYanki(yanki, viewerId), comments };
+  },
+
+  'yanki/delete': (data) => {
+    const { yankiId, userId } = data;
+    const idx = db.yankis.findIndex(y => y.id === yankiId && y.userId === userId);
+    if (idx === -1) {
+      return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    }
+    db.yankis.splice(idx, 1);
+    // Clean up related data
+    db.likes = db.likes.filter(l => l.yankiId !== yankiId);
+    db.comments = db.comments.filter(c => c.yankiId !== yankiId);
+    db.saves = db.saves.filter(s => s.yankiId !== yankiId);
+    return { success: true };
+  },
+
+  'yanki/reyanki': (data) => {
+    const { yankiId, userId, text } = data;
+    const original = db.yankis.find(y => y.id === yankiId);
+    if (!original) {
+      return { error: 'Yankı bulunamadı' };
+    }
+
+    // Check if already reyanked
+    const existing = db.yankis.find(y => y.reyankiOfId === yankiId && y.userId === userId);
+    if (existing) {
+      // Remove reyanki
+      db.yankis = db.yankis.filter(y => y.id !== existing.id);
+      return { removed: true };
+    }
+
+    const reyanki = {
+      id: genId(),
+      userId,
+      text: text || '',
+      image: null,
+      poll: null,
+      replyToId: null,
+      reyankiOfId: yankiId,
+      pinned: false,
+      createdAt: new Date().toISOString()
+    };
+    db.yankis.push(reyanki);
+
+    // Notification
+    if (original.userId !== userId) {
+      db.notifications.push({
+        id: genId(),
+        userId: original.userId,
+        fromId: userId,
+        type: 'reyanki',
+        yankiId: reyanki.id,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    return { yanki: enrichYanki(reyanki, userId) };
+  },
+
+  // ═══ LIKE ═══
+  'like': (data) => {
+    const { yankiId, userId } = data;
+    const existing = db.likes.find(l => l.yankiId === yankiId && l.userId === userId);
+
+    if (existing) {
+      db.likes = db.likes.filter(l => l.id !== existing.id);
+      const count = db.likes.filter(l => l.yankiId === yankiId).length;
+      return { success: true, liked: false, count };
+    }
+
+    db.likes.push({
+      id: genId(),
+      yankiId,
+      userId,
+      createdAt: new Date().toISOString()
+    });
+
+    // Notification
+    const yanki = db.yankis.find(y => y.id === yankiId);
+    if (yanki && yanki.userId !== userId) {
+      db.notifications.push({
+        id: genId(),
+        userId: yanki.userId,
+        fromId: userId,
+        type: 'like',
+        yankiId,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    const count = db.likes.filter(l => l.yankiId === yankiId).length;
+    return { success: true, liked: true, count };
+  },
+
+  // Alias: yanki/like -> like
+  'yanki/like': (data) => {
+    return routes['like'](data);
+  },
+
+  // ═══ SAVE ═══
+  'save': (data) => {
+    const { yankiId, userId } = data;
+    const existing = db.saves.find(s => s.yankiId === yankiId && s.userId === userId);
+
+    if (existing) {
+      db.saves = db.saves.filter(s => s.id !== existing.id);
       return { success: true, saved: false };
     }
-    db.saves.push({ userId: d.userId, yankiId: d.yankiId, createdAt: new Date().toISOString() });
+
+    db.saves.push({
+      id: genId(),
+      yankiId,
+      userId,
+      createdAt: new Date().toISOString()
+    });
+
     return { success: true, saved: true };
   },
 
-  // Follow
-  follow: (d) => {
-    if (d.followerId === d.followingId) return { error: 'Kendinizi takip edemezsiniz' };
-    const exists = db.follows.find(f => f.followerId === d.followerId && f.followingId === d.followingId);
-    if (exists) {
-      db.follows = db.follows.filter(f => !(f.followerId === d.followerId && f.followingId === d.followingId));
-      return { success: true, following: false };
+  // Alias: yanki/save -> save
+  'yanki/save': (data) => {
+    return routes['save'](data);
+  },
+
+  'saved': (data) => {
+    const { userId } = data;
+    const saves = db.saves.filter(s => s.userId === userId);
+    const yankis = saves
+      .map(s => db.yankis.find(y => y.id === s.yankiId))
+      .filter(Boolean)
+      .map(y => enrichYanki(y, userId))
+      .filter(Boolean);
+
+    return { yankis };
+  },
+
+  // ═══ PIN ═══
+  'yanki/pin': (data) => {
+    const { userId, yankiId } = data;
+    const yanki = db.yankis.find(y => y.id === yankiId && y.userId === userId);
+    if (!yanki) {
+      return { error: 'Yankı bulunamadı veya yetkiniz yok' };
     }
-    db.follows.push({ followerId: d.followerId, followingId: d.followingId, createdAt: new Date().toISOString() });
-    return { success: true, following: true };
-  },
 
-  followers: (d) => {
-    const ids = db.follows.filter(f => f.followingId === d.userId).map(f => f.followerId);
-    return { followers: db.users.filter(u => ids.includes(u.id)).map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage, verified: u.verified })) };
-  },
+    // Toggle pin
+    yanki.pinned = !yanki.pinned;
 
-  following: (d) => {
-    const ids = db.follows.filter(f => f.followerId === d.userId).map(f => f.followingId);
-    return { following: db.users.filter(u => ids.includes(u.id)).map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage, verified: u.verified })) };
-  },
-
-  // Comments
-  'comment/create': (d) => {
-    const comment = {
-      id: 'c_' + Date.now(), userId: d.userId, yankiId: d.yankiId,
-      text: d.text, deleted: false, createdAt: new Date().toISOString()
-    };
-    db.comments.push(comment);
-    return { success: true, comment };
-  },
-
-  comments: (d) => {
-    const comments = db.comments
-      .filter(c => c.yankiId === d.yankiId && !c.deleted)
-      .map(c => {
-        const author = db.users.find(u => u.id === c.userId);
-        return { ...c, author: author ? { id: author.id, username: author.username, displayName: author.displayName, profileImage: author.profileImage, verified: author.verified } : null };
+    // If pinning, unpin all other yankis by this user
+    if (yanki.pinned) {
+      db.yankis.forEach(y => {
+        if (y.userId === userId && y.id !== yankiId) {
+          y.pinned = false;
+        }
       });
-    return { comments };
+    }
+
+    return { success: true, pinned: yanki.pinned };
   },
 
-  // Notifications
-  notifications: (d) => {
-    return { notifications: db.notifications.filter(n => n.userId === d.userId).slice(0, 50), unreadCount: db.notifications.filter(n => n.userId === d.userId && !n.read).length };
+  // ═══ COMMENT ═══
+  'comment': (data) => {
+    const { yankiId, userId, text, replyToId, image } = data;
+    if (!text) {
+      return { error: 'Yorum boş olamaz' };
+    }
+
+    // Create as reply yanki
+    const reply = {
+      id: genId(),
+      userId,
+      text,
+      image: image || null,
+      poll: null,
+      replyToId: replyToId || yankiId,
+      reyankiOfId: null,
+      pinned: false,
+      createdAt: new Date().toISOString()
+    };
+    db.yankis.push(reply);
+
+    // Also add to comments for backward compatibility
+    db.comments.push({
+      id: reply.id,
+      yankiId,
+      userId,
+      text,
+      createdAt: reply.createdAt
+    });
+
+    // Notification
+    const yanki = db.yankis.find(y => y.id === yankiId);
+    if (yanki && yanki.userId !== userId) {
+      db.notifications.push({
+        id: genId(),
+        userId: yanki.userId,
+        fromId: userId,
+        type: 'comment',
+        yankiId: reply.id,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    return { success: true, comment: enrichYanki(reply, userId) };
   },
 
-  'notifications/read': (d) => {
-    db.notifications.filter(n => n.userId === d.userId).forEach(n => n.read = true);
+  // Alias: comment/create -> comment
+  'comment/create': (data) => {
+    return routes['comment'](data);
+  },
+
+  // ═══ FOLLOW ═══
+  'follow': (data) => {
+    const { followerId, followingId } = data;
+    if (followerId === followingId) {
+      return { error: 'Kendini takip edemezsin' };
+    }
+
+    const existing = db.follows.find(f => f.followerId === followerId && f.followingId === followingId);
+
+    if (existing) {
+      db.follows = db.follows.filter(f => f.id !== existing.id);
+      return { following: false };
+    }
+
+    db.follows.push({
+      id: genId(),
+      followerId,
+      followingId,
+      createdAt: new Date().toISOString()
+    });
+
+    // Notification
+    db.notifications.push({
+      id: genId(),
+      userId: followingId,
+      fromId: followerId,
+      type: 'follow',
+      read: false,
+      createdAt: new Date().toISOString()
+    });
+
+    return { following: true };
+  },
+
+  // ═══ NOTIFICATIONS ═══
+  'notifications': (data) => {
+    const { userId } = data;
+    const notifs = db.notifications
+      .filter(n => n.userId === userId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 50)
+      .map(n => {
+        const from = getUser(n.fromId);
+        return {
+          ...n,
+          fromName: from?.displayName || 'Kullanıcı',
+          fromUsername: from?.username
+        };
+      });
+
+    // Mark as read
+    db.notifications.filter(n => n.userId === userId).forEach(n => n.read = true);
+
+    return { notifications: notifs };
+  },
+
+  'notifications/count': (data) => {
+    const { userId } = data;
+    if (!userId) return { count: 0 };
+    const count = db.notifications.filter(n => n.userId === userId && !n.read).length;
+    return { count };
+  },
+
+  // ═══ USER ═══
+  'user': (data) => {
+    const { username, viewerId } = data;
+    const user = getUserByUsername(username);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+
+    const followerCount = db.follows.filter(f => f.followingId === user.id).length;
+    const followingCount = db.follows.filter(f => f.followerId === user.id).length;
+    const isFollowing = db.follows.some(f => f.followerId === viewerId && f.followingId === user.id);
+
+    return {
+      user: {
+        ...user,
+        password: undefined,
+        followerCount,
+        followingCount
+      },
+      isFollowing
+    };
+  },
+
+  'user/yankis': (data) => {
+    const { username, viewerId } = data;
+    const user = getUserByUsername(username);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+
+    const yankis = db.yankis
+      .filter(y => y.userId === user.id && !y.replyToId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(y => enrichYanki(y, viewerId))
+      .filter(Boolean);
+
+    return { yankis };
+  },
+
+  // Alias: /yankis endpoint - lookup by userId instead of username
+  'yankis': (data) => {
+    const { userId, viewerId } = data;
+    const user = getUser(userId);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+
+    const yankis = db.yankis
+      .filter(y => y.userId === user.id && !y.replyToId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(y => enrichYanki(y, viewerId))
+      .filter(Boolean);
+
+    return { yankis };
+  },
+
+  'user/followers': (data) => {
+    const { userId } = data;
+    const followerIds = db.follows.filter(f => f.followingId === userId).map(f => f.followerId);
+    const users = followerIds.map(id => {
+      const u = getUser(id);
+      return u ? { ...u, password: undefined } : null;
+    }).filter(Boolean);
+    return { users };
+  },
+
+  'user/following': (data) => {
+    const { userId } = data;
+    const followingIds = db.follows.filter(f => f.followerId === userId).map(f => f.followingId);
+    const users = followingIds.map(id => {
+      const u = getUser(id);
+      return u ? { ...u, password: undefined } : null;
+    }).filter(Boolean);
+    return { users };
+  },
+
+  'user/update': (data) => {
+    const { userId, displayName, bio, profileImage, bannerImage, theme } = data;
+    const user = getUser(userId);
+    if (!user) {
+      return { error: 'Kullanıcı bulunamadı' };
+    }
+
+    if (displayName) user.displayName = displayName;
+    if (bio !== undefined) user.bio = bio;
+    if (profileImage !== undefined) user.profileImage = profileImage;
+    if (bannerImage !== undefined) user.bannerImage = bannerImage;
+    if (theme !== undefined) user.theme = theme;
+
+    return { user: { ...user, password: undefined } };
+  },
+
+  // ═══ BLOCK ═══
+  'block': (data) => {
+    const { userId, targetId } = data;
+    const existing = db.blocks.find(b => b.userId === userId && b.blockedId === targetId);
+
+    if (existing) {
+      db.blocks = db.blocks.filter(b => b.id !== existing.id);
+      return { blocked: false };
+    }
+
+    db.blocks.push({
+      id: genId(),
+      userId,
+      blockedId: targetId,
+      createdAt: new Date().toISOString()
+    });
+
+    // Remove follow relationships
+    db.follows = db.follows.filter(f =>
+      !(f.followerId === userId && f.followingId === targetId) &&
+      !(f.followerId === targetId && f.followingId === userId)
+    );
+
+    return { blocked: true };
+  },
+
+  // ═══ REPORT ═══
+  'report': (data) => {
+    const { yankiId, userId, reason } = data;
+
+    db.reports.push({
+      id: genId(),
+      yankiId,
+      reporterId: userId,
+      reason,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+
     return { success: true };
   },
 
-  // Messages
-  'messages/conversations': (d) => {
-    const userMsgs = db.messages.filter(m => (m.fromUserId === d.userId || m.toUserId === d.userId) && !m.deleted);
-    const convos = {};
-    userMsgs.forEach(m => {
-      const otherId = m.fromUserId === d.userId ? m.toUserId : m.fromUserId;
-      if (!convos[otherId] || new Date(m.createdAt) > new Date(convos[otherId].createdAt)) {
-        convos[otherId] = m;
-      }
-    });
-    return {
-      conversations: Object.entries(convos).map(([oderId, msg]) => {
-        const other = db.users.find(u => u.id === oderId);
-        return { userId: oderId, displayName: other?.displayName, username: other?.username, profileImage: other?.profileImage, lastMessage: msg };
-      })
-    };
+  // ═══ SEARCH ═══
+  'search': (data) => {
+    const { query, userId } = data;
+    const q = query.toLowerCase();
+
+    if (q.startsWith('#')) {
+      const tag = q.slice(1);
+      const yankis = db.yankis
+        .filter(y => y.text.toLowerCase().includes('#' + tag))
+        .map(y => enrichYanki(y, userId))
+        .filter(Boolean);
+      return { yankis };
+    }
+
+    if (q.startsWith('@')) {
+      const username = q.slice(1);
+      const users = db.users
+        .filter(u => u.username.includes(username))
+        .map(u => ({ ...u, password: undefined }));
+      return { users, yankis: [] };
+    }
+
+    const yankis = db.yankis
+      .filter(y => y.text.toLowerCase().includes(q))
+      .map(y => enrichYanki(y, userId))
+      .filter(Boolean);
+
+    return { yankis };
   },
 
-  'messages/get': (d) => {
-    return {
-      messages: db.messages
-        .filter(m => (m.fromUserId === d.userId && m.toUserId === d.otherId) || (m.fromUserId === d.otherId && m.toUserId === d.userId))
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    };
-  },
+  // ═══ TRENDING ═══
+  'trending': () => {
+    const tagCounts = {};
+    const now = Date.now();
+    const dayAgo = now - 24 * 60 * 60 * 1000;
 
-  'messages/send': (d) => {
-    const msg = {
-      id: 'msg_' + Date.now(), fromUserId: d.fromUserId, toUserId: d.toUserId,
-      text: d.text, deleted: false, read: false, createdAt: new Date().toISOString()
-    };
-    db.messages.push(msg);
-    return { success: true, message: msg };
-  },
-
-  // Trending
-  trending: () => {
-    const counts = {};
-    db.yankis.filter(y => !y.deleted).forEach(y => {
-      (y.text?.match(/#[\wğüşıöçĞÜŞİÖÇ]+/gi) || []).forEach(tag => {
-        counts[tag.toLowerCase()] = (counts[tag.toLowerCase()] || 0) + 1;
+    db.yankis
+      .filter(y => new Date(y.createdAt).getTime() > dayAgo)
+      .forEach(y => {
+        const matches = y.text.match(/#\w+/g) || [];
+        matches.forEach(tag => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
       });
-    });
-    const trends = Object.entries(counts)
+
+    const trends = Object.entries(tagCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([tag, count], i) => ({ rank: i + 1, topic: tag, count: count + ' yankı' }));
-    if (trends.length < 3) {
-      trends.push({ rank: trends.length + 1, topic: '#yankuş', count: 'Yeni' });
-      trends.push({ rank: trends.length + 1, topic: '#merhaba', count: 'Popüler' });
-    }
+      .map(([tag, count]) => ({
+        tag,
+        count,
+        category: 'Gündem'
+      }));
+
     return { trends };
   },
 
-  // Admin Stats
-  'admin/stats': () => ({
-    totalUsers: db.users.filter(u => !u.isBot && !u.isAdmin).length,
-    totalBots: db.users.filter(u => u.isBot).length,
-    totalYankis: db.yankis.filter(y => !y.deleted).length,
-    totalComments: db.comments.filter(c => !c.deleted).length,
-    totalLikes: db.likes.length,
-    totalFollows: db.follows.length
-  }),
+  // ═══ HASHTAG ═══
+  'hashtag/info': (data) => {
+    const { hashtag } = data;
+    const tag = hashtag.startsWith('#') ? hashtag : '#' + hashtag;
+    const tagLower = tag.toLowerCase();
 
-  // Clan
-  clan: (d) => {
-    const followerCount = db.follows.filter(f => f.followingId === d.userId).length;
-    const tiers = [
-      { min: 0, max: 4, name: 'Yalnız Gezgin', icon: '🏕️' },
-      { min: 5, max: 19, name: 'Küçük Köy', icon: '🏘️' },
-      { min: 20, max: 49, name: 'Kasaba', icon: '🏙️' },
-      { min: 50, max: 99, name: 'Şehir', icon: '🌆' },
-      { min: 100, max: 249, name: 'Büyük Şehir', icon: '🌃' },
-      { min: 250, max: 499, name: 'Metropol', icon: '🌇' },
-      { min: 500, max: 999, name: 'İmparatorluk', icon: '👑' },
-      { min: 1000, max: Infinity, name: 'Efsane', icon: '⚡' },
-    ];
-    const tier = tiers.find(t => followerCount >= t.min && followerCount <= t.max) || tiers[0];
-    return { followerCount, tier };
+    const allMatching = db.yankis.filter(y => y.text.toLowerCase().includes(tagLower));
+    const totalYankis = allMatching.length;
+
+    const now = Date.now();
+    const dayAgo = now - 24 * 60 * 60 * 1000;
+    const last24h = allMatching.filter(y => new Date(y.createdAt).getTime() > dayAgo).length;
+
+    return { totalYankis, last24h };
   },
 
-  // DNA
-  dna: (d) => {
-    const yankis = db.yankis.filter(y => y.userId === d.userId && !y.deleted);
-    return { totalYankis: yankis.length, dna: [], topTopics: [] };
-  },
-
-  // Explore endpoints
-  'explore/suggested-users': (d) => {
-    const users = db.users
-      .filter(u => !u.isAdmin && u.id !== d.userId)
-      .slice(0, d.limit || 8)
-      .map(u => ({
-        id: u.id,
-        username: u.username,
-        displayName: u.displayName,
-        profileImage: u.profileImage,
-        verified: u.verified,
-        isBot: u.isBot,
-        reason: u.isBot ? 'Bot hesap' : 'Yeni kullanıcı'
-      }));
-    return { users };
-  },
-
-  'explore/trending-yankis': (d) => {
-    const yankis = db.yankis
-      .filter(y => !y.deleted)
-      .sort((a, b) => {
-        const aLikes = db.likes.filter(l => l.yankiId === a.id).length;
-        const bLikes = db.likes.filter(l => l.yankiId === b.id).length;
-        return bLikes - aLikes;
-      })
-      .slice(0, d.limit || 8)
-      .map(y => enrichYanki(y, d.viewerId));
-    return { yankis };
-  },
-
-  // Yanki delete
-  'yanki/delete': (d) => {
-    const yanki = db.yankis.find(y => y.id === d.yankiId && y.userId === d.userId);
-    if (!yanki) return { error: 'Yankı bulunamadı' };
-    yanki.deleted = true;
-    return { success: true };
-  },
-
-  // Yanki pin
-  'yanki/pin': (d) => {
-    const user = db.users.find(u => u.id === d.userId);
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    user.pinnedYankiId = user.pinnedYankiId === d.yankiId ? null : d.yankiId;
-    return { success: true, pinned: user.pinnedYankiId === d.yankiId };
-  },
-
-  // Block
-  block: (d) => {
-    const exists = db.blocks.find(b => b.blockerId === d.blockerId && b.blockedId === d.blockedId);
-    if (exists) {
-      db.blocks = db.blocks.filter(b => !(b.blockerId === d.blockerId && b.blockedId === d.blockedId));
-      return { success: true, blocked: false };
+  // ═══ THREAD ═══
+  'thread/create': (data) => {
+    const { userId, items } = data;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return { error: 'Thread items gerekli' };
     }
-    db.blocks.push({ blockerId: d.blockerId, blockedId: d.blockedId, createdAt: new Date().toISOString() });
-    return { success: true, blocked: true };
-  },
 
-  // Search
-  search: (d) => {
-    const q = (d.query || d.q || '').toLowerCase();
-    if (!q) return { users: [], yankis: [] };
-    const users = db.users
-      .filter(u => u.username.includes(q) || u.displayName?.toLowerCase().includes(q))
-      .slice(0, 10)
-      .map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage, verified: u.verified }));
-    const yankis = db.yankis
-      .filter(y => !y.deleted && y.text?.toLowerCase().includes(q))
-      .slice(0, 20)
-      .map(y => enrichYanki(y, d.viewerId));
-    return { users, yankis };
-  },
+    let previousId = null;
+    const createdYankis = [];
 
-  // Hashtag
-  hashtag: (d) => {
-    const tag = (d.hashtag || d.tag || '').toLowerCase().replace('#', '');
-    const yankis = db.yankis
-      .filter(y => !y.deleted && y.text?.toLowerCase().includes('#' + tag))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 50)
-      .map(y => enrichYanki(y, d.viewerId));
-    return { yankis };
-  },
-
-  // Saved yankis
-  'yankis/saved': (d) => {
-    const savedIds = db.saves.filter(s => s.userId === d.userId).map(s => s.yankiId);
-    const yankis = db.yankis
-      .filter(y => !y.deleted && savedIds.includes(y.id))
-      .map(y => enrichYanki(y, d.userId));
-    return { yankis };
-  },
-
-  // Poll vote
-  'poll/vote': (d) => {
-    const exists = db.pollVotes.find(v => v.pollId === d.pollId && v.userId === d.userId);
-    if (exists) return { error: 'Zaten oy verdiniz' };
-    db.pollVotes.push({ pollId: d.pollId, userId: d.userId, optionId: d.optionId, createdAt: new Date().toISOString() });
-    return { success: true };
-  },
-
-  // Contact
-  contact: (d) => {
-    db.contacts.push({ userId: d.userId, subject: d.subject, message: d.message, createdAt: new Date().toISOString() });
-    return { success: true };
-  },
-
-  // Patch notes
-  patchnotes: () => {
-    return { patchNotes: [
-      { version: '1.8.0', date: '2026-03-20', features: [
-        '📱 Mobil PWA — Telefona kurulabilir uygulama',
-        '🧭 Mobil Bottom Nav — 5 sekmeli alt navigasyon',
-        '✏️ Yankıla Butonu — Sidebar\'da ve mobilde FAB',
-        '🔧 Yankı detay düzeltmesi',
-        '🎨 Profile banner küçültüldü',
-        '⚡ Kapsamlı mobil responsive CSS'
-      ]},
-      { version: '1.7.4', date: '2026-03-19', features: [
-        '🐦 Yankıla Butonu — Sidebar\'da büyük buton',
-        '💬 Yankıla Popup — Fotoğraf ve anket destekli',
-        '🔧 Nick düzeltmesi — Artık undefined göstermiyor',
-        '📝 Tüm eksik API endpoint\'leri eklendi'
-      ]}
-    ]};
-  },
-
-  // Blocked users
-  blocked: (d) => {
-    const blockedIds = db.blocks.filter(b => b.blockerId === d.userId).map(b => b.blockedId);
-    const users = db.users
-      .filter(u => blockedIds.includes(u.id))
-      .map(u => ({ id: u.id, username: u.username, displayName: u.displayName, profileImage: u.profileImage }));
-    return { users };
-  },
-
-  // Thread create
-  'thread/create': (d) => {
-    if (!d.items || d.items.length < 2) return { error: 'Thread için en az 2 yankı gerekli' };
-    const threadId = 'th_' + Date.now();
-    d.items.forEach((item, i) => {
+    for (const item of items) {
       const yanki = {
-        id: 'y_' + Date.now() + '_' + i,
-        userId: d.userId,
+        id: genId(),
+        userId,
         text: item.text || '',
         image: item.image || null,
-        threadId,
-        threadOrder: i,
-        deleted: false,
-        createdAt: new Date(Date.now() + i).toISOString()
+        poll: null,
+        replyToId: previousId,
+        reyankiOfId: null,
+        pinned: false,
+        createdAt: new Date().toISOString()
       };
-      db.yankis.unshift(yanki);
-    });
-    return { success: true, count: d.items.length, threadId };
+      db.yankis.push(yanki);
+      createdYankis.push(yanki);
+
+      // Add to comments if it's a reply
+      if (previousId) {
+        db.comments.push({
+          id: yanki.id,
+          yankiId: previousId,
+          userId,
+          text: yanki.text,
+          createdAt: yanki.createdAt
+        });
+      }
+
+      previousId = yanki.id;
+    }
+
+    return { success: true, count: createdYankis.length };
   },
 
-  // Draft endpoints
-  'draft/save': (d) => {
-    const draft = {
-      id: 'dr_' + Date.now(),
-      userId: d.userId,
-      text: d.text || '',
-      image: d.image || null,
-      createdAt: new Date().toISOString()
-    };
-    db.drafts.push(draft);
-    return { success: true, draft };
-  },
+  // ═══ SCHEDULE ═══
+  'schedule/create': (data) => {
+    const { userId, text, image, poll, scheduledAt, threadItems } = data;
 
-  'draft/list': (d) => {
-    const drafts = db.drafts.filter(dr => dr.userId === d.userId);
-    return { drafts };
-  },
-
-  'draft/delete': (d) => {
-    db.drafts = db.drafts.filter(dr => dr.id !== d.draftId);
-    return { success: true };
-  },
-
-  // Schedule endpoints
-  'schedule/create': (d) => {
+    // For now, store the scheduled post
     const scheduled = {
-      id: 'sc_' + Date.now(),
-      userId: d.userId,
-      text: d.text || '',
-      image: d.image || null,
-      scheduledAt: d.scheduledAt,
+      id: genId(),
+      userId,
+      text: text || '',
+      image: image || null,
+      poll: poll || null,
+      scheduledAt: scheduledAt || new Date().toISOString(),
+      threadItems: threadItems || null,
+      status: 'pending',
       createdAt: new Date().toISOString()
     };
     db.scheduled.push(scheduled);
-    return { success: true, scheduled };
+
+    // If scheduledAt is in the past or very soon, create immediately
+    if (!scheduledAt || new Date(scheduledAt) <= new Date()) {
+      if (threadItems && threadItems.length > 0) {
+        // Create as thread
+        return routes['thread/create']({ userId, items: threadItems });
+      } else {
+        // Create as single yanki
+        const result = routes['yanki/create']({ userId, text, image, poll });
+        scheduled.status = 'published';
+        return { success: true, yanki: result.yanki };
+      }
+    }
+
+    return { success: true, scheduledId: scheduled.id };
   },
 
-  'schedule/list': (d) => {
-    const items = db.scheduled.filter(sc => sc.userId === d.userId);
-    return { items };
+  // ═══ MESSAGES ═══
+  'messages/conversations': (data) => {
+    const { userId } = data;
+    // Return conversations the user is part of
+    const userConversations = db.conversations
+      .filter(c => c.participants.includes(userId))
+      .map(c => {
+        const otherUserId = c.participants.find(p => p !== userId);
+        const otherUser = getUser(otherUserId);
+        const lastMessage = db.messages
+          .filter(m => m.conversationId === c.id)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+        const unread = db.messages
+          .filter(m => m.conversationId === c.id && m.userId !== userId && !m.read)
+          .length;
+
+        return {
+          id: c.id,
+          otherUser: otherUser ? { ...otherUser, password: undefined } : null,
+          lastMessage: lastMessage || null,
+          unread,
+          createdAt: c.createdAt
+        };
+      });
+
+    return { conversations: userConversations };
   },
 
-  'schedule/cancel': (d) => {
-    db.scheduled = db.scheduled.filter(sc => sc.id !== d.schedId);
-    return { success: true };
-  },
+  // ═══ EXPLORE ═══
+  'explore/suggested': (data) => {
+    const { userId, limit } = data;
+    const following = db.follows.filter(f => f.followerId === userId).map(f => f.followingId);
 
-  // Report
-  'yanki/report': (d) => {
-    db.feedback.push({
-      id: 'rp_' + Date.now(),
-      type: 'report',
-      userId: d.userId,
-      yankiId: d.yankiId,
-      reason: d.reason || 'Şikayet',
-      createdAt: new Date().toISOString()
-    });
-    return { success: true };
-  },
+    const users = db.users
+      .filter(u => u.id !== userId && !following.includes(u.id))
+      .slice(0, limit || 5)
+      .map(u => ({ ...u, password: undefined }));
 
-  // Admin endpoints
-  'admin/users': (d) => {
-    const users = db.users.map(u => ({
-      id: u.id,
-      username: u.username,
-      displayName: u.displayName,
-      profileImage: u.profileImage,
-      verified: u.verified,
-      isBot: u.isBot,
-      isAdmin: u.isAdmin,
-      banned: u.banned || false,
-      createdAt: u.createdAt
-    }));
     return { users };
   },
 
-  'admin/user/ban': (d) => {
-    const user = db.users.find(u => u.id === d.userId);
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    user.banned = d.ban;
-    return { success: true, banned: user.banned };
+  // Alias: explore/suggested-users -> explore/suggested
+  'explore/suggested-users': (data) => {
+    return routes['explore/suggested'](data);
   },
 
-  'admin/user/delete': (d) => {
-    db.users = db.users.filter(u => u.id !== d.userId);
-    db.yankis = db.yankis.filter(y => y.userId !== d.userId);
-    return { success: true };
-  },
+  'explore/trending-yankis': (data) => {
+    const { viewerId, limit } = data;
+    const maxItems = limit || 20;
 
-  'admin/yankis/recent': (d) => {
+    // Get yankis sorted by engagement (likes + comments + reyankis)
     const yankis = db.yankis
-      .filter(y => !y.deleted)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, d.limit || 50)
-      .map(y => enrichYanki(y, null));
+      .filter(y => !y.replyToId)
+      .map(y => ({
+        yanki: y,
+        score: db.likes.filter(l => l.yankiId === y.id).length +
+               db.comments.filter(c => c.yankiId === y.id).length * 2 +
+               db.yankis.filter(r => r.reyankiOfId === y.id).length * 3
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, maxItems)
+      .map(item => enrichYanki(item.yanki, viewerId))
+      .filter(Boolean);
+
     return { yankis };
   },
 
-  'admin/yanki/delete': (d) => {
-    const yanki = db.yankis.find(y => y.id === d.yankiId);
-    if (yanki) yanki.deleted = true;
-    return { success: true };
-  },
+  // ═══ POLL ═══
+  'poll/vote': (data) => {
+    const { yankiId, userId, optionIndex } = data;
+    const yanki = db.yankis.find(y => y.id === yankiId);
 
-  'admin/feedback': () => {
-    return { feedback: db.feedback };
-  },
+    if (!yanki || !yanki.poll) {
+      return { error: 'Anket bulunamadı' };
+    }
 
-  'admin/bots': () => {
-    const bots = db.users.filter(u => u.isBot).map(b => ({
-      id: b.id,
-      username: b.username,
-      displayName: b.displayName,
-      active: true
-    }));
-    return { bots };
-  },
+    // Check if already voted
+    const existing = db.pollVotes.find(v => v.yankiId === yankiId && v.userId === userId);
+    if (existing) {
+      return { error: 'Zaten oy kullandınız' };
+    }
 
-  'admin/user/detail': (d) => {
-    const user = db.users.find(u => u.id === d.userId);
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    return { ...user, password: undefined };
-  },
-
-  'admin/user/make-admin': (d) => {
-    const user = db.users.find(u => u.id === d.userId);
-    if (!user) return { error: 'Kullanıcı bulunamadı' };
-    user.isAdmin = d.makeAdmin;
-    return { success: true };
-  },
-
-  'admin/reports': () => {
-    return { reports: db.feedback.filter(f => f.type === 'report') };
-  },
-
-  'admin/analytics': () => {
-    return {
-      dailyUsers: 0,
-      dailyYankis: db.yankis.filter(y => !y.deleted).length,
-      dailyLikes: db.likes.length,
-      growth: 0
-    };
-  },
-
-  'admin/bot/toggle': () => {
-    return { success: true, running: true };
-  },
-
-  'admin/bot/trigger': (d) => {
-    return { success: true, action: d.action };
-  },
-
-  'admin/yanki/report': (d) => {
-    db.feedback.push({
-      id: 'rp_' + Date.now(),
-      type: 'report',
-      reporterId: d.reporterId,
-      yankiId: d.yankiId,
+    db.pollVotes.push({
+      id: genId(),
+      yankiId,
+      userId,
+      optionIndex,
       createdAt: new Date().toISOString()
     });
-    return { success: true };
-  },
 
-  'admin/yankis/bulk-delete': (d) => {
-    (d.yankiIds || []).forEach(id => {
-      const y = db.yankis.find(y => y.id === id);
-      if (y) y.deleted = true;
-    });
-    return { success: true };
-  },
-
-  // Messages read
-  'messages/read': (d) => {
-    db.messages.filter(m => m.toUserId === d.userId && m.fromUserId === d.otherId).forEach(m => m.read = true);
-    return { success: true };
-  },
-
-  'messages/delete': (d) => {
-    const msg = db.messages.find(m => m.id === d.msgId);
-    if (msg) msg.deleted = true;
-    return { success: true };
-  },
-
-  'messages/react': (d) => {
-    const msg = db.messages.find(m => m.id === d.msgId);
-    if (msg) {
-      msg.reactions = msg.reactions || [];
-      msg.reactions.push({ userId: d.userId, emoji: d.emoji });
+    // Update poll votes
+    if (!yanki.poll.votes) {
+      yanki.poll.votes = yanki.poll.options.map(() => 0);
     }
+    yanki.poll.votes[optionIndex]++;
+    yanki.poll.votedIndex = optionIndex;
+
     return { success: true };
-  },
-
-  'messages/search': (d) => {
-    const q = (d.q || '').toLowerCase();
-    const messages = db.messages.filter(m => 
-      (m.fromUserId === d.userId || m.toUserId === d.userId) && 
-      m.text?.toLowerCase().includes(q)
-    );
-    return { messages };
-  },
-
-  // Collection endpoints
-  'collections/get': (d) => {
-    const collections = db.collections.filter(c => c.userId === d.userId);
-    return { collections };
-  },
-
-  'collection/create': (d) => {
-    const col = {
-      id: 'col_' + Date.now(),
-      userId: d.userId,
-      name: d.name,
-      emoji: d.emoji || '📁',
-      createdAt: new Date().toISOString()
-    };
-    db.collections.push(col);
-    return { success: true, collection: col };
-  },
-
-  'collection/delete': (d) => {
-    db.collections = db.collections.filter(c => c.id !== d.collectionId);
-    db.collectionItems = db.collectionItems.filter(ci => ci.collectionId !== d.collectionId);
-    return { success: true };
-  },
-
-  'collection/toggle-item': (d) => {
-    const exists = db.collectionItems.find(ci => ci.collectionId === d.collectionId && ci.yankiId === d.yankiId);
-    if (exists) {
-      db.collectionItems = db.collectionItems.filter(ci => !(ci.collectionId === d.collectionId && ci.yankiId === d.yankiId));
-      return { success: true, added: false };
-    }
-    db.collectionItems.push({ collectionId: d.collectionId, yankiId: d.yankiId, createdAt: new Date().toISOString() });
-    return { success: true, added: true };
-  },
-
-  'collection/item-cols': (d) => {
-    const colIds = db.collectionItems.filter(ci => ci.yankiId === d.yankiId).map(ci => ci.collectionId);
-    return { colIds };
-  },
-
-  'save/note': (d) => {
-    let note = db.saveNotes.find(n => n.userId === d.userId && n.yankiId === d.yankiId);
-    if (note) {
-      note.note = d.note;
-    } else {
-      db.saveNotes.push({ userId: d.userId, yankiId: d.yankiId, note: d.note });
-    }
-    return { success: true };
-  },
-
-  'saves/bulk-delete': (d) => {
-    (d.yankiIds || []).forEach(id => {
-      db.saves = db.saves.filter(s => !(s.userId === d.userId && s.yankiId === id));
-    });
-    return { success: true };
-  },
-
-  // Notifications
-  'notifications/read-one': (d) => {
-    const notif = db.notifications.find(n => n.id === d.notifId);
-    if (notif) notif.read = true;
-    return { success: true };
-  },
-
-  'notifications/clear': (d) => {
-    db.notifications = db.notifications.filter(n => n.userId !== d.userId);
-    return { success: true };
-  },
-
-  // Hashtag info
-  'hashtag/info': (d) => {
-    const tag = (d.tag || '').toLowerCase().replace('#', '');
-    const count = db.yankis.filter(y => !y.deleted && y.text?.toLowerCase().includes('#' + tag)).length;
-    return { tag, count };
   }
 };
 
-// ─── Request Handler ───────────────────────────────────────────
-const handleRequest = (req, res) => {
-  // CORS headers for all responses
+// ─── Server ────────────────────────────────────────────────────
+const server = http.createServer((req, res) => {
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
-    return res.end();
+    res.end();
+    return;
   }
 
-  const url = req.url.split('?')[0];
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = url.pathname;
 
-  // MIME types
-  const mimeTypes = {
-    '.html': 'text/html',
-    '.js': 'application/javascript',
-    '.json': 'application/json',
-    '.png': 'image/png',
-    '.svg': 'image/svg+xml',
-    '.ico': 'image/x-icon'
-  };
-
-  // Serve static files
+  // Static files
   if (req.method === 'GET') {
-    // Ana sayfa
-    if (url === '/' || url === '/index.html') {
-      const filePath = path.join(__dirname, 'public', 'index.html');
+    let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
+    const ext = path.extname(filePath);
+
+    const mimeTypes = {
+      '.html': 'text/html',
+      '.css': 'text/css',
+      '.js': 'application/javascript',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.svg': 'image/svg+xml',
+      '.ico': 'image/x-icon'
+    };
+
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const contentType = mimeTypes[ext] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': contentType });
+      fs.createReadStream(filePath).pipe(res);
+      return;
+    }
+
+    // SPA fallback
+    if (!ext) {
+      filePath = path.join(__dirname, 'public', 'index.html');
       if (fs.existsSync(filePath)) {
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        return res.end(fs.readFileSync(filePath));
-      }
-    }
-    
-    // Diğer static dosyalar (manifest.json, sw.js, icons)
-    const staticFiles = ['/manifest.json', '/sw.js', '/icon-192.png', '/icon-512.png'];
-    if (staticFiles.includes(url) || url.endsWith('.png') || url.endsWith('.svg')) {
-      const filePath = path.join(__dirname, 'public', url);
-      if (fs.existsSync(filePath)) {
-        const ext = path.extname(url);
-        const mime = mimeTypes[ext] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': mime });
-        return res.end(fs.readFileSync(filePath));
+        fs.createReadStream(filePath).pipe(res);
+        return;
       }
     }
   }
 
-  // API: GET
-  if (req.method === 'GET') {
-    if (url === '/ping') return send(res, 200, { status: 'ok', version: '1.8.0' });
-    if (url === '/trending') return send(res, 200, handlers.trending());
-    if (url === '/patchnotes') return send(res, 200, handlers.patchnotes());
-  }
-
-  // API: POST
+  // API routes
   if (req.method === 'POST') {
+    const endpoint = pathname.slice(1);
+
     let body = '';
-    req.on('data', c => body += c);
+    req.on('data', chunk => body += chunk);
     req.on('end', () => {
+      let data = {};
       try {
-        const d = JSON.parse(body || '{}');
-        const route = url.replace(/^\//, '');
-        
-        if (handlers[route]) {
-          return send(res, 200, handlers[route](d));
-        }
-        
-        send(res, 404, { error: 'Bulunamadı' });
-      } catch (e) {
-        send(res, 500, { error: e.message });
+        data = JSON.parse(body || '{}');
+      } catch (e) {}
+
+      const handler = routes[endpoint];
+      if (handler) {
+        const result = handler(data);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Not found' }));
       }
     });
     return;
   }
 
-  send(res, 404, { error: 'Bulunamadı' });
-};
-
-// ─── Server ────────────────────────────────────────────────────
-const server = http.createServer(handleRequest);
+  // 404
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Not found' }));
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🐦 Yankuş: http://localhost:${PORT}`);
+  console.log(`🐦 Yankuş server running on port ${PORT}`);
 });
-
-// Vercel serverless export
-module.exports = handleRequest;
