@@ -73,7 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
    ORTALANMIŞ LAYOUT — Sidebar + İçerik ortada
 ══════════════════════════════════════════════════════════════ */
 #screen-dashboard{justify-content:center;background:var(--bg)}
-.dashboard-container{display:flex;max: width 1200px;px;width:100%;margin:0 auto}
+.dashboard-container{display:flex;max-width:1200px;width:100%;margin:0 auto}
 .sidebar{position:sticky;top:0;width:210px;min-width:210px;height:100vh;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 10px;z-index:100;gap:4px}
 .sidebar-brand{display:flex;align-items:center;gap:12px;padding:8px 12px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
 .sidebar-brand-icon{width:40px;height:40px;background:var(--accent2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 20px var(--accent-glow);position:relative;overflow:hidden}.sidebar-brand-icon::before{content:"";position:absolute;top:0;left:0;right:50%;bottom:50%;background:rgba(255,255,255,.15);border-radius:0 0 50% 0}
@@ -143,50 +143,62 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .hashtag-stat-value{font-size:calc(var(--font-size) + 5px);font-weight:700;color:var(--accent)}
 .hashtag-stat-label{font-size:calc(var(--font-size) - 4px);color:var(--muted)}
 .hashtag-popup-btn{width:100%;background:var(--gradient);color:#fff;border:none;padding:10px;border-radius:10px;font-size:calc(var(--font-size) - 2px);font-weight:600;cursor:pointer}
-.yanki{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all .18s}
-.yanki-row{display:flex;gap:10px}
+/* ── YANKI KARTLARI — v3 ── */
+.yanki{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .15s}
+.yanki-row{display:flex;gap:12px}
 .yanki-avatar-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
-.yanki-thread-line{width:2px;flex:1;background:var(--accent-active);border-radius:1px;margin-top:4px;min-height:12px;opacity:.5}
+.yanki-thread-line{width:2px;flex:1;background:linear-gradient(180deg,var(--accent) 0%,transparent 100%);border-radius:1px;margin-top:6px;min-height:16px;opacity:.3}
 .yanki-content-col{flex:1;min-width:0;padding-bottom:2px;max-width:520px}
-.yanki-meta-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;gap:8px}
+.yanki-meta-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;gap:8px}
 .yanki-meta-left{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1;min-width:0}
 .yanki-meta-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.yanki-reyanki-head{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.yanki-reyanki-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11px;color:var(--muted);font-weight:600}
 .action-icon{font-size:var(--font-size);line-height:1}
 .action-count{font-size:calc(var(--font-size) - 2px);font-weight:500}
-.yanki:hover{background:var(--accent-hover);transform:translateX(2px)}
-.yanki-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:4px}/* legacy */
-.yanki-user{flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap}/* legacy */
-.yanki-name{font-weight:600;font-size:var(--font-size);color:var(--text)}
-.yanki-verified{color:var(--accent);font-size:calc(var(--font-size) - 4px);background:var(--accent-soft);border-radius:50%;width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--accent-focus);flex-shrink:0}
-.yanki-bot{background:var(--accent-soft);border:1px solid var(--accent-focus);color:var(--accent);font-size:calc(var(--font-size) - 5px);padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:.3px}
+.yanki:hover{background:rgba(255,255,255,.02)}
+.yanki-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:4px}
+.yanki-user{flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.yanki-name{font-weight:700;font-size:var(--font-size);color:var(--text);letter-spacing:-.2px}
+.yanki-verified{color:#fff;font-size:calc(var(--font-size) - 5px);background:var(--gradient);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px var(--accent-glow)}
+.yanki-bot{background:rgba(181,72,93,.1);border:1px solid rgba(181,72,93,.2);color:var(--accent);font-size:calc(var(--font-size) - 5px);padding:2px 6px;border-radius:6px;font-weight:700;letter-spacing:.3px}
 .yanki-handle{color:var(--muted);font-size:calc(var(--font-size) - 2px);display:block;margin-top:1px}
-.yanki-time{color:var(--muted);font-size:calc(var(--font-size) - 3px);margin-left:auto;flex-shrink:0}
-.yanki-pinned{font-size:calc(var(--font-size) - 4px);color:var(--accent);margin-bottom:8px}
-.yanki-text{font-size:var(--font-size);line-height:1.65;margin-bottom:14px;white-space:pre-wrap;color:var(--text)}
-.yanki-text .tag{color:var(--accent);cursor:pointer;font-weight:500}
-.yanki-text .tag:hover{text-decoration:underline}
-.yanki-image{max-width:100%;border-radius:14px;margin-bottom:12px;max-height:350px;object-fit:cover}
-.yanki-reyanki{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px}
-.yanki-poll{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
-.poll-option-vote{margin-bottom:10px}
-.poll-option-bar{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;position:relative;overflow:hidden;cursor:pointer}
+.yanki-time{color:var(--muted);font-size:calc(var(--font-size) - 3px);margin-left:auto;flex-shrink:0;opacity:.7}
+.yanki-pinned{font-size:calc(var(--font-size) - 4px);color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.yanki-text{font-size:var(--font-size);line-height:1.7;margin-bottom:10px;white-space:pre-wrap;color:var(--text)}
+.yanki-text .tag{color:var(--accent);cursor:pointer;font-weight:600;transition:opacity .15s}
+.yanki-text .tag:hover{opacity:.8;text-decoration:underline}
+.yanki-image{max-width:100%;border-radius:12px;margin-bottom:10px;max-height:340px;object-fit:cover;border:1px solid rgba(255,255,255,.06);transition:filter .2s}
+.yanki-image:hover{filter:brightness(.92)}
+
+/* Reyankı (alıntı) kartı */
+.yanki-reyanki{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;margin-bottom:10px;transition:border-color .2s}
+.yanki-reyanki:hover{border-color:rgba(255,255,255,.12)}
+
+/* Anket */
+.yanki-poll{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;margin-bottom:10px}
+.poll-option-vote{margin-bottom:8px}
+.poll-option-bar{background:var(--bg);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.poll-option-bar:hover{border-color:rgba(255,255,255,.12)}
 .poll-option-bar.voted{border:2px solid var(--accent)}
-.poll-option-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.2;border-radius:10px}
+.poll-option-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.15;border-radius:10px;transition:width .4s ease}
 .poll-option-text{position:relative;font-size:calc(var(--font-size) - 2px);display:flex;justify-content:space-between}
-.poll-info{font-size:calc(var(--font-size) - 3px);color:var(--muted);margin-top:10px}
-.yanki-actions{display:flex;gap:0;margin:8px -8px 0}
-.yanki-action{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:calc(var(--font-size) - 3px);cursor:pointer;padding:6px 8px;border-radius:16px;transition:all .15s;user-select:none;flex:1;justify-content:flex-start}
-.yanki-action:hover{background:var(--accent-hover);color:var(--accent);transform:scale(1.08)}
+.poll-info{font-size:calc(var(--font-size) - 3px);color:var(--muted);margin-top:8px}
+
+/* Aksiyon butonları — Minimal */
+.yanki-actions{display:flex;gap:0;margin:4px -6px 0}
+.yanki-action{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:calc(var(--font-size) - 3px);cursor:pointer;padding:6px 8px;border-radius:20px;transition:all .15s;user-select:none;flex:1;justify-content:flex-start}
+.yanki-action:hover{background:rgba(255,255,255,.04);color:var(--accent)}
 .yanki-action.liked{color:var(--accent2)}.yanki-action.liked .action-icon{animation:heartPop .4s cubic-bezier(.34,1.56,.64,1)}
 .yanki-action.saved{color:var(--accent)}
+
+/* Menü */
 .yanki-menu{position:relative;z-index:1}
-.yanki-menu-btn{padding:6px 10px;color:var(--muted);cursor:pointer;border-radius:20px;transition:all .2s}
-.yanki-menu-btn:hover{background:var(--hover);color:var(--text)}
-.yanki-dropdown{position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:160px;display:none;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
-.yanki-dropdown.show{display:block;animation:fadeIn .15s ease}
-.yanki-dropdown-item{padding:10px 14px;border-radius:8px;font-size:13px;cursor:pointer}
-.yanki-dropdown-item:hover{background:var(--hover)}
+.yanki-menu-btn{padding:5px 8px;color:var(--muted);cursor:pointer;border-radius:16px;transition:all .15s;opacity:.6}
+.yanki-menu-btn:hover{background:rgba(255,255,255,.04);color:var(--text);opacity:1}
+.yanki-dropdown{position:absolute;right:0;top:100%;background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:4px;min-width:160px;display:none;z-index:999;box-shadow:0 12px 32px rgba(0,0,0,.5);backdrop-filter:blur(16px)}
+.yanki-dropdown.show{display:block;animation:fadeIn .12s ease}
+.yanki-dropdown-item{padding:9px 14px;border-radius:8px;font-size:12px;cursor:pointer;transition:background .1s}
+.yanki-dropdown-item:hover{background:rgba(255,255,255,.04)}
 .yanki-dropdown-item.danger{color:var(--accent2)}
 /* ═══════════════════════════════════════════════
    PROFILE — YENİDEN TASARLANMIŞ
