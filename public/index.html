@@ -190,6 +190,72 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .yanki-action:hover{background:var(--accent-hover);color:var(--accent)}
 .yanki-action.liked{color:var(--accent2)}.yanki-action.liked .action-icon{animation:heartPop .4s cubic-bezier(.34,1.56,.64,1)}
 .yanki-action.saved{color:var(--accent)}
+.yanki-action.reyanked{color:#22c55e}
+
+/* Hover glow + lift */
+.yanki{transition:background .15s,transform .2s,box-shadow .2s}
+.yanki:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+
+/* Çift tıkla beğen animasyonu */
+@keyframes doubleTapHeart{0%{transform:scale(0) translate(-50%,-50%);opacity:1}50%{transform:scale(1.2) translate(-50%,-50%);opacity:1}100%{transform:scale(1.4) translate(-50%,-50%);opacity:0}}
+.yanki-dbl-heart{position:absolute;top:50%;left:50%;font-size:64px;pointer-events:none;z-index:10;animation:doubleTapHeart .8s ease forwards}
+
+/* Reaksiyon bar */
+.yanki-reactions{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}
+.yanki-reaction-btn{display:inline-flex;align-items:center;gap:3px;background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:12px;cursor:pointer;transition:all .15s;user-select:none}
+.yanki-reaction-btn:hover{border-color:var(--accent-focus);background:var(--accent-hover)}
+.yanki-reaction-btn.active{border-color:var(--accent);background:var(--accent-soft)}
+.yanki-reaction-btn .r-count{font-size:11px;color:var(--muted);font-weight:600}
+.yanki-react-add{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--elevated);border:1px dashed var(--border);border-radius:50%;font-size:12px;cursor:pointer;transition:all .15s;opacity:.6}
+.yanki-react-add:hover{opacity:1;border-color:var(--accent);background:var(--accent-hover)}
+.react-picker{position:absolute;bottom:100%;left:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;display:none;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.4);gap:2px;flex-wrap:wrap;width:200px}
+.react-picker.show{display:flex;animation:fadeIn .12s ease}
+.react-picker span{font-size:20px;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .1s}
+.react-picker span:hover{background:var(--accent-hover)}
+
+/* Quote kartı */
+.yanki-quote{background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:10px;transition:border-color .2s;cursor:pointer}
+.yanki-quote:hover{border-color:var(--accent-focus)}
+.yanki-quote-head{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11px;color:var(--muted)}
+.yanki-quote-head .yanki-name{font-size:12px}
+.yanki-quote-text{font-size:13px;color:var(--dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Medya galerisi */
+.yanki-gallery{display:grid;gap:3px;border-radius:12px;overflow:hidden;margin-bottom:10px;max-height:340px}
+.yanki-gallery.g-1{grid-template-columns:1fr}
+.yanki-gallery.g-2{grid-template-columns:1fr 1fr}
+.yanki-gallery.g-3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}
+.yanki-gallery.g-3 img:first-child{grid-row:1/3}
+.yanki-gallery.g-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.yanki-gallery img{width:100%;height:100%;object-fit:cover;cursor:pointer;transition:filter .2s;min-height:80px}
+.yanki-gallery img:hover{filter:brightness(.85)}
+
+/* Okuma süresi */
+.yanki-read-time{font-size:10px;color:var(--muted);opacity:.7;margin-left:6px}
+
+/* Düzenlendi etiketi */
+.yanki-edited{font-size:10px;color:var(--muted);font-style:italic;margin-left:4px;opacity:.7}
+
+/* Paylaşım popup */
+.share-popup{position:absolute;right:0;bottom:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;min-width:140px;display:none;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.share-popup.show{display:block;animation:fadeIn .12s ease}
+.share-popup-item{padding:8px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:6px}
+.share-popup-item:hover{background:var(--hover)}
+
+/* Beğenenler modal */
+.likers-list{max-height:300px;overflow-y:auto}
+.liker-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;transition:background .1s}
+.liker-item:hover{background:var(--hover)}
+.liker-name{font-weight:600;font-size:13px;color:var(--text)}
+.liker-handle{font-size:12px;color:var(--muted)}
+
+/* Anket progress bar iyileştirme */
+.poll-option-fill{background:linear-gradient(90deg,var(--accent),var(--accent2))!important;opacity:.2!important}
+.poll-option-bar.voted .poll-option-fill{opacity:.3!important}
+
+/* Mention vurgulama */
+.mention-tag{color:#8b5cf6!important;font-weight:600;cursor:pointer}
+.mention-tag:hover{text-decoration:underline}
 
 /* Menü */
 .yanki-menu{position:relative;z-index:1}
@@ -219,53 +285,88 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 #profile-content,#user-content{max-width:520px;margin:0 auto}
 
-/* Banner — Küçük gradient banner */
-.profile-banner{height:120px;background:linear-gradient(135deg,#0d0705 0%,#1a0a08 30%,#3d1515 60%,var(--accent) 100%);position:relative;overflow:hidden;border-radius:0 0 16px 16px}
+/* Banner — Gradient banner */
+.profile-banner{height:140px;background:linear-gradient(135deg,#0d0705 0%,#1a0a08 30%,#3d1515 60%,var(--accent) 100%);position:relative;overflow:hidden;border-radius:0 0 18px 18px}
 .profile-banner img{width:100%;height:100%;object-fit:cover;filter:brightness(.7) saturate(1.2);transition:filter .4s}
 .profile-banner:hover img{filter:brightness(.8) saturate(1.3)}
-.profile-banner-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(13,7,5,.9) 100%)}
+.profile-banner-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(13,7,5,.85) 100%)}
 .profile-banner-edit{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);transition:all .2s;opacity:0}
 .profile-banner:hover .profile-banner-edit{opacity:1}
 .profile-banner-edit:hover{background:rgba(0,0,0,.8);color:#fff}
 
-/* Profil Kartı — Glassmorphism */
+/* Profil Kartı — Social Hub İki Sütun */
 .profile-header{background:transparent;border:none;position:relative}
-.profile-card{position:relative;margin-top:-40px;z-index:5;background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:0 20px 16px;margin-left:12px;margin-right:12px;animation:pfFadeUp .5s ease both}
+.profile-card{position:relative;margin-top:-48px;z-index:5;background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:18px;padding:20px 24px 18px;margin-left:12px;margin-right:12px;display:flex;gap:20px;align-items:flex-start;animation:pfFadeUp .5s ease both}
 
-/* Avatar */
-.profile-avatar-area{display:flex;flex-direction:column;align-items:center;margin-top:-36px}
+/* Avatar — Sol sütun */
+.profile-avatar-area{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
 .profile-avatar-wrap{position:relative;flex-shrink:0}
-.profile-avatar-wrap .avatar-lg{width:72px;height:72px;font-size:32px;border:3px solid var(--card);border-radius:50%;box-shadow:0 4px 20px var(--accent-glow);transition:transform .3s,box-shadow .3s}
-.profile-avatar-wrap:hover .avatar-lg{transform:scale(1.08);box-shadow:0 6px 28px rgba(169,17,1,.4)}
+.profile-avatar-wrap .avatar-lg{width:86px;height:86px;font-size:36px;border:3px solid var(--card);border-radius:50%;box-shadow:0 4px 24px var(--accent-glow);transition:transform .3s,box-shadow .3s}
+.profile-avatar-wrap:hover .avatar-lg{transform:scale(1.06);box-shadow:0 6px 28px rgba(169,17,1,.4)}
 .profile-avatar-ring{position:absolute;inset:-5px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);border-right-color:var(--accent2);animation:pfRing 3s linear infinite;opacity:.4}
 .profile-avatar-online{position:absolute;bottom:4px;right:4px;width:14px;height:14px;background:var(--success);border:3px solid var(--card);border-radius:50%;box-shadow:0 0 8px var(--success)}
 .profile-avatar-edit{position:absolute;bottom:2px;right:2px;width:24px;height:24px;background:var(--accent);border:2px solid var(--card);border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:transform .2s}
 .profile-avatar-wrap:hover .profile-avatar-edit{display:flex}
+/* Mood göstergesi */
+.profile-mood{font-size:10px;color:var(--dim);margin-top:6px;display:flex;align-items:center;gap:4px;background:var(--elevated);padding:3px 10px;border-radius:16px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.profile-mood:hover{border-color:var(--accent);background:var(--accent-hover)}
 
-/* İsim satırı — Avatar yanında kompakt */
-.profile-identity{text-align:center;margin-top:8px;animation:pfFadeUp .5s .1s both}
-.profile-name-row{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
-.profile-name{font-size:18px;font-weight:800;letter-spacing:-.3px;font-family:var(--font-display);color:var(--text)}
+/* Sağ sütun — Bilgi */
+.profile-identity{text-align:left;flex:1;min-width:0;animation:pfFadeUp .5s .1s both}
+.profile-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.profile-name{font-size:20px;font-weight:800;letter-spacing:-.3px;font-family:var(--font-display);color:var(--text)}
 .profile-badge-verified{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--gradient);border-radius:50%;font-size:11px;flex-shrink:0;color:#fff;box-shadow:0 2px 8px var(--accent-glow)}
 .profile-badge-bot{background:rgba(181,72,93,.12);color:var(--accent);border:1px solid rgba(181,72,93,.25);font-size:9px;font-weight:700;padding:2px 8px;border-radius:16px;letter-spacing:.5px}
-.profile-handle{color:var(--muted);font-size:12px;margin-top:2px}
-.profile-bio{color:var(--dim);font-size:12px;line-height:1.6;margin:6px auto 0;max-width:360px}
-.profile-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;justify-content:center}
+.profile-handle{color:var(--muted);font-size:12px;margin-top:1px}
+.profile-bio{color:var(--dim);font-size:13px;line-height:1.6;margin:8px 0 0;max-width:420px}
+.profile-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .profile-meta-item{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--muted);background:var(--elevated);padding:3px 8px;border-radius:12px;border:1px solid var(--border)}
 .profile-meta-item span{font-weight:600;color:var(--dim)}
+.profile-meta-item a{color:var(--accent);text-decoration:none;font-weight:600}
+.profile-meta-item a:hover{text-decoration:underline}
+/* Sosyal linkler */
+.profile-social-links{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.profile-social-link{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--accent);background:var(--accent-hover);padding:3px 10px;border-radius:14px;text-decoration:none;transition:all .2s;border:1px solid rgba(181,72,93,.15)}
+.profile-social-link:hover{background:var(--accent);color:#fff;transform:translateY(-1px)}
 
-/* İstatistikler — Inline row */
-.profile-stats-row{display:flex;justify-content:center;gap:0;margin-top:12px;padding:10px 0 4px;border-top:1px solid var(--border);animation:pfFadeUp .5s .15s both}
-.profile-stat-item{flex:1;text-align:center;cursor:pointer;padding:4px 0;transition:all .2s;position:relative}
-.profile-stat-item:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:var(--border)}
-.profile-stat-item:hover{background:var(--accent-hover);border-radius:8px}
-.profile-stat-num{font-size:18px;font-weight:800;color:var(--text);font-family:var(--font-display);line-height:1;animation:pfCountUp .4s .25s both}
-.profile-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:2px}
+/* İstatistikler — Sol hizalı kompakt */
+.profile-stats-row{display:flex;gap:14px;margin-top:10px;animation:pfFadeUp .5s .15s both}
+.profile-stat-item{cursor:pointer;transition:all .2s;position:relative;display:flex;align-items:baseline;gap:4px}
+.profile-stat-item:hover .profile-stat-num{color:var(--accent)}
+.profile-stat-num{font-size:14px;font-weight:600;color:var(--text);line-height:1}
+.profile-stat-lbl{font-size:11px;color:var(--muted);font-weight:500}
 
-/* Aksiyon butonları */
-.profile-actions{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:10px;animation:pfFadeUp .5s .2s both}
-.profile-actions .btn{border-radius:20px;padding:6px 16px;font-size:11px;font-weight:700;transition:all .2s;position:relative;overflow:hidden}
+/* Aksiyon butonları — sağ hizalı */
+.profile-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px;animation:pfFadeUp .5s .2s both}
+.profile-actions .btn{border-radius:10px;padding:7px 18px;font-size:11px;font-weight:700;transition:all .2s;position:relative;overflow:hidden}
 .profile-actions .btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--accent-glow)}
+
+/* Bento Stat Kartları */
+.profile-stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 12px 0;animation:pfFadeUp .5s .3s both}
+.profile-stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.profile-stat-card::before{content:'';position:absolute;inset:0;background:var(--gradient);opacity:0;transition:opacity .3s}
+.profile-stat-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 24px var(--accent-glow)}
+.profile-stat-card:hover::before{opacity:.05}
+.profile-stat-card-icon{font-size:16px;margin-bottom:2px;position:relative;z-index:1}
+.profile-stat-card-val{font-size:16px;font-weight:700;color:var(--text);position:relative;z-index:1}
+.profile-stat-card-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-top:1px;position:relative;z-index:1}
+
+/* Rozetler */
+.profile-badges{display:flex;gap:8px;flex-wrap:wrap;margin:12px 12px 0;animation:pfFadeUp .5s .35s both}
+.profile-badge-item{width:36px;height:36px;border-radius:10px;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:default;transition:all .2s;position:relative}
+.profile-badge-item:hover{transform:scale(1.15);border-color:var(--accent);box-shadow:0 4px 12px var(--accent-glow)}
+.profile-badge-item::after{content:attr(data-label);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);padding:3px 8px;border-radius:6px;font-size:9px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;color:var(--text);z-index:50}
+.profile-badge-item:hover::after{opacity:1}
+
+/* Öne çıkan yankılar */
+.profile-featured{display:flex;gap:10px;overflow-x:auto;padding:12px 12px 4px;scrollbar-width:none;animation:pfFadeUp .5s .4s both}
+.profile-featured::-webkit-scrollbar{display:none}
+.profile-featured-card{min-width:200px;max-width:240px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;flex-shrink:0;cursor:pointer;transition:all .3s}
+.profile-featured-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px var(--accent-glow)}
+.profile-featured-text{font-size:12px;color:var(--dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.profile-featured-stats{display:flex;gap:10px;margin-top:8px;font-size:10px;color:var(--muted)}
+.profile-featured-stats span{display:flex;align-items:center;gap:3px}
+.profile-featured-empty{padding:16px 12px;font-size:12px;color:var(--muted);text-align:center}
 
 /* Sekmeler — Minimal underline */
 .profile-tabs{display:flex;gap:0;background:transparent;position:sticky;top:49px;z-index:40;border-bottom:1px solid var(--border);margin-top:4px;animation:pfFadeUp .4s .25s both}
@@ -1181,7 +1282,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="sidebar-brand-icon">🐦</div>
   <div class="sidebar-brand-text">
     <div class="sidebar-brand-name">Yankuş</div>
-    <div class="sidebar-brand-version">v2.1 ✨</div>
+    <div class="sidebar-brand-version">v3.0 ✨</div>
   </div>
 </div>
 <nav class="sidebar-menu">
@@ -1643,7 +1744,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="form-group"><label class="form-label">Banner</label><input type="file" id="edit-banner" accept="image/*" class="form-input" onchange="previewBanner(event)"><div id="banner-preview"></div></div>
 <div class="form-group"><label class="form-label">Görünen Ad</label><input class="form-input" id="edit-name"></div>
 <div class="form-group"><label class="form-label">Biyografi</label><textarea class="form-input" id="edit-bio" rows="3"></textarea></div>
-<button class="btn btn-main" onclick="saveProfile()">Kaydet</button>
+<div class="form-group"><label class="form-label">📍 Konum</label><input class="form-input" id="edit-location" placeholder="Şehir, Ülke"></div>
+<div class="form-group"><label class="form-label">🔗 Web Sitesi</label><input class="form-input" id="edit-website" placeholder="https://"></div>
+<div class="form-group"><label class="form-label">✦ İlgi Alanları</label><input class="form-input" id="edit-interests" placeholder="Virgülle ayırın: React, Müzik, Fotoğraf"></div>
+<div style="margin-top:8px;padding:10px;background:var(--elevated);border-radius:12px;border:1px solid var(--border)">
+<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">Sosyal Linkler</div>
+<div class="form-group" style="margin-bottom:6px"><label class="form-label" style="font-size:11px">𝕏 Twitter</label><input class="form-input" id="edit-social-twitter" placeholder="https://twitter.com/kullanici"></div>
+<div class="form-group" style="margin-bottom:6px"><label class="form-label" style="font-size:11px">⌨ GitHub</label><input class="form-input" id="edit-social-github" placeholder="https://github.com/kullanici"></div>
+<div class="form-group" style="margin-bottom:6px"><label class="form-label" style="font-size:11px">📷 Instagram</label><input class="form-input" id="edit-social-instagram" placeholder="https://instagram.com/kullanici"></div>
+<div class="form-group" style="margin-bottom:0"><label class="form-label" style="font-size:11px">💼 LinkedIn</label><input class="form-input" id="edit-social-linkedin" placeholder="https://linkedin.com/in/kullanici"></div>
+</div>
+<button class="btn btn-main" style="margin-top:12px" onclick="saveProfile()">Kaydet</button>
 </div>
 </div>
 </div>
@@ -2012,7 +2123,7 @@ const loadExplore=async()=>{
               <div class="suggest-av" onclick="goUser('@${u.username}')">${u.profileImage?`<img src="${u.profileImage}">`:'👤'}</div>
               <div class="suggest-name" onclick="goUser('@${u.username}')" title="${u.displayName}">${u.displayName}${u.verified?' ✓':''}</div>
               <div class="suggest-handle">@${u.username}</div>
-              <div class="suggest-reason">${u.reason}</div>
+              <div class="suggest-reason">${u.bio||u.reason||''}</div>
               <button class="suggest-follow-btn follow" id="sfbtn-${u.id}" onclick="suggestFollow('${u.id}',this)">Takip Et</button>
             </div>`).join('')}
         </div>
@@ -2048,7 +2159,7 @@ const loadExploreAll=async()=>{
 
 const suggestFollow=async(uid,btn)=>{
   const r=await api('/follow',{followerId:user.id,followingId:uid});
-  if(r.success){
+  if(r.following!==undefined){
     if(r.following){
       btn.textContent='Takipte';btn.className='suggest-follow-btn following';
     } else {
@@ -2313,9 +2424,16 @@ const renderYankis=(yankis,cid,emptyMsg='Henüz yankı yok',append=false)=>{
   if(append) c.insertAdjacentHTML('beforeend',yankis.map(yankiCard).join(''));
   else c.innerHTML=yankis.map(yankiCard).join('');
 };
-const formatYankiText=t=>t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/(#[\wğüşıöçĞÜŞİÖÇ]+)/gi,m=>`<span class="tag hashtag-tag" data-tag="${m}">${m}</span>`).replace(/(@[\wğüşıöçĞÜŞİÖÇ]+)/gi,m=>`<span class="tag mention-tag" data-user="${m}">${m}</span>`);
-const yankiCard=y=>`
-<div class="yanki" onclick="openYanki('${y.id}')">
+const formatYankiText=t=>t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/(#[\wğüşıöçĞÜŞİÖÇ]+)/gi,m=>`<span class="tag hashtag-tag" data-tag="${m}">${m}</span>`).replace(/(@[\wğüşıöçĞÜŞİÖÇ_]+)/gi,m=>`<span class="tag mention-tag" data-user="${m.slice(1)}" onclick="event.stopPropagation();goUser('${m}')">${m}</span>`);
+const readTime=t=>{const w=(t||'').split(/\s+/).length;return w>30?`${Math.ceil(w/200)} dk okuma`:'';};
+const REACTION_EMOJIS=['😂','❤️','🔥','👏','😢','😮','🎉','💯'];
+const yankiCard=y=>{
+  const rt=readTime(y.text);
+  const imgs=y.images&&y.images.length?y.images:[];
+  const galleryClass=imgs.length>0?`g-${Math.min(imgs.length,4)}`:'';
+  const reactionsHtml=(y.reactions||[]).map(r=>`<span class="yanki-reaction-btn ${(y.userReactions||[]).includes(r.emoji)?'active':''}" onclick="event.stopPropagation();toggleReaction('${y.id}','${r.emoji}',this)">${r.emoji} <span class="r-count">${r.count}</span></span>`).join('');
+  return `
+<div class="yanki" onclick="openYanki('${y.id}')" ondblclick="event.stopPropagation();doubleTapLike('${y.id}',this)" style="position:relative">
   ${y.pinned?'<div class="yanki-pinned">📌 Sabitlenmiş</div>':''}
   <div class="yanki-row">
     <div class="yanki-avatar-col">
@@ -2329,14 +2447,16 @@ const yankiCard=y=>`
           ${y.verified?'<span class="yanki-verified">✓</span>':''}
           ${y.isBot?'<span class="yanki-bot">BOT</span>':''}
           <span class="yanki-handle">@${y.username}</span>
+          ${y.editedAt?'<span class="yanki-edited">(düzenlendi)</span>':''}
         </div>
         <div class="yanki-meta-right">
-          <span class="yanki-time">${timeAgo(y.createdAt)}</span>
+          <span class="yanki-time" title="${y.createdAt?new Date(y.createdAt).toLocaleString('tr-TR'):''}">${timeAgo(y.createdAt)}</span>${rt?`<span class="yanki-read-time">${rt}</span>`:''}
           <div class="yanki-menu" onclick="event.stopPropagation()">
             <span class="yanki-menu-btn" onclick="toggleMenu('${y.id}')">⋯</span>
             <div class="yanki-dropdown" id="menu-${y.id}">
               ${y.userId===user.id
-                ?`<div class="yanki-dropdown-item" onclick="pinYanki('${y.id}')">${y.pinned?'📌 Sabiti Kaldır':'📌 Sabitle'}</div>
+                ?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>
+                  <div class="yanki-dropdown-item" onclick="pinYanki('${y.id}')">${y.pinned?'📌 Sabiti Kaldır':'📌 Sabitle'}</div>
                   <div class="yanki-dropdown-item danger" onclick="deleteYanki('${y.id}')">🗑 Sil</div>`
                 :`<div class="yanki-dropdown-item" onclick="openChat('${y.userId}')">💬 Mesaj</div>
                   <div class="yanki-dropdown-item" onclick="reportYanki('${y.id}')">🚨 Şikayet Et</div>
@@ -2347,7 +2467,8 @@ const yankiCard=y=>`
         </div>
       </div>
       ${y.text?`<div class="yanki-text">${formatYankiText(y.text)}</div>`:''}
-      ${y.image?`<img class="yanki-image" src="${y.image}" onclick="event.stopPropagation();">`:''}
+      ${imgs.length>0?`<div class="yanki-gallery ${galleryClass}">${imgs.map(img=>`<img src="${img}" onclick="event.stopPropagation();">`).join('')}</div>`:''}
+      ${y.image&&imgs.length===0?`<img class="yanki-image" src="${y.image}" onclick="event.stopPropagation();">`:''}
       ${y.reyanki?`
         <div class="yanki-reyanki" onclick="event.stopPropagation();openYanki('${y.reyanki.id}')">
           <div class="yanki-reyanki-head">
@@ -2357,24 +2478,47 @@ const yankiCard=y=>`
           </div>
           <div class="yanki-text" style="margin-bottom:0">${formatYankiText(y.reyanki.text||'')}</div>
         </div>`:''}
+      ${y.quote?`
+        <div class="yanki-quote" onclick="event.stopPropagation();openYanki('${y.quote.id}')">
+          <div class="yanki-quote-head">
+            <div class="avatar avatar-sm">${avatar(y.quote.profileImage)}</div>
+            <span class="yanki-name">${y.quote.displayName}</span>
+            ${y.quote.verified?'<span class="yanki-verified">✓</span>':''}
+            <span class="yanki-handle">@${y.quote.username}</span>
+          </div>
+          <div class="yanki-quote-text">${formatYankiText(y.quote.text||'')}</div>
+          ${y.quote.image?`<img class="yanki-image" src="${y.quote.image}" style="margin-top:6px;max-height:120px">`:''}
+        </div>`:''}
       ${y.poll?renderPoll(y.poll,y.id):''}
-      <div class="yanki-actions">
-        <div class="yanki-action" onclick="event.stopPropagation();openYanki('${y.id}')">
+      ${reactionsHtml?`<div class="yanki-reactions" onclick="event.stopPropagation()">${reactionsHtml}<span class="yanki-react-add" onclick="toggleReactPicker('${y.id}',this)" title="Tepki ekle">+</span><div class="react-picker" id="rpick-${y.id}">${REACTION_EMOJIS.map(e=>`<span onclick="toggleReaction('${y.id}','${e}');closeReactPickers()">${e}</span>`).join('')}</div></div>`:''}
+      <div class="yanki-actions" onclick="event.stopPropagation()">
+        <div class="yanki-action" onclick="openYanki('${y.id}')">
           <span class="action-icon">💬</span><span class="action-count">${y.commentCount||0}</span>
         </div>
-        <div class="yanki-action" onclick="event.stopPropagation();reyanki('${y.id}')">
+        <div class="yanki-action ${y.isReyanked?'reyanked':''}" onclick="showReyankiMenu('${y.id}',event)">
           <span class="action-icon">🔁</span><span class="action-count">${y.reyankiCount||0}</span>
         </div>
-        <div class="yanki-action ${y.liked?'liked':''}" onclick="event.stopPropagation();likeYanki('${y.id}',this)">
-          <span class="action-icon">❤️</span><span class="action-count">${y.likes||0}</span>
+        <div class="yanki-action ${y.isLiked?'liked':''}" onclick="likeYanki('${y.id}',this)">
+          <span class="action-icon">❤️</span><span class="action-count like-count-${y.id}">${y.likes||0}</span>
         </div>
-        <div class="yanki-action ${y.saved?'saved':''}" onclick="event.stopPropagation();saveYanki('${y.id}',this)">
+        <div class="yanki-action" onclick="toggleReactPicker('${y.id}',this)" style="flex:0" title="Tepki">
+          <span class="action-icon">😊</span>
+        </div>
+        <div class="yanki-action ${y.isSaved?'saved':''}" onclick="saveYanki('${y.id}',this)">
           <span class="action-icon">🔖</span>
+        </div>
+        <div class="yanki-action" onclick="showShareMenu('${y.id}',event)" style="flex:0;position:relative" title="Paylaş">
+          <span class="action-icon">↗</span>
+          <div class="share-popup" id="share-${y.id}">
+            <div class="share-popup-item" onclick="copyYankiLink('${y.id}')">🔗 Linki Kopyala</div>
+            <div class="share-popup-item" onclick="quoteYanki('${y.id}')">💬 Alıntıla</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>`;
+};
 const renderPoll=(p,yid)=>`<div class="yanki-poll">${p.options.map(o=>`<div class="poll-option-vote"><div class="poll-option-bar ${p.myVote===o.id?'voted':''}" onclick="event.stopPropagation();${p.myVote||p.expired?'':`votePoll('${p.id}','${o.id}','${yid}')`}"><div class="poll-option-fill" style="width:${p.totalVotes?(o.votes/p.totalVotes*100):0}%"></div><div class="poll-option-text"><span>${o.text}</span><span>${p.totalVotes?Math.round(o.votes/p.totalVotes*100):0}%</span></div></div></div>`).join('')}<div class="poll-info">${p.totalVotes} oy${p.expired?' · Sona erdi':''}</div></div>`;
 
 // Composer
@@ -2494,7 +2638,7 @@ const confirmReyanki = async () => {
   toast('🔁 Reyankılandı!');
   loadFeed();
 };
-const votePoll=async(pollId,optionId,yankiId)=>{const r=await api('/poll/vote',{userId:user.id,pollId,optionId});if(r.success){toast('Oy verildi');openYanki(yankiId)}else toast(r.error)};
+const votePoll=async(pollId,optionIndex,yankiId)=>{const r=await api('/poll/vote',{userId:user.id,yankiId:yankiId||pollId,optionIndex});if(r.success){toast('Oy verildi');openYanki(yankiId||pollId)}else toast(r.error)};
 const toggleMenu=id=>{document.querySelectorAll('.yanki-dropdown').forEach(d=>d.classList.remove('show'));$('menu-'+id)?.classList.toggle('show')};
 // ── TEK BİRLEŞİK CLICK HANDLER ──────────────────────────────
 document.addEventListener('click', e => {
@@ -2624,6 +2768,13 @@ const renderProfile=(p,yankis,cid)=>{
   const regularYankis=yankis.filter(y=>!y.pinned);
   const joined=p.createdAt?new Date(p.createdAt).toLocaleDateString('tr-TR',{month:'long',year:'numeric'}):'';
 
+  const _socialLinks = p.socialLinks || {};
+  const _hasSocial = Object.values(_socialLinks).some(v=>v);
+  const _loc = p.location || '';
+  const _web = p.website || '';
+  const _interests = p.interests || [];
+  const _mood = p.mood || null;
+
   $(cid).innerHTML=`
 <div class="profile-header">
   <!-- BANNER -->
@@ -2633,16 +2784,20 @@ const renderProfile=(p,yankis,cid)=>{
     ${isMe?`<div class="profile-banner-edit" onclick="openEditProfile()">✎</div>`:''}
   </div>
 
-  <!-- PROFİL KARTI -->
+  <!-- PROFİL KARTI — İki Sütunlu Social Hub -->
   <div class="profile-card">
+    <!-- Sol: Avatar + Mood -->
     <div class="profile-avatar-area">
       <div class="profile-avatar-wrap">
         <div class="profile-avatar-ring"></div>
         <div class="avatar avatar-lg">${avatar(p.profileImage)}</div>
         ${isMe?`<div class="profile-avatar-edit" onclick="openEditProfile()">✎</div>`:''}
       </div>
+      ${_mood?`<div class="profile-mood" ${isMe?'onclick="openMoodSelector()"':''}>${_mood.emoji} ${_mood.label}</div>`
+        :(isMe?`<div class="profile-mood" onclick="openMoodSelector()">😊 Durum ekle</div>`:'')}
     </div>
 
+    <!-- Sağ: Bilgiler -->
     <div class="profile-identity">
       <div class="profile-name-row">
         <span class="profile-name">${p.displayName}</span>
@@ -2652,36 +2807,52 @@ const renderProfile=(p,yankis,cid)=>{
       <div class="profile-handle">@${p.username}</div>
       ${p.bio?`<div class="profile-bio">${p.bio}</div>`:''}
       <div class="profile-meta">
+        ${_loc?`<div class="profile-meta-item">📍 <span>${_loc}</span></div>`:''}
         ${joined?`<div class="profile-meta-item">📅 <span>${joined}</span></div>`:''}
+        ${_web?`<div class="profile-meta-item">🔗 <a href="${_web}" target="_blank">${_web.replace(/^https?:\/\//,'').slice(0,25)}</a></div>`:''}
         ${p.isAdmin?`<div class="profile-meta-item">🔧 <span>Yönetici</span></div>`:''}
       </div>
-    </div>
+      ${_hasSocial?`<div class="profile-social-links">
+        ${_socialLinks.twitter?`<a class="profile-social-link" href="${_socialLinks.twitter}" target="_blank">𝕏 Twitter</a>`:''}
+        ${_socialLinks.github?`<a class="profile-social-link" href="${_socialLinks.github}" target="_blank">⌨ GitHub</a>`:''}
+        ${_socialLinks.instagram?`<a class="profile-social-link" href="${_socialLinks.instagram}" target="_blank">📷 Instagram</a>`:''}
+        ${_socialLinks.linkedin?`<a class="profile-social-link" href="${_socialLinks.linkedin}" target="_blank">💼 LinkedIn</a>`:''}
+      </div>`:''}
+      ${_interests.length?`<div class="profile-meta" style="margin-top:4px">${_interests.map(i=>`<div class="profile-meta-item" style="background:var(--accent-hover);border-color:rgba(181,72,93,.2)">✦ <span style="color:var(--accent)">${i}</span></div>`).join('')}</div>`:''}
 
-    <!-- İSTATİSTİKLER -->
-    <div class="profile-stats-row">
-      <div class="profile-stat-item" style="cursor:default">
-        <div class="profile-stat-num">${p.stats?.yankis||yankis.length||0}</div>
-        <div class="profile-stat-lbl">Yankı</div>
+      <!-- İSTATİSTİKLER — Inline -->
+      <div class="profile-stats-row">
+        <div class="profile-stat-item" style="cursor:default">
+          <span class="profile-stat-num">${p.stats?.yankis||yankis.length||0}</span>
+          <span class="profile-stat-lbl">yankı</span>
+        </div>
+        <div class="profile-stat-item" onclick="showFollowing('${p.id}')">
+          <span class="profile-stat-num">${p.stats?.following||0}</span>
+          <span class="profile-stat-lbl">takip</span>
+        </div>
+        <div class="profile-stat-item" onclick="showFollowers('${p.id}')">
+          <span class="profile-stat-num">${p.stats?.followers||0}</span>
+          <span class="profile-stat-lbl">takipçi</span>
+        </div>
       </div>
-      <div class="profile-stat-item" onclick="showFollowing('${p.id}')">
-        <div class="profile-stat-num">${p.stats?.following||0}</div>
-        <div class="profile-stat-lbl">Takip</div>
-      </div>
-      <div class="profile-stat-item" onclick="showFollowers('${p.id}')">
-        <div class="profile-stat-num">${p.stats?.followers||0}</div>
-        <div class="profile-stat-lbl">Takipçi</div>
-      </div>
-    </div>
 
-    <!-- AKSİYON BUTONLARI -->
-    <div class="profile-actions">
-      ${isMe
-        ? `<button class="btn btn-sm btn-ghost" onclick="openEditProfile()">✎ Profili Düzenle</button>`
-        : `<button class="btn btn-sm btn-ghost" onclick="openChat('${p.id}')">💬 Mesaj</button>
-           <button class="btn btn-sm ${p.isFollowing?'btn-following':'btn-follow'}" onclick="toggleFollow('${p.id}',this)">${p.isFollowing?'✓ Takipte':'+ Takip Et'}</button>`
-      }
+      <!-- AKSİYON BUTONLARI -->
+      <div class="profile-actions">
+        ${isMe
+          ? `<button class="btn btn-sm btn-ghost" onclick="openEditProfile()">✎ Profili Düzenle</button>`
+          : `<button class="btn btn-sm btn-ghost" onclick="openChat('${p.id}')">💬 Mesaj</button>
+             <button class="btn btn-sm ${p.isFollowing?'btn-following':'btn-follow'}" onclick="toggleFollow('${p.id}',this)">${p.isFollowing?'✓ Takipte':'+ Takip Et'}</button>`
+        }
+      </div>
     </div>
   </div>
+</div>
+
+<!-- STAT KARTLARI — Bento Grid -->
+<div class="profile-stat-cards" id="stat-cards-${p.id}">
+  <div class="profile-stat-card"><div class="profile-stat-card-icon">❤️</div><div class="profile-stat-card-val">—</div><div class="profile-stat-card-lbl">Beğeni Alınan</div></div>
+  <div class="profile-stat-card"><div class="profile-stat-card-icon">💬</div><div class="profile-stat-card-val">—</div><div class="profile-stat-card-lbl">Yorum Alınan</div></div>
+  <div class="profile-stat-card"><div class="profile-stat-card-icon">🔁</div><div class="profile-stat-card-val">—</div><div class="profile-stat-card-lbl">Reyankı</div></div>
 </div>
 
 <!-- SEKMELER -->
@@ -2715,6 +2886,8 @@ const renderProfile=(p,yankis,cid)=>{
 
 <!-- HAKKINDA SEKMESİ -->
 <div class="profile-tab-content" id="profile-tab-about-${p.id}">
+  <div id="badges-${p.id}" style="padding:8px 12px"></div>
+  <div id="featured-${p.id}" style="padding:0 0 4px"></div>
   <div id="clan-block-${p.id}" style="padding:4px 0"></div>
   <div id="dna-block-${p.id}" style="padding:4px 0"></div>
 </div>
@@ -2724,6 +2897,67 @@ const renderProfile=(p,yankis,cid)=>{
   // Klan ve DNA bloklarını async yükle
   loadClanBlock(p.id);
   loadDNABlock(p.id);
+  // Stat cards, badges, featured async yükle
+  loadStatCards(p.id);
+  loadBadges(p.id);
+  loadFeatured(p.id);
+};
+
+// Stat Cards yükle
+const loadStatCards=async(uid)=>{
+  try{
+    const r=await api('/profile/stats',{userId:uid});
+    const el=document.getElementById('stat-cards-'+uid);
+    if(!el)return;
+    const cards=el.querySelectorAll('.profile-stat-card');
+    if(cards[0])cards[0].querySelector('.profile-stat-card-val').textContent=r.totalLikesReceived||0;
+    if(cards[1])cards[1].querySelector('.profile-stat-card-val').textContent=r.totalCommentsReceived||0;
+    if(cards[2])cards[2].querySelector('.profile-stat-card-val').textContent=r.totalReyankis||0;
+  }catch(e){console.log('stat cards err',e)}
+};
+
+// Badges yükle
+const loadBadges=async(uid)=>{
+  try{
+    const r=await api('/profile/badges',{userId:uid});
+    const el=document.getElementById('badges-'+uid);
+    if(!el||!r.badges||!r.badges.length)return;
+    el.innerHTML=r.badges.map(b=>`<div class="profile-badge-item" data-label="${b.name}" title="${b.name}">${b.icon}</div>`).join('');
+  }catch(e){console.log('badges err',e)}
+};
+
+// Featured yankılar yükle
+const loadFeatured=async(uid)=>{
+  try{
+    const r=await api('/profile/featured',{userId:uid});
+    const el=document.getElementById('featured-'+uid);
+    if(!el||!r.featured||!r.featured.length){if(el)el.style.display='none';return}
+    el.innerHTML=r.featured.map(y=>`<div class="profile-featured-card" onclick="openYanki('${y.id}')">
+      <div class="profile-featured-text">${y.text||''}</div>
+      <div class="profile-featured-stats"><span>❤️ ${y.likesCount||0}</span><span>💬 ${y.commentsCount||0}</span></div>
+    </div>`).join('');
+  }catch(e){console.log('featured err',e)}
+};
+
+// Mood selector
+const MOOD_OPTIONS=[
+  {emoji:'😊',label:'Mutlu'},{emoji:'🔥',label:'Motive'},{emoji:'💡',label:'Yaratıcı'},{emoji:'😴',label:'Uykulu'},
+  {emoji:'🎵',label:'Müzik dinliyor'},{emoji:'💻',label:'Kodluyor'},{emoji:'📚',label:'Okuyor'},{emoji:'🎮',label:'Oyunda'},
+  {emoji:'☕',label:'Kahve molası'},{emoji:'🏃',label:'Sporda'},{emoji:'✈️',label:'Seyahatte'},{emoji:'🤔',label:'Düşünüyor'}
+];
+const openMoodSelector=()=>{
+  $('modal-users-title').textContent='Durum Seç';
+  $('modal-users-list').innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px">${MOOD_OPTIONS.map((m,i)=>
+    `<div onclick="saveMood(${i})" style="display:flex;align-items:center;gap:6px;padding:10px;border-radius:10px;cursor:pointer;background:var(--elevated);border:1px solid var(--border);transition:all .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <span style="font-size:18px">${m.emoji}</span><span style="font-size:12px;color:var(--dim)">${m.label}</span>
+    </div>`).join('')}</div>`;
+  $('modal-users').classList.add('active');
+};
+const saveMood=async(idx)=>{
+  const m=MOOD_OPTIONS[idx];
+  await api('/profile/update',{userId:user.id,mood:{emoji:m.emoji,label:m.label}});
+  $('modal-users').classList.remove('active');
+  loadMyProfile();
 };
 
 const switchProfileTab=(tab,uid,el)=>{
@@ -2893,19 +3127,19 @@ const askConfirm = (msg, onYes) => {
 
 const blockUser = async id => askConfirm('Bu kullanıcıyı engellemek istiyor musunuz?', async () => {
   const r = await api('/block', { userId: user.id, targetId: id });
-  if (r.blocked !== undefined) { toast(r.blocked ? 'Engellendi' : 'Engel kaldırıldı'); loadFeed(); }
+  if (r.blocked!==undefined) { toast(r.blocked ? 'Engellendi' : 'Engel kaldırıldı'); loadFeed(); }
 });
 
 const reportYanki = async id => askConfirm('Bu yankıyı şikayet etmek istiyor musunuz?', async () => {
   const r = await api('/report', { yankiId: id, userId: user.id, reason: 'Uygunsuz içerik' });
-  toast(r.success ? 'Şikayet iletildi ✓' : (r.error || 'Hata oluştu'));
+  toast(r.success ? 'Şikayet iletildi ✓' : (r.error || 'Zaten şikayet edildi'));
 });
-const openEditProfile=()=>{$('edit-name').value=user.displayName||'';$('edit-bio').value=user.bio||'';editAvatar=null;editBanner=null;$('avatar-preview').innerHTML='';$('banner-preview').innerHTML='';$('modal-edit').classList.add('active')};
+const openEditProfile=()=>{$('edit-name').value=user.displayName||'';$('edit-bio').value=user.bio||'';$('edit-location').value=user.location||'';$('edit-website').value=user.website||'';$('edit-interests').value=(user.interests||[]).join(', ');const sl=user.socialLinks||{};$('edit-social-twitter').value=sl.twitter||'';$('edit-social-github').value=sl.github||'';$('edit-social-instagram').value=sl.instagram||'';$('edit-social-linkedin').value=sl.linkedin||'';editAvatar=null;editBanner=null;$('avatar-preview').innerHTML='';$('banner-preview').innerHTML='';$('modal-edit').classList.add('active')};
 const previewAvatar=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{editAvatar=ev.target.result;$('avatar-preview').innerHTML=`<img src="${editAvatar}" style="width:60px;height:60px;border-radius:50%;margin-top:10px">`};r.readAsDataURL(f)};
 const previewBanner=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{editBanner=ev.target.result;$('banner-preview').innerHTML=`<img src="${editBanner}" style="width:100%;height:60px;border-radius:8px;margin-top:10px;object-fit:cover">`};r.readAsDataURL(f)};
-const saveProfile=async()=>{const data={userId:user.id,displayName:$('edit-name').value,bio:$('edit-bio').value};if(editAvatar)data.profileImage=editAvatar;if(editBanner)data.bannerImage=editBanner;const r=await api('/profile/update',data);if(r.success){user={...user,...r.user};localStorage.setItem('yankus-user',JSON.stringify(user));closeModal('edit');loadMyProfile();$('composer-avatar').innerHTML=avatar(user.profileImage);toast('Güncellendi')}};
-const showFollowers=async id=>{$('modal-users-title').textContent='Takipçiler';$('modal-users-list').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';$('modal-users').classList.add('active');const r=await api('/followers',{userId:id});renderUserList(r.followers||[])};
-const showFollowing=async id=>{$('modal-users-title').textContent='Takip Edilenler';$('modal-users-list').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';$('modal-users').classList.add('active');const r=await api('/following',{userId:id});renderUserList(r.following||[])};
+const saveProfile=async()=>{const interestsRaw=$('edit-interests').value;const interests=interestsRaw?interestsRaw.split(',').map(s=>s.trim()).filter(Boolean):[];const socialLinks={twitter:$('edit-social-twitter').value.trim()||'',github:$('edit-social-github').value.trim()||'',instagram:$('edit-social-instagram').value.trim()||'',linkedin:$('edit-social-linkedin').value.trim()||''};const data={userId:user.id,displayName:$('edit-name').value,bio:$('edit-bio').value,location:$('edit-location').value.trim(),website:$('edit-website').value.trim(),interests,socialLinks};if(editAvatar)data.profileImage=editAvatar;if(editBanner)data.bannerImage=editBanner;const r=await api('/profile/update',data);if(r.user){user={...user,...r.user};localStorage.setItem('yankus-user',JSON.stringify(user));closeModal('edit');loadMyProfile();$('composer-avatar').innerHTML=avatar(user.profileImage);toast('Güncellendi')}};
+const showFollowers=async id=>{$('modal-users-title').textContent='Takipçiler';$('modal-users-list').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';$('modal-users').classList.add('active');const r=await api('/user/followers',{userId:id});renderUserList(r.users||[])};
+const showFollowing=async id=>{$('modal-users-title').textContent='Takip Edilenler';$('modal-users-list').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';$('modal-users').classList.add('active');const r=await api('/user/following',{userId:id});renderUserList(r.users||[])};
 const renderUserList=users=>{$('modal-users-list').innerHTML=users.length?users.map(u=>`
   <div class="modal-user-item" onclick="closeModal('users');goUser('@${u.username}')">
     <div class="avatar">${avatar(u.profileImage)}</div>
@@ -2923,12 +3157,12 @@ const renderUserList=users=>{$('modal-users-list').innerHTML=users.length?users.
     </div>`:''}
   </div>`).join(''):'<div class="empty">Kimse yok</div>'};
 const closeModal=n=>$('modal-'+n).classList.remove('active');
-const toggleFollowInModal=async(id,el)=>{const r=await api('/follow',{followerId:user.id,followingId:id});if(r.success){el.textContent=r.following?'Takipte':'Takip Et';el.className='btn btn-sm '+(r.following?'btn-following':'btn-follow')}};
+const toggleFollowInModal=async(id,el)=>{const r=await api('/follow',{followerId:user.id,followingId:id});if(r.following!==undefined){el.textContent=r.following?'Takipte':'Takip Et';el.className='btn btn-sm '+(r.following?'btn-following':'btn-follow')}};
 const loadBlocked=async()=>{const r=await api('/blocked',{userId:user.id});$('blocked-list').innerHTML=(r.users||[]).length?r.users.map(u=>`<div class="user-item"><div class="avatar">${avatar(u.profileImage)}</div><div style="flex:1"><div class="yanki-name">${u.displayName}</div></div><button class="btn btn-sm btn-ghost" onclick="blockUser('${u.id}')">Kaldır</button></div>`).join(''):'<div class="empty">Yok</div>'};
 
 // Search
 const onSearchInput=()=>{$('search-tabs').style.display=$('search-input').value.trim()?'flex':'none'};
-const doSearch=async()=>{const q=$('search-input').value.trim();if(!q)return;$('explore-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';searchRes=await api('/search',{query:q,type:searchType,viewerId:user.id});renderSearch()};
+const doSearch=async()=>{const q=$('search-input').value.trim();if(!q)return;$('explore-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';searchRes=await api('/search',{query:q,type:searchType,userId:user.id});renderSearch()};
 const searchTab=(t,el)=>{searchType=t;document.querySelectorAll('.search-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(searchRes)renderSearch();else doSearch()};
 const renderSearch=()=>{if(!searchRes)return;let h='';if(searchType==='all'||searchType==='users')h+=searchRes.users?.map(u=>`<div class="user-item" onclick="goUser('@${u.username}')"><div class="avatar">${avatar(u.profileImage)}</div><div><div class="yanki-name">${u.displayName}${u.isBot?' <span class="yanki-bot">BOT</span>':''}</div><div class="yanki-handle">@${u.username}</div></div></div>`).join('')||'';if(searchType==='all'||searchType==='hashtags')h+=searchRes.hashtags?.map(t=>`<div class="user-item" onclick="goHashtag('${t.tag}')"><div class="trend-topic">${t.tag}</div><div class="trend-count">${t.count} yankı</div></div>`).join('')||'';if(searchType==='all'||searchType==='yankis')h+=searchRes.yankis?.map(yankiCard).join('')||'';$('explore-content').innerHTML=h||'<div class="empty">Sonuç yok</div>'};
 const goHashtag=async tag=>{goPanel('hashtag');$('top-title').textContent=tag;$('hashtag-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';const r=await api('/hashtag',{hashtag:tag,viewerId:user.id});renderYankis(r.yankis||[],'hashtag-content')};
@@ -3215,7 +3449,7 @@ const dmOpenChat = async (otherId) => {
     api('/profile', { userId: otherId }),
     api('/messages/get', { userId: user.id, otherId })
   ]);
-  dm.activeProfile = profRes;
+  dm.activeProfile = profRes.user || profRes;
   dm.msgs = msgRes.messages || [];
 
   // Okundu işaretle
@@ -3567,7 +3801,112 @@ const loadTrending=async()=>{
 const submitContact=async()=>{const m=$('contact-message').value.trim();if(!m)return toast('Mesaj yazın');const r=await api('/contact',{userId:user.id,subject:$('contact-subject').value,message:m,email:$('contact-email').value});if(r.success){$('contact-message').value='';toast(r.message)}else toast(r.error)};
 
 // Patch Notes
-const loadPatchNotes=async()=>{const r=await api('/patchnotes');$('patch-notes-content').innerHTML=(r.patchNotes||[]).map(p=>`<div class="patch-version"><div class="patch-header"><span class="patch-badge">v${p.version}</span><span class="patch-date">${p.date}</span></div>${p.features?.map(f=>`<div class="patch-item">${f}</div>`).join('')||''}${p.fixes?.map(f=>`<div class="patch-item">${f}</div>`).join('')||''}</div>`).join('')};
+const loadPatchNotes=async()=>{const r=await api('/patchnotes',{});$('patch-notes-content').innerHTML=(r.patchNotes||[]).map(p=>`<div class="patch-version"><div class="patch-header"><span class="patch-badge">v${p.version}</span><span class="patch-date">${p.date}</span></div>${p.features?.map(f=>`<div class="patch-item">${f}</div>`).join('')||''}${p.fixes?.map(f=>`<div class="patch-item">${f}</div>`).join('')||''}</div>`).join('')};
+
+// ═══════════════════════════════════════════════════════════════
+// YENİ ÖZELLİKLER — v3.1
+// ═══════════════════════════════════════════════════════════════
+
+// Çift tıkla beğen
+const doubleTapLike=async(yid,el)=>{
+  const heart=document.createElement('div');
+  heart.className='yanki-dbl-heart';heart.textContent='❤️';
+  el.appendChild(heart);
+  setTimeout(()=>heart.remove(),800);
+  const likeBtn=el.querySelector('.yanki-action.liked')||el.querySelector('.yanki-action:nth-child(3)');
+  const r=await api('/like',{yankiId:yid,userId:user.id});
+  if(r.success&&r.liked){
+    if(likeBtn&&!likeBtn.classList.contains('liked')){
+      likeBtn.classList.add('liked');
+      const cnt=likeBtn.querySelector('.action-count');
+      if(cnt)cnt.textContent=r.count;
+    }
+  }
+};
+
+// Emoji reaksiyon toggle
+const toggleReaction=async(yid,emoji,btn)=>{
+  const r=await api('/yanki/react',{yankiId:yid,userId:user.id,emoji});
+  if(r.success)loadFeed();
+};
+
+// React picker toggle
+const toggleReactPicker=(yid,btn)=>{
+  closeReactPickers();
+  const picker=document.getElementById('rpick-'+yid);
+  if(!picker){
+    // Oluştur ve göster
+    const container=btn.closest('.yanki-actions')||btn.closest('.yanki-reactions');
+    if(!container)return;
+    let existingPicker=container.querySelector('.react-picker');
+    if(!existingPicker){
+      const div=document.createElement('div');
+      div.className='react-picker show';div.id='rpick-'+yid;
+      div.style.position='absolute';div.style.bottom='100%';div.style.left='0';
+      div.innerHTML=REACTION_EMOJIS.map(e=>`<span onclick="event.stopPropagation();toggleReaction('${yid}','${e}');closeReactPickers()">${e}</span>`).join('');
+      container.style.position='relative';
+      container.appendChild(div);
+    }else{
+      existingPicker.classList.toggle('show');
+    }
+  }else{
+    picker.classList.toggle('show');
+  }
+};
+const closeReactPickers=()=>{document.querySelectorAll('.react-picker.show').forEach(p=>p.classList.remove('show'))};
+document.addEventListener('click',()=>closeReactPickers());
+
+// Paylaşım menü
+const showShareMenu=(yid,ev)=>{
+  ev.stopPropagation();
+  document.querySelectorAll('.share-popup.show').forEach(p=>p.classList.remove('show'));
+  const popup=document.getElementById('share-'+yid);
+  if(popup)popup.classList.toggle('show');
+};
+const copyYankiLink=(yid)=>{
+  navigator.clipboard.writeText(window.location.origin+'/#yanki/'+yid).then(()=>toast('🔗 Link kopyalandı!'));
+  document.querySelectorAll('.share-popup.show').forEach(p=>p.classList.remove('show'));
+};
+
+// Alıntı yankı
+const quoteYanki=(yid)=>{
+  document.querySelectorAll('.share-popup.show').forEach(p=>p.classList.remove('show'));
+  const text=prompt('Alıntı yorumunuz:');
+  if(!text||!text.trim())return;
+  api('/yanki/quote',{yankiId:yid,userId:user.id,text:text.trim()}).then(r=>{
+    if(r.error)toast('Hata: '+r.error);
+    else{toast('💬 Alıntı yankı paylaşıldı!');loadFeed();}
+  });
+};
+
+// Reyankı menüsü (reyankı veya alıntıla seçeneği)
+const showReyankiMenu=(yid,ev)=>{
+  ev.stopPropagation();
+  const choice=confirm('Alıntılamak ister misiniz?\n\nTamam = Alıntıla\nİptal = Normal Reyankı');
+  if(choice)quoteYanki(yid);
+  else reyanki(yid);
+};
+
+// Beğenenleri gör
+const showLikers=async(yid)=>{
+  const r=await api('/yanki/likers',{yankiId:yid});
+  if(!r.users||!r.users.length){toast('Henüz beğeni yok');return;}
+  const modal=document.createElement('div');
+  modal.className='modal active';
+  modal.onclick=e=>{if(e.target===modal)modal.remove()};
+  modal.innerHTML=`<div class="modal-content" style="max-width:360px"><div class="modal-header"><h3>Beğenenler</h3><span class="modal-close" onclick="this.closest('.modal').remove()">✕</span></div><div class="likers-list">${r.users.map(u=>`<div class="liker-item" onclick="this.closest('.modal').remove();goUser('@${u.username}')"><div class="avatar avatar-sm">${avatar(u.profileImage)}</div><div><div class="liker-name">${u.displayName} ${u.verified?'<span class="yanki-verified">✓</span>':''}</div><div class="liker-handle">@${u.username}</div></div></div>`).join('')}</div></div>`;
+  document.body.appendChild(modal);
+};
+
+// Yankı düzenleme
+const editYankiPrompt=async(yid)=>{
+  document.querySelectorAll('.yanki-dropdown.show').forEach(d=>d.classList.remove('show'));
+  const text=prompt('Yankıyı düzenle:');
+  if(text===null)return;
+  const r=await api('/yanki/edit',{yankiId:yid,userId:user.id,text});
+  if(r.error)toast('Hata: '+r.error);
+  else{toast('✏️ Yankı düzenlendi');loadFeed();}
+};
 
 // ═══════════════════════════════════════════════════════════════
 // GELİŞMİŞ ADMIN PANELİ

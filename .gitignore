@@ -1,0 +1,5 @@
+node_modules/
+yankus.db
+yankus.db-shm
+yankus.db-wal
+.claude/

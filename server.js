@@ -1,32 +1,408 @@
 // ═══════════════════════════════════════════════════════════════
-// YANKUŞ v2.1 — SERVER
+// YANKUŞ v3.0 — SERVER (SQLite)
 // ═══════════════════════════════════════════════════════════════
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const Database = require('better-sqlite3');
 
-// ─── In-Memory Database ────────────────────────────────────────
-const db = {
-  users: [],
-  yankis: [],
-  comments: [],
-  likes: [],
-  follows: [],
-  notifications: [],
-  saves: [],
-  blocks: [],
-  polls: [],
-  pollVotes: [],
-  reports: [],
-  scheduled: [],
-  messages: [],
-  conversations: [],
-  collections: [],
-  collectionItems: [],
-  drafts: [],
-  feedback: []
+// ─── SQLite Database Setup ─────────────────────────────────────
+const DB_PATH = path.join(__dirname, 'yankus.db');
+const sqlite = new Database(DB_PATH);
+
+// Enable WAL mode for better performance
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('foreign_keys = ON');
+
+// ─── Create Tables ─────────────────────────────────────────────
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    displayName TEXT NOT NULL,
+    bio TEXT DEFAULT '',
+    profileImage TEXT,
+    bannerImage TEXT,
+    verified INTEGER DEFAULT 0,
+    isAdmin INTEGER DEFAULT 0,
+    isBot INTEGER DEFAULT 0,
+    banned INTEGER DEFAULT 0,
+    theme TEXT,
+    mood TEXT,
+    moodEmoji TEXT,
+    moodUpdatedAt TEXT,
+    location TEXT DEFAULT '',
+    website TEXT DEFAULT '',
+    socialLinks TEXT DEFAULT '{}',
+    interests TEXT DEFAULT '[]',
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS yankis (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    text TEXT DEFAULT '',
+    image TEXT,
+    images TEXT DEFAULT '[]',
+    poll TEXT,
+    replyToId TEXT,
+    reyankiOfId TEXT,
+    quoteOfId TEXT,
+    pinned INTEGER DEFAULT 0,
+    editedAt TEXT,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS reactions (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (yankiId) REFERENCES yankis(id),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_reactions_yankiId ON reactions(yankiId);
+  CREATE INDEX IF NOT EXISTS idx_reactions_userId ON reactions(userId);
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    text TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (yankiId) REFERENCES yankis(id),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS likes (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (yankiId) REFERENCES yankis(id),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS follows (
+    id TEXT PRIMARY KEY,
+    followerId TEXT NOT NULL,
+    followingId TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (followerId) REFERENCES users(id),
+    FOREIGN KEY (followingId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    fromId TEXT NOT NULL,
+    type TEXT NOT NULL,
+    yankiId TEXT,
+    read INTEGER DEFAULT 0,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS saves (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    note TEXT DEFAULT '',
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (yankiId) REFERENCES yankis(id),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS blocks (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    blockedId TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS pollVotes (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    optionIndex INTEGER NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS reports (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT,
+    reporterId TEXT NOT NULL,
+    reason TEXT,
+    status TEXT DEFAULT 'pending',
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS scheduled (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    text TEXT DEFAULT '',
+    image TEXT,
+    poll TEXT,
+    scheduledAt TEXT,
+    threadItems TEXT,
+    status TEXT DEFAULT 'pending',
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    conversationId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    text TEXT DEFAULT '',
+    image TEXT,
+    read INTEGER DEFAULT 0,
+    reactions TEXT DEFAULT '[]',
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS conversations (
+    id TEXT PRIMARY KEY,
+    participants TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS collections (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    emoji TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS collectionItems (
+    id TEXT PRIMARY KEY,
+    collectionId TEXT NOT NULL,
+    saveId TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS drafts (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    text TEXT DEFAULT '',
+    image TEXT,
+    poll TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS feedback (
+    id TEXT PRIMARY KEY,
+    userId TEXT,
+    subject TEXT,
+    message TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS patchNotes (
+    id TEXT PRIMARY KEY,
+    version TEXT,
+    title TEXT,
+    content TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_yankis_userId ON yankis(userId);
+  CREATE INDEX IF NOT EXISTS idx_yankis_replyToId ON yankis(replyToId);
+  CREATE INDEX IF NOT EXISTS idx_yankis_reyankiOfId ON yankis(reyankiOfId);
+  CREATE INDEX IF NOT EXISTS idx_yankis_createdAt ON yankis(createdAt);
+  CREATE INDEX IF NOT EXISTS idx_likes_yankiId ON likes(yankiId);
+  CREATE INDEX IF NOT EXISTS idx_likes_userId ON likes(userId);
+  CREATE INDEX IF NOT EXISTS idx_comments_yankiId ON comments(yankiId);
+  CREATE INDEX IF NOT EXISTS idx_follows_followerId ON follows(followerId);
+  CREATE INDEX IF NOT EXISTS idx_follows_followingId ON follows(followingId);
+  CREATE INDEX IF NOT EXISTS idx_notifications_userId ON notifications(userId);
+  CREATE INDEX IF NOT EXISTS idx_saves_userId ON saves(userId);
+  CREATE INDEX IF NOT EXISTS idx_messages_conversationId ON messages(conversationId);
+  CREATE INDEX IF NOT EXISTS idx_blocks_userId ON blocks(userId);
+`);
+
+// ─── Prepared Statements ───────────────────────────────────────
+const stmts = {
+  // Users
+  getUserById: sqlite.prepare('SELECT * FROM users WHERE id = ?'),
+  getUserByUsername: sqlite.prepare('SELECT * FROM users WHERE username = ?'),
+  insertUser: sqlite.prepare(`INSERT INTO users (id, username, password, displayName, bio, profileImage, bannerImage, verified, isAdmin, isBot, banned, theme, mood, moodEmoji, moodUpdatedAt, location, website, socialLinks, interests, createdAt) VALUES (@id, @username, @password, @displayName, @bio, @profileImage, @bannerImage, @verified, @isAdmin, @isBot, @banned, @theme, @mood, @moodEmoji, @moodUpdatedAt, @location, @website, @socialLinks, @interests, @createdAt)`),
+  getAllUsers: sqlite.prepare('SELECT * FROM users'),
+  getBotUsers: sqlite.prepare('SELECT * FROM users WHERE isBot = 1'),
+  getUserCount: sqlite.prepare('SELECT COUNT(*) as count FROM users'),
+
+  // Yankis
+  getYankiById: sqlite.prepare('SELECT * FROM yankis WHERE id = ?'),
+  insertYanki: sqlite.prepare(`INSERT INTO yankis (id, userId, text, image, images, poll, replyToId, reyankiOfId, quoteOfId, pinned, editedAt, createdAt) VALUES (@id, @userId, @text, @image, @images, @poll, @replyToId, @reyankiOfId, @quoteOfId, @pinned, @editedAt, @createdAt)`),
+  deleteYanki: sqlite.prepare('DELETE FROM yankis WHERE id = ?'),
+  getYankisByUser: sqlite.prepare('SELECT * FROM yankis WHERE userId = ? AND replyToId IS NULL ORDER BY createdAt DESC'),
+  getReplies: sqlite.prepare('SELECT * FROM yankis WHERE replyToId = ? ORDER BY createdAt ASC'),
+  getReyankis: sqlite.prepare('SELECT * FROM yankis WHERE reyankiOfId = ?'),
+  getUserReyanki: sqlite.prepare('SELECT * FROM yankis WHERE reyankiOfId = ? AND userId = ?'),
+  getAllYankisNoReply: sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC LIMIT ?'),
+
+  // Likes
+  getLikesByYanki: sqlite.prepare('SELECT * FROM likes WHERE yankiId = ?'),
+  getLikeCount: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE yankiId = ?'),
+  getUserLike: sqlite.prepare('SELECT * FROM likes WHERE yankiId = ? AND userId = ?'),
+  insertLike: sqlite.prepare('INSERT INTO likes (id, yankiId, userId, createdAt) VALUES (@id, @yankiId, @userId, @createdAt)'),
+  deleteLike: sqlite.prepare('DELETE FROM likes WHERE id = ?'),
+  deleteLikesByYanki: sqlite.prepare('DELETE FROM likes WHERE yankiId = ?'),
+  deleteLikesByUser: sqlite.prepare('DELETE FROM likes WHERE userId = ?'),
+
+  // Comments
+  getCommentsByYanki: sqlite.prepare('SELECT * FROM comments WHERE yankiId = ?'),
+  getCommentCount: sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE yankiId = ?'),
+  insertComment: sqlite.prepare('INSERT INTO comments (id, yankiId, userId, text, createdAt) VALUES (@id, @yankiId, @userId, @text, @createdAt)'),
+  deleteCommentsByYanki: sqlite.prepare('DELETE FROM comments WHERE yankiId = ?'),
+  deleteCommentsByUser: sqlite.prepare('DELETE FROM comments WHERE userId = ?'),
+
+  // Follows
+  getFollowers: sqlite.prepare('SELECT followerId FROM follows WHERE followingId = ?'),
+  getFollowing: sqlite.prepare('SELECT followingId FROM follows WHERE followerId = ?'),
+  getFollowerCount: sqlite.prepare('SELECT COUNT(*) as count FROM follows WHERE followingId = ?'),
+  getFollowingCount: sqlite.prepare('SELECT COUNT(*) as count FROM follows WHERE followerId = ?'),
+  getFollow: sqlite.prepare('SELECT * FROM follows WHERE followerId = ? AND followingId = ?'),
+  insertFollow: sqlite.prepare('INSERT INTO follows (id, followerId, followingId, createdAt) VALUES (@id, @followerId, @followingId, @createdAt)'),
+  deleteFollow: sqlite.prepare('DELETE FROM follows WHERE id = ?'),
+  deleteFollowsByUser: sqlite.prepare('DELETE FROM follows WHERE followerId = ? OR followingId = ?'),
+
+  // Notifications
+  getNotifications: sqlite.prepare('SELECT * FROM notifications WHERE userId = ? ORDER BY createdAt DESC LIMIT 50'),
+  getUnreadCount: sqlite.prepare('SELECT COUNT(*) as count FROM notifications WHERE userId = ? AND read = 0'),
+  insertNotification: sqlite.prepare('INSERT INTO notifications (id, userId, fromId, type, yankiId, read, createdAt) VALUES (@id, @userId, @fromId, @type, @yankiId, @read, @createdAt)'),
+  markNotificationsRead: sqlite.prepare('UPDATE notifications SET read = 1 WHERE userId = ?'),
+  markNotificationRead: sqlite.prepare('UPDATE notifications SET read = 1 WHERE id = ?'),
+  deleteNotificationsByUser: sqlite.prepare('DELETE FROM notifications WHERE userId = ? OR fromId = ?'),
+  clearNotifications: sqlite.prepare('DELETE FROM notifications WHERE userId = ?'),
+
+  // Saves
+  getSavesByUser: sqlite.prepare('SELECT * FROM saves WHERE userId = ?'),
+  getSave: sqlite.prepare('SELECT * FROM saves WHERE yankiId = ? AND userId = ?'),
+  insertSave: sqlite.prepare('INSERT INTO saves (id, yankiId, userId, note, createdAt) VALUES (@id, @yankiId, @userId, @note, @createdAt)'),
+  deleteSave: sqlite.prepare('DELETE FROM saves WHERE id = ?'),
+  deleteSavesByYanki: sqlite.prepare('DELETE FROM saves WHERE yankiId = ?'),
+  deleteSavesByUser: sqlite.prepare('DELETE FROM saves WHERE userId = ?'),
+
+  // Blocks
+  getBlocksByUser: sqlite.prepare('SELECT * FROM blocks WHERE userId = ?'),
+  getBlock: sqlite.prepare('SELECT * FROM blocks WHERE userId = ? AND blockedId = ?'),
+  insertBlock: sqlite.prepare('INSERT INTO blocks (id, userId, blockedId, createdAt) VALUES (@id, @userId, @blockedId, @createdAt)'),
+  deleteBlock: sqlite.prepare('DELETE FROM blocks WHERE id = ?'),
+  deleteFollowPair: sqlite.prepare('DELETE FROM follows WHERE (followerId = ? AND followingId = ?) OR (followerId = ? AND followingId = ?)'),
+
+  // Polls
+  getPollVotes: sqlite.prepare('SELECT * FROM pollVotes WHERE yankiId = ?'),
+  getUserPollVote: sqlite.prepare('SELECT * FROM pollVotes WHERE yankiId = ? AND userId = ?'),
+  insertPollVote: sqlite.prepare('INSERT INTO pollVotes (id, yankiId, userId, optionIndex, createdAt) VALUES (@id, @yankiId, @userId, @optionIndex, @createdAt)'),
+  getPollVoteCount: sqlite.prepare('SELECT optionIndex, COUNT(*) as count FROM pollVotes WHERE yankiId = ? GROUP BY optionIndex'),
+
+  // Reactions
+  getReactionsByYanki: sqlite.prepare('SELECT * FROM reactions WHERE yankiId = ?'),
+  getReactionCounts: sqlite.prepare('SELECT emoji, COUNT(*) as count FROM reactions WHERE yankiId = ? GROUP BY emoji'),
+  getUserReaction: sqlite.prepare('SELECT * FROM reactions WHERE yankiId = ? AND userId = ? AND emoji = ?'),
+  insertReaction: sqlite.prepare('INSERT INTO reactions (id, yankiId, userId, emoji, createdAt) VALUES (@id, @yankiId, @userId, @emoji, @createdAt)'),
+  deleteReaction: sqlite.prepare('DELETE FROM reactions WHERE id = ?'),
+  deleteReactionsByYanki: sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?'),
+  getLikersByYanki: sqlite.prepare('SELECT u.id, u.username, u.displayName, u.profileImage, u.verified FROM likes l JOIN users u ON l.userId = u.id WHERE l.yankiId = ? ORDER BY l.createdAt DESC LIMIT 50'),
+
+  // Reports
+  insertReport: sqlite.prepare('INSERT INTO reports (id, yankiId, reporterId, reason, status, createdAt) VALUES (@id, @yankiId, @reporterId, @reason, @status, @createdAt)'),
+  getAllReports: sqlite.prepare('SELECT * FROM reports ORDER BY createdAt DESC'),
+
+  // Messages
+  getMessagesByConv: sqlite.prepare('SELECT * FROM messages WHERE conversationId = ? ORDER BY createdAt ASC'),
+  insertMessage: sqlite.prepare('INSERT INTO messages (id, conversationId, userId, text, image, read, reactions, createdAt) VALUES (@id, @conversationId, @userId, @text, @image, @read, @reactions, @createdAt)'),
+  deleteMessage: sqlite.prepare('DELETE FROM messages WHERE id = ? AND userId = ?'),
+  markMessagesRead: sqlite.prepare('UPDATE messages SET read = 1 WHERE conversationId = ? AND userId = ? AND read = 0'),
+
+  // Conversations
+  getAllConversations: sqlite.prepare('SELECT * FROM conversations'),
+  insertConversation: sqlite.prepare('INSERT INTO conversations (id, participants, createdAt) VALUES (@id, @participants, @createdAt)'),
+
+  // Collections
+  getCollectionsByUser: sqlite.prepare('SELECT * FROM collections WHERE userId = ?'),
+  insertCollection: sqlite.prepare('INSERT INTO collections (id, userId, name, emoji, createdAt) VALUES (@id, @userId, @name, @emoji, @createdAt)'),
+  deleteCollection: sqlite.prepare('DELETE FROM collections WHERE id = ? AND userId = ?'),
+  getCollectionItemCount: sqlite.prepare('SELECT COUNT(*) as count FROM collectionItems WHERE collectionId = ?'),
+  getCollectionItems: sqlite.prepare('SELECT * FROM collectionItems WHERE collectionId = ?'),
+  insertCollectionItem: sqlite.prepare('INSERT INTO collectionItems (id, collectionId, saveId, createdAt) VALUES (@id, @collectionId, @saveId, @createdAt)'),
+  deleteCollectionItem: sqlite.prepare('DELETE FROM collectionItems WHERE collectionId = ? AND saveId = ?'),
+  getCollectionItem: sqlite.prepare('SELECT * FROM collectionItems WHERE collectionId = ? AND saveId = ?'),
+  deleteCollectionItemsByCol: sqlite.prepare('DELETE FROM collectionItems WHERE collectionId = ?'),
+
+  // Drafts
+  getDraftsByUser: sqlite.prepare('SELECT * FROM drafts WHERE userId = ? ORDER BY createdAt DESC'),
+  insertDraft: sqlite.prepare('INSERT INTO drafts (id, userId, text, image, poll, createdAt) VALUES (@id, @userId, @text, @image, @poll, @createdAt)'),
+  deleteDraft: sqlite.prepare('DELETE FROM drafts WHERE id = ? AND userId = ?'),
+
+  // Scheduled
+  getScheduledByUser: sqlite.prepare("SELECT * FROM scheduled WHERE userId = ? AND status = 'pending' ORDER BY scheduledAt ASC"),
+  insertScheduled: sqlite.prepare('INSERT INTO scheduled (id, userId, text, image, poll, scheduledAt, threadItems, status, createdAt) VALUES (@id, @userId, @text, @image, @poll, @scheduledAt, @threadItems, @status, @createdAt)'),
+  deleteScheduled: sqlite.prepare('DELETE FROM scheduled WHERE id = ? AND userId = ?'),
+
+  // Feedback
+  insertFeedback: sqlite.prepare('INSERT INTO feedback (id, userId, subject, message, createdAt) VALUES (@id, @userId, @subject, @message, @createdAt)'),
+  getAllFeedback: sqlite.prepare('SELECT * FROM feedback ORDER BY createdAt DESC'),
+
+  // PatchNotes
+  getAllPatchNotes: sqlite.prepare('SELECT * FROM patchNotes ORDER BY createdAt DESC'),
 };
+
+// ─── Helper ────────────────────────────────────────────────────
+const genId = () => Math.random().toString(36).substring(2, 15);
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function chance(probability) { return Math.random() < probability; }
+
+// Parse JSON fields from SQLite rows
+function parseUser(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    verified: !!row.verified,
+    isAdmin: !!row.isAdmin,
+    isBot: !!row.isBot,
+    banned: !!row.banned,
+    socialLinks: JSON.parse(row.socialLinks || '{}'),
+    interests: JSON.parse(row.interests || '[]')
+  };
+}
+
+function parseYanki(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    pinned: !!row.pinned,
+    poll: row.poll ? JSON.parse(row.poll) : null
+  };
+}
+
+function parseMessage(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    read: !!row.read,
+    reactions: JSON.parse(row.reactions || '[]')
+  };
+}
+
+function parseConversation(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    participants: JSON.parse(row.participants || '[]')
+  };
+}
+
+// ─── Core Functions ────────────────────────────────────────────
+const getUser = (id) => parseUser(stmts.getUserById.get(id));
+const getUserByUsername = (username) => parseUser(stmts.getUserByUsername.get(username));
 
 let botSimulationRunning = false;
 
@@ -190,12 +566,8 @@ const BOT_AGENTS = [
 ];
 
 // ─── Agent Etkileşim Motoru ────────────────────────────────────
-function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function chance(probability) { return Math.random() < probability; }
-const genId = () => Math.random().toString(36).substring(2, 15);
-
 function botAgentTick() {
-  const botUsers = db.users.filter(u => u.isBot);
+  const botUsers = stmts.getBotUsers.all().map(parseUser);
   if (botUsers.length === 0) return;
 
   const agent = BOT_AGENTS[Math.floor(Math.random() * BOT_AGENTS.length)];
@@ -206,32 +578,22 @@ function botAgentTick() {
 
   // 1) Yeni yankı paylaş (%35 şans)
   if (chance(0.35)) {
-    const mood = pickRandom(agent.moods);
-    const text = pickRandom(agent.yankiBank);
-    // Bazen mood'a göre ek ekle
-    const moodSuffix = chance(0.3) ? `\n\n#${pickRandom(agent.interests)}` : '';
-    db.yankis.push({
-      id: genId(),
-      userId: botUser.id,
-      text: text + moodSuffix,
-      image: null,
-      poll: null,
-      replyToId: null,
-      reyankiOfId: null,
-      pinned: false,
-      createdAt: new Date().toISOString()
+    const text = pickRandom(agent.yankiBank) + (chance(0.3) ? `\n\n#${pickRandom(agent.interests)}` : '');
+    stmts.insertYanki.run({
+      id: genId(), userId: botUser.id, text, image: null, images: '[]', poll: null,
+      replyToId: null, reyankiOfId: null, quoteOfId: null, pinned: 0, editedAt: null, createdAt: new Date().toISOString()
     });
     actions.push('yanki');
   }
 
   // 2) Rastgele yankılara beğeni at
-  const allYankis = db.yankis.filter(y => y.userId !== botUser.id && !y.replyToId);
-  const unliked = allYankis.filter(y => !db.likes.find(l => l.userId === botUser.id && l.yankiId === y.id));
-  if (unliked.length > 0 && chance(agent.personality.likeChance)) {
-    const target = pickRandom(unliked);
-    db.likes.push({ id: genId(), userId: botUser.id, yankiId: target.id, createdAt: new Date().toISOString() });
+  const allYankis = sqlite.prepare('SELECT * FROM yankis WHERE userId != ? AND replyToId IS NULL').all(botUser.id);
+  const unlikedYankis = allYankis.filter(y => !stmts.getUserLike.get(y.id, botUser.id));
+  if (unlikedYankis.length > 0 && chance(agent.personality.likeChance)) {
+    const target = pickRandom(unlikedYankis);
+    stmts.insertLike.run({ id: genId(), yankiId: target.id, userId: botUser.id, createdAt: new Date().toISOString() });
     if (target.userId !== botUser.id) {
-      db.notifications.push({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'like', yankiId: target.id, read: false, createdAt: new Date().toISOString() });
+      stmts.insertNotification.run({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'like', yankiId: target.id, read: 0, createdAt: new Date().toISOString() });
     }
     actions.push('like');
   }
@@ -240,21 +602,14 @@ function botAgentTick() {
   if (allYankis.length > 0 && chance(agent.personality.replyChance * 0.4)) {
     const target = pickRandom(allYankis);
     const replyText = pickRandom(agent.replyBank);
-    const reply = {
-      id: genId(),
-      userId: botUser.id,
-      text: replyText,
-      image: null,
-      poll: null,
-      replyToId: target.id,
-      reyankiOfId: null,
-      pinned: false,
-      createdAt: new Date().toISOString()
-    };
-    db.yankis.push(reply);
-    db.comments.push({ id: reply.id, yankiId: target.id, userId: botUser.id, text: replyText, createdAt: reply.createdAt });
+    const replyId = genId();
+    stmts.insertYanki.run({
+      id: replyId, userId: botUser.id, text: replyText, image: null, images: '[]', poll: null,
+      replyToId: target.id, reyankiOfId: null, quoteOfId: null, pinned: 0, editedAt: null, createdAt: new Date().toISOString()
+    });
+    stmts.insertComment.run({ id: replyId, yankiId: target.id, userId: botUser.id, text: replyText, createdAt: new Date().toISOString() });
     if (target.userId !== botUser.id) {
-      db.notifications.push({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'comment', yankiId: reply.id, read: false, createdAt: new Date().toISOString() });
+      stmts.insertNotification.run({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'comment', yankiId: replyId, read: 0, createdAt: new Date().toISOString() });
     }
     actions.push('comment');
   }
@@ -262,35 +617,26 @@ function botAgentTick() {
   // 4) Reyankı yap
   if (allYankis.length > 0 && chance(agent.personality.reyankiChance * 0.3)) {
     const target = pickRandom(allYankis);
-    const alreadyReyanki = db.yankis.find(y => y.userId === botUser.id && y.reyankiOfId === target.id);
-    if (!alreadyReyanki) {
-      db.yankis.push({
-        id: genId(),
-        userId: botUser.id,
-        text: '',
-        image: null,
-        poll: null,
-        replyToId: null,
-        reyankiOfId: target.id,
-        pinned: false,
-        createdAt: new Date().toISOString()
+    if (!stmts.getUserReyanki.get(target.id, botUser.id)) {
+      const reyankiId = genId();
+      stmts.insertYanki.run({
+        id: reyankiId, userId: botUser.id, text: '', image: null, images: '[]', poll: null,
+        replyToId: null, reyankiOfId: target.id, quoteOfId: null, pinned: 0, editedAt: null, createdAt: new Date().toISOString()
       });
       if (target.userId !== botUser.id) {
-        db.notifications.push({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'reyanki', yankiId: target.id, read: false, createdAt: new Date().toISOString() });
+        stmts.insertNotification.run({ id: genId(), userId: target.userId, fromId: botUser.id, type: 'reyanki', yankiId: target.id, read: 0, createdAt: new Date().toISOString() });
       }
       actions.push('reyanki');
     }
   }
 
   // 5) Takip et
-  const notFollowing = botUsers
-    .filter(u => u.id !== botUser.id)
-    .concat(db.users.filter(u => !u.isBot))
-    .filter(u => !db.follows.find(f => f.followerId === botUser.id && f.followingId === u.id));
+  const allUsers = stmts.getAllUsers.all().map(parseUser);
+  const notFollowing = allUsers.filter(u => u.id !== botUser.id && !stmts.getFollow.get(botUser.id, u.id));
   if (notFollowing.length > 0 && chance(0.15)) {
     const target = pickRandom(notFollowing);
-    db.follows.push({ id: genId(), followerId: botUser.id, followingId: target.id, createdAt: new Date().toISOString() });
-    db.notifications.push({ id: genId(), userId: target.id, fromId: botUser.id, type: 'follow', read: false, createdAt: new Date().toISOString() });
+    stmts.insertFollow.run({ id: genId(), followerId: botUser.id, followingId: target.id, createdAt: new Date().toISOString() });
+    stmts.insertNotification.run({ id: genId(), userId: target.id, fromId: botUser.id, type: 'follow', read: 0, yankiId: null, createdAt: new Date().toISOString() });
     actions.push('follow');
   }
 
@@ -299,17 +645,14 @@ function botAgentTick() {
   }
 }
 
-// Bot agent'ları her 15-45 saniyede bir çalıştır
 let botInterval = null;
 function startBotAgents() {
   if (botInterval) return;
   botSimulationRunning = true;
   console.log('🤖 Bot Agent sistemi başlatıldı');
-  // İlk tick hemen
   botAgentTick();
-  // Sonra rastgele aralıklarla
   function scheduleNext() {
-    const delay = 15000 + Math.random() * 30000; // 15-45 saniye arası
+    const delay = 15000 + Math.random() * 30000;
     botInterval = setTimeout(() => {
       botAgentTick();
       scheduleNext();
@@ -326,96 +669,83 @@ function stopBotAgents() {
 
 // ─── Init Data ─────────────────────────────────────────────────
 function initData() {
-  // Admin
-  if (!db.users.find(u => u.username === 'admin')) {
-    db.users.push({
-      id: 'admin_001',
-      username: 'admin',
-      password: 'admin123',
-      displayName: 'Admin',
-      bio: '🔧 Yankuş Yöneticisi',
-      profileImage: null,
-      bannerImage: null,
-      verified: true,
-      isAdmin: true,
-      theme: null,
+  const existingAdmin = stmts.getUserByUsername.get('admin');
+  if (!existingAdmin) {
+    stmts.insertUser.run({
+      id: 'admin_001', username: 'admin', password: 'admin123',
+      displayName: 'Admin', bio: '🔧 Yankuş Yöneticisi',
+      profileImage: null, bannerImage: null,
+      verified: 1, isAdmin: 1, isBot: 0, banned: 0,
+      theme: null, mood: null, moodEmoji: null, moodUpdatedAt: null,
+      location: '', website: '', socialLinks: '{}', interests: '[]',
       createdAt: new Date().toISOString()
     });
   }
 
-  // Bot Agent'ları oluştur
-  BOT_AGENTS.forEach((agent, i) => {
-    if (!db.users.find(u => u.username === agent.username)) {
-      const botUser = {
-        id: `bot_${i + 1}`,
-        username: agent.username,
-        password: 'bot123',
-        displayName: agent.displayName,
-        bio: agent.bio,
-        profileImage: null,
-        bannerImage: null,
-        verified: agent.verified,
-        isBot: true,
-        theme: null,
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-      };
-      db.users.push(botUser);
+  const locations = { ayse_dev: 'İstanbul', mehmet_tasarim: 'Ankara', zeynep_muzik: 'İzmir', ahmet_foto: 'Kapadokya', elif_yazar: 'Bursa' };
 
-      // Her agent kişiliğine göre başlangıç yankıları oluştur
-      const numYankis = 3 + Math.floor(Math.random() * 4); // 3-6 arası
+  BOT_AGENTS.forEach((agent, i) => {
+    const existing = stmts.getUserByUsername.get(agent.username);
+    if (!existing) {
+      const botId = `bot_${i + 1}`;
+      stmts.insertUser.run({
+        id: botId, username: agent.username, password: 'bot123',
+        displayName: agent.displayName, bio: agent.bio,
+        profileImage: null, bannerImage: null,
+        verified: agent.verified ? 1 : 0, isAdmin: 0, isBot: 1, banned: 0,
+        theme: null, mood: agent.moods?.[0] || null, moodEmoji: '💭',
+        moodUpdatedAt: new Date().toISOString(),
+        location: locations[agent.username] || '', website: '',
+        socialLinks: '{}', interests: JSON.stringify(agent.interests || []),
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      // Başlangıç yankıları
+      const numYankis = 3 + Math.floor(Math.random() * 4);
       const usedTexts = new Set();
       for (let j = 0; j < numYankis; j++) {
         let text;
         do { text = pickRandom(agent.yankiBank); } while (usedTexts.has(text) && usedTexts.size < agent.yankiBank.length);
         usedTexts.add(text);
-        // Rastgele hashtag ekle
         if (chance(0.4)) text += `\n\n#${pickRandom(agent.interests)}`;
-        db.yankis.push({
-          id: `yanki_bot_${i}_${j}`,
-          userId: botUser.id,
-          text,
-          image: null,
-          poll: null,
-          replyToId: null,
-          reyankiOfId: null,
-          pinned: false,
+        stmts.insertYanki.run({
+          id: `yanki_bot_${i}_${j}`, userId: botId, text,
+          image: null, images: '[]', poll: null, replyToId: null, reyankiOfId: null, quoteOfId: null, pinned: 0, editedAt: null,
           createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
         });
       }
     }
   });
 
-  // Botlar arası başlangıç etkileşimleri: takipler, beğeniler, yorumlar
-  const botUsers = db.users.filter(u => u.isBot);
+  // Botlar arası başlangıç etkileşimleri
+  const botUsers = stmts.getBotUsers.all().map(parseUser);
   botUsers.forEach(bot => {
-    // Her bot rastgele 2-4 diğer botu takip etsin
     const others = botUsers.filter(u => u.id !== bot.id);
     const followCount = 2 + Math.floor(Math.random() * Math.min(3, others.length));
-    const shuffled = others.sort(() => Math.random() - 0.5).slice(0, followCount);
-    shuffled.forEach(target => {
-      if (!db.follows.find(f => f.followerId === bot.id && f.followingId === target.id)) {
-        db.follows.push({ id: genId(), followerId: bot.id, followingId: target.id, createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() });
+    others.sort(() => Math.random() - 0.5).slice(0, followCount).forEach(target => {
+      if (!stmts.getFollow.get(bot.id, target.id)) {
+        stmts.insertFollow.run({ id: genId(), followerId: bot.id, followingId: target.id, createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() });
       }
     });
-    // Admin'i de takip etsinler
-    if (!db.follows.find(f => f.followerId === bot.id && f.followingId === 'admin_001')) {
-      db.follows.push({ id: genId(), followerId: bot.id, followingId: 'admin_001', createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() });
+    // Admin'i takip etsinler
+    if (!stmts.getFollow.get(bot.id, 'admin_001')) {
+      stmts.insertFollow.run({ id: genId(), followerId: bot.id, followingId: 'admin_001', createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() });
     }
   });
 
   // Başlangıç beğenileri
-  const allBotYankis = db.yankis.filter(y => botUsers.some(b => b.id === y.userId) && !y.replyToId);
+  const allBotYankis = sqlite.prepare('SELECT * FROM yankis WHERE userId IN (SELECT id FROM users WHERE isBot = 1) AND replyToId IS NULL').all();
   botUsers.forEach(bot => {
     const othersYankis = allBotYankis.filter(y => y.userId !== bot.id);
     const likeCount = 2 + Math.floor(Math.random() * 5);
     othersYankis.sort(() => Math.random() - 0.5).slice(0, likeCount).forEach(y => {
-      if (!db.likes.find(l => l.userId === bot.id && l.yankiId === y.id)) {
-        db.likes.push({ id: genId(), userId: bot.id, yankiId: y.id, createdAt: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString() });
+      if (!stmts.getUserLike.get(y.id, bot.id)) {
+        stmts.insertLike.run({ id: genId(), yankiId: y.id, userId: bot.id, createdAt: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString() });
       }
     });
   });
 
-  // Başlangıç yorumları (her bot 1-2 yorum yapsın)
+  // Başlangıç yorumları
   botUsers.forEach(bot => {
     const agentData = BOT_AGENTS.find(a => a.username === bot.username);
     if (!agentData) return;
@@ -424,110 +754,211 @@ function initData() {
     othersYankis.sort(() => Math.random() - 0.5).slice(0, commentCount).forEach(y => {
       const text = pickRandom(agentData.replyBank);
       const commentId = genId();
-      db.yankis.push({
-        id: commentId, userId: bot.id, text, image: null, poll: null,
-        replyToId: y.id, reyankiOfId: null, pinned: false,
+      stmts.insertYanki.run({
+        id: commentId, userId: bot.id, text, image: null, images: '[]', poll: null,
+        replyToId: y.id, reyankiOfId: null, quoteOfId: null, pinned: 0, editedAt: null,
         createdAt: new Date(Date.now() - Math.random() * 2 * 24 * 60 * 60 * 1000).toISOString()
       });
-      db.comments.push({ id: commentId, yankiId: y.id, userId: bot.id, text, createdAt: new Date().toISOString() });
+      stmts.insertComment.run({ id: commentId, yankiId: y.id, userId: bot.id, text, createdAt: new Date().toISOString() });
     });
   });
+
+  // Yama notları
+  const patchCount = sqlite.prepare('SELECT COUNT(*) as count FROM patchNotes').get().count;
+  if (patchCount === 0) {
+    const notes = [
+      {
+        id: genId(), version: '3.0', title: 'SQLite Veritabanı + Social Hub',
+        content: JSON.stringify({
+          date: '21 Mart 2026',
+          features: [
+            'SQLite veritabanı entegrasyonu — veriler artık kalıcı',
+            'Social Hub profil tasarımı (two-column layout)',
+            'Stat kartları (beğeni, yorum, reyankı)',
+            'Profil rozetleri sistemi',
+            'Öne çıkan yankılar bölümü',
+            'Mood/durum göstergesi',
+            'Hakkında bölümü (konum, website, sosyal linkler, ilgi alanları)',
+            'Sunucu hata yakalama iyileştirmesi'
+          ],
+          fixes: []
+        }),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: genId(), version: '2.1', title: 'Bot Agent Sistemi + Bug Fix',
+        content: JSON.stringify({
+          date: '14 Mart 2026',
+          features: [
+            '5 bot agent (Ayşe, Mehmet, Zeynep, Ahmet, Elif)',
+            'Otomatik yankı, beğeni, yorum, reyankı, takip',
+            'Profil düzenleme iyileştirmesi'
+          ],
+          fixes: [
+            '46+ bug düzeltmesi',
+            'Takipçi/takip listesi düzeltmesi',
+            'Reyankı düzeltmesi',
+            'DM sistemi düzeltmesi'
+          ]
+        }),
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: genId(), version: '1.8', title: 'Mobile PWA',
+        content: JSON.stringify({
+          date: '7 Mart 2026',
+          features: [
+            'Progressive Web App desteği',
+            'Mobil uyumlu tasarım',
+            'Çevrimdışı destek',
+            'Ana ekrana ekleme'
+          ],
+          fixes: []
+        }),
+        createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: genId(), version: '1.0', title: 'İlk Sürüm',
+        content: JSON.stringify({
+          date: '21 Şubat 2026',
+          features: [
+            'Yankı paylaşma',
+            'Beğeni ve yorum',
+            'Takip sistemi',
+            'Bildirimler',
+            'Mesajlaşma',
+            'Arama ve keşfet',
+            'Anket oluşturma',
+            'Karanlık tema'
+          ],
+          fixes: []
+        }),
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+    const insertPatch = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
+    notes.forEach(n => insertPatch.run(n));
+  }
 }
 
-// ─── Helper Functions ──────────────────────────────────────────
-const getUser = id => db.users.find(u => u.id === id);
-const getUserByUsername = username => db.users.find(u => u.username === username);
-
-// Init ve Agent başlatma
+// Init
 initData();
 startBotAgents();
 
+// ─── enrichYanki ───────────────────────────────────────────────
 const enrichYanki = (yanki, viewerId) => {
+  if (typeof yanki === 'string') yanki = parseYanki(stmts.getYankiById.get(yanki));
+  else if (yanki && !yanki.hasOwnProperty('pinned_parsed')) yanki = parseYanki(yanki);
+  if (!yanki) return null;
+
   const author = getUser(yanki.userId);
   if (!author) return null;
 
-  const likes = db.likes.filter(l => l.yankiId === yanki.id);
-  const comments = db.comments.filter(c => c.yankiId === yanki.id);
-  const reyankis = db.yankis.filter(y => y.reyankiOfId === yanki.id);
-  const save = db.saves.find(s => s.yankiId === yanki.id && s.userId === viewerId);
-  const userLike = likes.find(l => l.userId === viewerId);
-  const userReyanki = reyankis.find(r => r.userId === viewerId);
+  const likeCount = stmts.getLikeCount.get(yanki.id).count;
+  const commentCount = stmts.getCommentCount.get(yanki.id).count;
+  const reyankis = stmts.getReyankis.all(yanki.id);
+  const userLike = viewerId ? stmts.getUserLike.get(yanki.id, viewerId) : null;
+  const save = viewerId ? stmts.getSave.get(yanki.id, viewerId) : null;
+  const userReyanki = viewerId ? stmts.getUserReyanki.get(yanki.id, viewerId) : null;
 
-  // Get reyanki source if exists
+  // Get reyanki source
   let reyanki = null;
   if (yanki.reyankiOfId) {
-    const original = db.yankis.find(y => y.id === yanki.reyankiOfId);
+    const original = parseYanki(stmts.getYankiById.get(yanki.reyankiOfId));
     if (original) {
       const originalAuthor = getUser(original.userId);
       reyanki = {
-        id: original.id,
-        text: original.text,
-        username: originalAuthor?.username,
-        displayName: originalAuthor?.displayName,
+        id: original.id, text: original.text,
+        username: originalAuthor?.username, displayName: originalAuthor?.displayName,
         profileImage: originalAuthor?.profileImage
       };
     }
   }
 
-  // Get reply target if exists
+  // Get reply target
   let replyTo = null;
   if (yanki.replyToId) {
-    const parent = db.yankis.find(y => y.id === yanki.replyToId);
+    const parent = parseYanki(stmts.getYankiById.get(yanki.replyToId));
     if (parent) {
       const parentAuthor = getUser(parent.userId);
-      replyTo = {
-        id: parent.id,
-        username: parentAuthor?.username
+      replyTo = { id: parent.id, username: parentAuthor?.username };
+    }
+  }
+
+  // Poll enrichment
+  let pollData = null;
+  if (yanki.poll) {
+    const pollVotes = stmts.getPollVotes.all(yanki.id);
+    const myVoteEntry = viewerId ? pollVotes.find(v => v.userId === viewerId) : null;
+    const createdTime = new Date(yanki.createdAt).getTime();
+    const durationMs = (yanki.poll.duration || 24) * 60 * 60 * 1000;
+    pollData = {
+      id: yanki.id,
+      options: (yanki.poll.options || []).map((opt, idx) => ({
+        id: idx, text: opt,
+        votes: pollVotes.filter(v => v.optionIndex === idx).length
+      })),
+      totalVotes: pollVotes.length,
+      myVote: myVoteEntry ? myVoteEntry.optionIndex : null,
+      expired: Date.now() > createdTime + durationMs
+    };
+  }
+
+  // Reactions
+  const reactionCounts = stmts.getReactionCounts.all(yanki.id);
+  const userReactions = viewerId ? stmts.getReactionsByYanki.all(yanki.id).filter(r => r.userId === viewerId).map(r => r.emoji) : [];
+
+  // Quote
+  let quote = null;
+  if (yanki.quoteOfId) {
+    const qOriginal = parseYanki(stmts.getYankiById.get(yanki.quoteOfId));
+    if (qOriginal) {
+      const qAuthor = getUser(qOriginal.userId);
+      quote = {
+        id: qOriginal.id, text: qOriginal.text, image: qOriginal.image,
+        username: qAuthor?.username, displayName: qAuthor?.displayName,
+        profileImage: qAuthor?.profileImage, verified: qAuthor?.verified || false
       };
     }
   }
 
+  // Images array
+  const images = yanki.images ? (typeof yanki.images === 'string' ? JSON.parse(yanki.images) : yanki.images) : [];
+
   return {
-    id: yanki.id,
-    userId: yanki.userId,
-    username: author.username,
-    displayName: author.displayName,
-    profileImage: author.profileImage,
-    verified: author.verified,
-    text: yanki.text,
-    image: yanki.image,
-    poll: yanki.poll,
-    reyanki,
-    replyTo,
+    id: yanki.id, userId: yanki.userId,
+    username: author.username, displayName: author.displayName,
+    profileImage: author.profileImage, verified: author.verified,
+    isBot: author.isBot || false,
+    text: yanki.text, image: yanki.image, images,
+    poll: pollData,
+    reyanki, replyTo, quote,
     pinned: yanki.pinned || false,
-    likes: likes.length,
-    commentCount: comments.length,
-    reyankiCount: reyankis.length,
-    isLiked: !!userLike,
-    isSaved: !!save,
-    isReyanked: !!userReyanki,
+    editedAt: yanki.editedAt || null,
+    likes: likeCount, commentCount, reyankiCount: reyankis.length,
+    reactions: reactionCounts, userReactions,
+    isLiked: !!userLike, isSaved: !!save, isReyanked: !!userReyanki,
     createdAt: yanki.createdAt
   };
 };
 
-// Helper to build a profile response from a user object
+// Build profile response
 const buildProfileResponse = (user, viewerId) => {
-  const yankisCount = db.yankis.filter(y => y.userId === user.id && !y.replyToId).length;
-  const followersCount = db.follows.filter(f => f.followingId === user.id).length;
-  const followingCount = db.follows.filter(f => f.followerId === user.id).length;
-  const isFollowing = viewerId ? db.follows.some(f => f.followerId === viewerId && f.followingId === user.id) : false;
+  const yankisCount = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(user.id).count;
+  const followersCount = stmts.getFollowerCount.get(user.id).count;
+  const followingCount = stmts.getFollowingCount.get(user.id).count;
+  const isFollowing = viewerId ? !!stmts.getFollow.get(viewerId, user.id) : false;
 
   return {
     user: {
-      id: user.id,
-      username: user.username,
-      displayName: user.displayName,
-      bio: user.bio,
-      profileImage: user.profileImage,
-      bannerImage: user.bannerImage,
-      verified: user.verified,
-      isAdmin: user.isAdmin || false,
-      isBot: user.isBot || false,
-      theme: user.theme || null,
-      createdAt: user.createdAt,
-      yankisCount,
-      followersCount,
-      followingCount
+      id: user.id, username: user.username, displayName: user.displayName,
+      bio: user.bio, profileImage: user.profileImage, bannerImage: user.bannerImage,
+      verified: user.verified, isAdmin: user.isAdmin || false, isBot: user.isBot || false,
+      theme: user.theme || null, mood: user.mood || null,
+      moodEmoji: user.moodEmoji || null, moodUpdatedAt: user.moodUpdatedAt || null,
+      location: user.location || '', website: user.website || '',
+      socialLinks: user.socialLinks || {}, interests: user.interests || [],
+      createdAt: user.createdAt, yankisCount, followersCount, followingCount
     },
     isFollowing
   };
@@ -538,34 +969,27 @@ const routes = {
   // ═══ AUTH ═══
   'register': (data) => {
     const { username, password, displayName } = data;
-    if (!username || !password || !displayName) {
-      return { error: 'Tüm alanları doldurun' };
-    }
-    if (db.users.find(u => u.username === username)) {
-      return { error: 'Bu kullanıcı adı zaten alınmış' };
-    }
+    if (!username || !password || !displayName) return { error: 'Tüm alanları doldurun' };
+    if (stmts.getUserByUsername.get(username)) return { error: 'Bu kullanıcı adı zaten alınmış' };
+
     const user = {
-      id: genId(),
-      username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-      password,
-      displayName,
-      bio: '',
-      profileImage: null,
-      bannerImage: null,
-      verified: false,
-      theme: null,
+      id: genId(), username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+      password, displayName, bio: '', profileImage: null, bannerImage: null,
+      verified: 0, isAdmin: 0, isBot: 0, banned: 0, theme: null,
+      mood: null, moodEmoji: null, moodUpdatedAt: null,
+      location: '', website: '', socialLinks: '{}', interests: '[]',
       createdAt: new Date().toISOString()
     };
-    db.users.push(user);
-    return { user: { ...user, password: undefined } };
+    stmts.insertUser.run(user);
+    const parsed = parseUser(stmts.getUserById.get(user.id));
+    return { user: { ...parsed, password: undefined } };
   },
 
   'login': (data) => {
     const { username, password } = data;
-    const user = db.users.find(u => u.username === username && u.password === password);
-    if (!user) {
-      return { error: 'Kullanıcı adı veya şifre hatalı' };
-    }
+    const row = stmts.getUserByUsername.get(username);
+    if (!row || row.password !== password) return { error: 'Kullanıcı adı veya şifre hatalı' };
+    const user = parseUser(row);
     return { user: { ...user, password: undefined } };
   },
 
@@ -573,573 +997,340 @@ const routes = {
   'profile': (data) => {
     const { userId, viewerId } = data;
     const user = getUser(userId);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
-    }
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
     return buildProfileResponse(user, viewerId);
   },
 
   'profile/update': (data) => {
-    const { userId, displayName, bio, profileImage, bannerImage, theme } = data;
+    const { userId } = data;
     const user = getUser(userId);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+
+    const updates = [];
+    const params = { id: userId };
+
+    if (data.displayName) { updates.push('displayName = @displayName'); params.displayName = data.displayName; }
+    if (data.bio !== undefined) { updates.push('bio = @bio'); params.bio = data.bio; }
+    if (data.profileImage !== undefined) { updates.push('profileImage = @profileImage'); params.profileImage = data.profileImage; }
+    if (data.bannerImage !== undefined) { updates.push('bannerImage = @bannerImage'); params.bannerImage = data.bannerImage; }
+    if (data.theme !== undefined) { updates.push('theme = @theme'); params.theme = data.theme; }
+    if (data.mood !== undefined) { updates.push('mood = @mood'); params.mood = data.mood; }
+    if (data.moodEmoji !== undefined) { updates.push('moodEmoji = @moodEmoji'); params.moodEmoji = data.moodEmoji; }
+    if (data.moodUpdatedAt !== undefined) { updates.push('moodUpdatedAt = @moodUpdatedAt'); params.moodUpdatedAt = data.moodUpdatedAt; }
+    if (data.location !== undefined) { updates.push('location = @location'); params.location = data.location; }
+    if (data.website !== undefined) { updates.push('website = @website'); params.website = data.website; }
+    if (data.socialLinks !== undefined) { updates.push('socialLinks = @socialLinks'); params.socialLinks = JSON.stringify(data.socialLinks); }
+    if (data.interests !== undefined) { updates.push('interests = @interests'); params.interests = JSON.stringify(data.interests); }
+
+    if (updates.length > 0) {
+      sqlite.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = @id`).run(params);
     }
 
-    if (displayName) user.displayName = displayName;
-    if (bio !== undefined) user.bio = bio;
-    if (profileImage !== undefined) user.profileImage = profileImage;
-    if (bannerImage !== undefined) user.bannerImage = bannerImage;
-    if (theme !== undefined) user.theme = theme;
-
-    return { user: { ...user, password: undefined } };
+    const updated = getUser(userId);
+    return { user: { ...updated, password: undefined } };
   },
 
   'profile/username': (data) => {
     const { username, viewerId } = data;
     const user = getUserByUsername(username);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
-    }
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
     return buildProfileResponse(user, viewerId);
   },
 
   // ═══ FEED ═══
   'feed': (data) => {
     const { userId, algo } = data;
-    const blocked = db.blocks.filter(b => b.userId === userId).map(b => b.blockedId);
-    const following = db.follows.filter(f => f.followerId === userId).map(f => f.followingId);
+    const blockedIds = stmts.getBlocksByUser.all(userId).map(b => b.blockedId);
 
     let yankis;
-
     switch (algo) {
       case 'smart': {
-        // Trending/popular yankis - sort by like count
-        yankis = db.yankis
-          .filter(y => !y.replyToId && !blocked.includes(y.userId))
-          .map(y => ({
-            yanki: y,
-            score: db.likes.filter(l => l.yankiId === y.id).length +
-                   db.comments.filter(c => c.yankiId === y.id).length * 2 +
-                   db.yankis.filter(r => r.reyankiOfId === y.id).length * 3
-          }))
+        const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC').all();
+        yankis = all
+          .filter(y => !blockedIds.includes(y.userId))
+          .map(y => {
+            const score = stmts.getLikeCount.get(y.id).count +
+              stmts.getCommentCount.get(y.id).count * 2 +
+              stmts.getReyankis.all(y.id).length * 3;
+            return { yanki: y, score };
+          })
           .sort((a, b) => b.score - a.score)
           .slice(0, 50)
           .map(item => item.yanki);
         break;
       }
-      case 'explore': {
-        // All yankis
-        yankis = db.yankis
-          .filter(y => !y.replyToId && !blocked.includes(y.userId))
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 50);
-        break;
-      }
       case 'media': {
-        // Only yankis with images
-        yankis = db.yankis
-          .filter(y => !y.replyToId && !blocked.includes(y.userId) && y.image)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 50);
+        yankis = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL AND image IS NOT NULL ORDER BY createdAt DESC LIMIT 50').all()
+          .filter(y => !blockedIds.includes(y.userId));
         break;
       }
+      case 'explore':
       case 'chrono':
       default: {
-        // Current behavior - chronological, all posts (not just following)
-        yankis = db.yankis
-          .filter(y => !y.replyToId && !blocked.includes(y.userId))
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 50);
+        yankis = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC LIMIT 50').all()
+          .filter(y => !blockedIds.includes(y.userId));
         break;
       }
     }
 
-    return {
-      yankis: yankis.map(y => enrichYanki(y, userId)).filter(Boolean)
-    };
+    return { yankis: yankis.map(y => enrichYanki(y, userId)).filter(Boolean) };
   },
 
   // ═══ YANKI CRUD ═══
   'yanki/create': (data) => {
-    const { userId, text, image, poll, replyToId } = data;
-    // Accept both reyankiOfId and reyanki for the reyanki source
+    const { userId, text, image, images, poll, replyToId } = data;
     const reyankiOfId = data.reyankiOfId || data.reyanki || null;
-
-    if (!text && !image && !poll) {
-      return { error: 'İçerik gerekli' };
-    }
+    const quoteOfId = data.quoteOfId || null;
+    if (!text && !image && !poll && !quoteOfId && (!images || images.length === 0)) return { error: 'İçerik gerekli' };
 
     const yanki = {
-      id: genId(),
-      userId,
-      text: text || '',
-      image: image || null,
-      poll: poll || null,
-      replyToId: replyToId || null,
-      reyankiOfId: reyankiOfId,
-      pinned: false,
+      id: genId(), userId, text: text || '', image: image || null,
+      images: images ? JSON.stringify(images) : '[]',
+      poll: poll ? JSON.stringify(poll) : null,
+      replyToId: replyToId || null, reyankiOfId, quoteOfId, pinned: 0, editedAt: null,
       createdAt: new Date().toISOString()
     };
-    db.yankis.push(yanki);
+    stmts.insertYanki.run(yanki);
 
-    // Notification for reply
     if (replyToId) {
-      const parent = db.yankis.find(y => y.id === replyToId);
+      const parent = parseYanki(stmts.getYankiById.get(replyToId));
       if (parent && parent.userId !== userId) {
-        db.notifications.push({
-          id: genId(),
-          userId: parent.userId,
-          fromId: userId,
-          type: 'comment',
-          yankiId: yanki.id,
-          read: false,
-          createdAt: new Date().toISOString()
-        });
+        stmts.insertNotification.run({ id: genId(), userId: parent.userId, fromId: userId, type: 'comment', yankiId: yanki.id, read: 0, createdAt: new Date().toISOString() });
       }
     }
 
     return { yanki: enrichYanki(yanki, userId) };
   },
 
-  // Single yanki endpoint (frontend calls /yanki)
   'yanki': (data) => {
     const { yankiId, viewerId } = data;
-    const yanki = db.yankis.find(y => y.id === yankiId);
-    if (!yanki) {
-      return { error: 'Yankı bulunamadı' };
-    }
-
-    const comments = db.yankis
-      .filter(y => y.replyToId === yankiId)
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .map(c => enrichYanki(c, viewerId))
-      .filter(Boolean);
-
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki) return { error: 'Yankı bulunamadı' };
+    const comments = stmts.getReplies.all(yankiId).map(c => enrichYanki(c, viewerId)).filter(Boolean);
     return { ...enrichYanki(yanki, viewerId), comments };
   },
 
-  'yanki/get': (data) => {
-    const { yankiId, viewerId } = data;
-    const yanki = db.yankis.find(y => y.id === yankiId);
-    if (!yanki) {
-      return { error: 'Yankı bulunamadı' };
-    }
-
-    const comments = db.yankis
-      .filter(y => y.replyToId === yankiId)
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .map(c => enrichYanki(c, viewerId))
-      .filter(Boolean);
-
-    return { ...enrichYanki(yanki, viewerId), comments };
-  },
+  'yanki/get': (data) => routes['yanki'](data),
 
   'yanki/delete': (data) => {
     const { yankiId, userId } = data;
-    const idx = db.yankis.findIndex(y => y.id === yankiId && y.userId === userId);
-    if (idx === -1) {
-      return { error: 'Yankı bulunamadı veya yetkiniz yok' };
-    }
-    db.yankis.splice(idx, 1);
-    // Clean up related data
-    db.likes = db.likes.filter(l => l.yankiId !== yankiId);
-    db.comments = db.comments.filter(c => c.yankiId !== yankiId);
-    db.saves = db.saves.filter(s => s.yankiId !== yankiId);
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    stmts.deleteYanki.run(yankiId);
+    stmts.deleteLikesByYanki.run(yankiId);
+    stmts.deleteCommentsByYanki.run(yankiId);
+    stmts.deleteSavesByYanki.run(yankiId);
     return { success: true };
   },
 
   'yanki/reyanki': (data) => {
     const { yankiId, userId, text } = data;
-    const original = db.yankis.find(y => y.id === yankiId);
-    if (!original) {
-      return { error: 'Yankı bulunamadı' };
-    }
+    const original = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!original) return { error: 'Yankı bulunamadı' };
 
-    // Check if already reyanked
-    const existing = db.yankis.find(y => y.reyankiOfId === yankiId && y.userId === userId);
+    const existing = stmts.getUserReyanki.get(yankiId, userId);
     if (existing) {
-      // Remove reyanki
-      db.yankis = db.yankis.filter(y => y.id !== existing.id);
+      stmts.deleteYanki.run(existing.id);
       return { removed: true };
     }
 
     const reyanki = {
-      id: genId(),
-      userId,
-      text: text || '',
-      image: null,
-      poll: null,
-      replyToId: null,
-      reyankiOfId: yankiId,
-      pinned: false,
-      createdAt: new Date().toISOString()
+      id: genId(), userId, text: text || '', image: null, images: '[]', poll: null,
+      replyToId: null, reyankiOfId: yankiId, quoteOfId: null, pinned: 0, editedAt: null, createdAt: new Date().toISOString()
     };
-    db.yankis.push(reyanki);
+    stmts.insertYanki.run(reyanki);
 
-    // Notification
     if (original.userId !== userId) {
-      db.notifications.push({
-        id: genId(),
-        userId: original.userId,
-        fromId: userId,
-        type: 'reyanki',
-        yankiId: reyanki.id,
-        read: false,
-        createdAt: new Date().toISOString()
-      });
+      stmts.insertNotification.run({ id: genId(), userId: original.userId, fromId: userId, type: 'reyanki', yankiId: reyanki.id, read: 0, createdAt: new Date().toISOString() });
     }
-
     return { yanki: enrichYanki(reyanki, userId) };
   },
 
   // ═══ LIKE ═══
   'like': (data) => {
     const { yankiId, userId } = data;
-    const existing = db.likes.find(l => l.yankiId === yankiId && l.userId === userId);
-
+    const existing = stmts.getUserLike.get(yankiId, userId);
     if (existing) {
-      db.likes = db.likes.filter(l => l.id !== existing.id);
-      const count = db.likes.filter(l => l.yankiId === yankiId).length;
-      return { success: true, liked: false, count };
+      stmts.deleteLike.run(existing.id);
+      return { success: true, liked: false, count: stmts.getLikeCount.get(yankiId).count };
     }
-
-    db.likes.push({
-      id: genId(),
-      yankiId,
-      userId,
-      createdAt: new Date().toISOString()
-    });
-
-    // Notification
-    const yanki = db.yankis.find(y => y.id === yankiId);
+    stmts.insertLike.run({ id: genId(), yankiId, userId, createdAt: new Date().toISOString() });
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (yanki && yanki.userId !== userId) {
-      db.notifications.push({
-        id: genId(),
-        userId: yanki.userId,
-        fromId: userId,
-        type: 'like',
-        yankiId,
-        read: false,
-        createdAt: new Date().toISOString()
-      });
+      stmts.insertNotification.run({ id: genId(), userId: yanki.userId, fromId: userId, type: 'like', yankiId, read: 0, createdAt: new Date().toISOString() });
     }
-
-    const count = db.likes.filter(l => l.yankiId === yankiId).length;
-    return { success: true, liked: true, count };
+    return { success: true, liked: true, count: stmts.getLikeCount.get(yankiId).count };
   },
 
-  // Alias: yanki/like -> like
-  'yanki/like': (data) => {
-    return routes['like'](data);
-  },
+  'yanki/like': (data) => routes['like'](data),
 
   // ═══ SAVE ═══
   'save': (data) => {
     const { yankiId, userId } = data;
-    const existing = db.saves.find(s => s.yankiId === yankiId && s.userId === userId);
-
+    const existing = stmts.getSave.get(yankiId, userId);
     if (existing) {
-      db.saves = db.saves.filter(s => s.id !== existing.id);
+      stmts.deleteSave.run(existing.id);
       return { success: true, saved: false };
     }
-
-    db.saves.push({
-      id: genId(),
-      yankiId,
-      userId,
-      createdAt: new Date().toISOString()
-    });
-
+    stmts.insertSave.run({ id: genId(), yankiId, userId, note: '', createdAt: new Date().toISOString() });
     return { success: true, saved: true };
   },
 
-  // Alias: yanki/save -> save
-  'yanki/save': (data) => {
-    return routes['save'](data);
-  },
+  'yanki/save': (data) => routes['save'](data),
 
   'saved': (data) => {
     const { userId } = data;
-    const saves = db.saves.filter(s => s.userId === userId);
-    const yankis = saves
-      .map(s => db.yankis.find(y => y.id === s.yankiId))
-      .filter(Boolean)
-      .map(y => enrichYanki(y, userId))
-      .filter(Boolean);
-
+    const saves = stmts.getSavesByUser.all(userId);
+    const yankis = saves.map(s => {
+      const y = parseYanki(stmts.getYankiById.get(s.yankiId));
+      return y ? enrichYanki(y, userId) : null;
+    }).filter(Boolean);
     return { yankis };
   },
 
   // ═══ PIN ═══
   'yanki/pin': (data) => {
     const { userId, yankiId } = data;
-    const yanki = db.yankis.find(y => y.id === yankiId && y.userId === userId);
-    if (!yanki) {
-      return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+
+    const newPinned = yanki.pinned ? 0 : 1;
+    if (newPinned) {
+      sqlite.prepare('UPDATE yankis SET pinned = 0 WHERE userId = ? AND id != ?').run(userId, yankiId);
     }
-
-    // Toggle pin
-    yanki.pinned = !yanki.pinned;
-
-    // If pinning, unpin all other yankis by this user
-    if (yanki.pinned) {
-      db.yankis.forEach(y => {
-        if (y.userId === userId && y.id !== yankiId) {
-          y.pinned = false;
-        }
-      });
-    }
-
-    return { success: true, pinned: yanki.pinned };
+    sqlite.prepare('UPDATE yankis SET pinned = ? WHERE id = ?').run(newPinned, yankiId);
+    return { success: true, pinned: !!newPinned };
   },
 
   // ═══ COMMENT ═══
   'comment': (data) => {
     const { yankiId, userId, text, replyToId, image } = data;
-    if (!text) {
-      return { error: 'Yorum boş olamaz' };
-    }
+    if (!text) return { error: 'Yorum boş olamaz' };
 
-    // Create as reply yanki
     const reply = {
-      id: genId(),
-      userId,
-      text,
-      image: image || null,
-      poll: null,
-      replyToId: replyToId || yankiId,
-      reyankiOfId: null,
-      pinned: false,
+      id: genId(), userId, text, image: image || null, images: '[]', poll: null,
+      replyToId: replyToId || yankiId, reyankiOfId: null, quoteOfId: null, pinned: 0, editedAt: null,
       createdAt: new Date().toISOString()
     };
-    db.yankis.push(reply);
+    stmts.insertYanki.run(reply);
+    stmts.insertComment.run({ id: reply.id, yankiId, userId, text, createdAt: reply.createdAt });
 
-    // Also add to comments for backward compatibility
-    db.comments.push({
-      id: reply.id,
-      yankiId,
-      userId,
-      text,
-      createdAt: reply.createdAt
-    });
-
-    // Notification
-    const yanki = db.yankis.find(y => y.id === yankiId);
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (yanki && yanki.userId !== userId) {
-      db.notifications.push({
-        id: genId(),
-        userId: yanki.userId,
-        fromId: userId,
-        type: 'comment',
-        yankiId: reply.id,
-        read: false,
-        createdAt: new Date().toISOString()
-      });
+      stmts.insertNotification.run({ id: genId(), userId: yanki.userId, fromId: userId, type: 'comment', yankiId: reply.id, read: 0, createdAt: new Date().toISOString() });
     }
-
     return { success: true, comment: enrichYanki(reply, userId) };
   },
 
-  // Alias: comment/create -> comment
-  'comment/create': (data) => {
-    return routes['comment'](data);
-  },
+  'comment/create': (data) => routes['comment'](data),
 
   // ═══ FOLLOW ═══
   'follow': (data) => {
     const { followerId, followingId } = data;
-    if (followerId === followingId) {
-      return { error: 'Kendini takip edemezsin' };
-    }
+    if (followerId === followingId) return { error: 'Kendini takip edemezsin' };
 
-    const existing = db.follows.find(f => f.followerId === followerId && f.followingId === followingId);
-
+    const existing = stmts.getFollow.get(followerId, followingId);
     if (existing) {
-      db.follows = db.follows.filter(f => f.id !== existing.id);
+      stmts.deleteFollow.run(existing.id);
       return { following: false };
     }
-
-    db.follows.push({
-      id: genId(),
-      followerId,
-      followingId,
-      createdAt: new Date().toISOString()
-    });
-
-    // Notification
-    db.notifications.push({
-      id: genId(),
-      userId: followingId,
-      fromId: followerId,
-      type: 'follow',
-      read: false,
-      createdAt: new Date().toISOString()
-    });
-
+    stmts.insertFollow.run({ id: genId(), followerId, followingId, createdAt: new Date().toISOString() });
+    stmts.insertNotification.run({ id: genId(), userId: followingId, fromId: followerId, type: 'follow', read: 0, yankiId: null, createdAt: new Date().toISOString() });
     return { following: true };
   },
 
   // ═══ NOTIFICATIONS ═══
   'notifications': (data) => {
     const { userId } = data;
-    const notifs = db.notifications
-      .filter(n => n.userId === userId)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 50)
-      .map(n => {
-        const from = getUser(n.fromId);
-        return {
-          ...n,
-          fromName: from?.displayName || 'Kullanıcı',
-          fromUsername: from?.username
-        };
-      });
-
-    // Mark as read
-    db.notifications.filter(n => n.userId === userId).forEach(n => n.read = true);
-
-    return { notifications: notifs };
+    const notifs = stmts.getNotifications.all(userId).map(n => {
+      const from = getUser(n.fromId);
+      return { ...n, read: !!n.read, fromName: from?.displayName || 'Kullanıcı', fromUsername: from?.username, fromProfileImage: from?.profileImage || null };
+    });
+    const unreadCount = stmts.getUnreadCount.get(userId).count;
+    return { notifications: notifs, unreadCount };
   },
 
   'notifications/count': (data) => {
     const { userId } = data;
     if (!userId) return { count: 0 };
-    const count = db.notifications.filter(n => n.userId === userId && !n.read).length;
-    return { count };
+    return { count: stmts.getUnreadCount.get(userId).count };
+  },
+
+  'notifications/read': (data) => {
+    stmts.markNotificationsRead.run(data.userId);
+    return { success: true };
+  },
+
+  'notifications/read-one': (data) => {
+    stmts.markNotificationRead.run(data.notifId);
+    return { success: true };
+  },
+
+  'notifications/clear': (data) => {
+    stmts.clearNotifications.run(data.userId);
+    return { success: true };
   },
 
   // ═══ USER ═══
   'user': (data) => {
     const { username, viewerId } = data;
     const user = getUserByUsername(username);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
-    }
-
-    const followerCount = db.follows.filter(f => f.followingId === user.id).length;
-    const followingCount = db.follows.filter(f => f.followerId === user.id).length;
-    const isFollowing = db.follows.some(f => f.followerId === viewerId && f.followingId === user.id);
-
-    return {
-      user: {
-        ...user,
-        password: undefined,
-        followerCount,
-        followingCount
-      },
-      isFollowing
-    };
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    const followerCount = stmts.getFollowerCount.get(user.id).count;
+    const followingCount = stmts.getFollowingCount.get(user.id).count;
+    const isFollowing = viewerId ? !!stmts.getFollow.get(viewerId, user.id) : false;
+    return { user: { ...user, password: undefined, followerCount, followingCount }, isFollowing };
   },
 
   'user/yankis': (data) => {
     const { username, viewerId } = data;
     const user = getUserByUsername(username);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
-    }
-
-    const yankis = db.yankis
-      .filter(y => y.userId === user.id && !y.replyToId)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .map(y => enrichYanki(y, viewerId))
-      .filter(Boolean);
-
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    const yankis = stmts.getYankisByUser.all(user.id).map(y => enrichYanki(y, viewerId)).filter(Boolean);
     return { yankis };
   },
 
-  // Alias: /yankis endpoint - lookup by userId instead of username
   'yankis': (data) => {
     const { userId, viewerId } = data;
     const user = getUser(userId);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
-    }
-
-    const yankis = db.yankis
-      .filter(y => y.userId === user.id && !y.replyToId)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .map(y => enrichYanki(y, viewerId))
-      .filter(Boolean);
-
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    const yankis = stmts.getYankisByUser.all(user.id).map(y => enrichYanki(y, viewerId)).filter(Boolean);
     return { yankis };
   },
 
   'user/followers': (data) => {
     const { userId } = data;
-    const followerIds = db.follows.filter(f => f.followingId === userId).map(f => f.followerId);
-    const users = followerIds.map(id => {
-      const u = getUser(id);
-      return u ? { ...u, password: undefined } : null;
-    }).filter(Boolean);
+    const followerIds = stmts.getFollowers.all(userId).map(f => f.followerId);
+    const users = followerIds.map(id => { const u = getUser(id); return u ? { ...u, password: undefined } : null; }).filter(Boolean);
     return { users };
   },
 
   'user/following': (data) => {
     const { userId } = data;
-    const followingIds = db.follows.filter(f => f.followerId === userId).map(f => f.followingId);
-    const users = followingIds.map(id => {
-      const u = getUser(id);
-      return u ? { ...u, password: undefined } : null;
-    }).filter(Boolean);
+    const followingIds = stmts.getFollowing.all(userId).map(f => f.followingId);
+    const users = followingIds.map(id => { const u = getUser(id); return u ? { ...u, password: undefined } : null; }).filter(Boolean);
     return { users };
   },
 
-  'user/update': (data) => {
-    const { userId, displayName, bio, profileImage, bannerImage, theme } = data;
-    const user = getUser(userId);
-    if (!user) {
-      return { error: 'Kullanıcı bulunamadı' };
-    }
-
-    if (displayName) user.displayName = displayName;
-    if (bio !== undefined) user.bio = bio;
-    if (profileImage !== undefined) user.profileImage = profileImage;
-    if (bannerImage !== undefined) user.bannerImage = bannerImage;
-    if (theme !== undefined) user.theme = theme;
-
-    return { user: { ...user, password: undefined } };
-  },
+  'user/update': (data) => routes['profile/update'](data),
 
   // ═══ BLOCK ═══
   'block': (data) => {
     const { userId, targetId } = data;
-    const existing = db.blocks.find(b => b.userId === userId && b.blockedId === targetId);
-
+    const existing = stmts.getBlock.get(userId, targetId);
     if (existing) {
-      db.blocks = db.blocks.filter(b => b.id !== existing.id);
+      stmts.deleteBlock.run(existing.id);
       return { blocked: false };
     }
-
-    db.blocks.push({
-      id: genId(),
-      userId,
-      blockedId: targetId,
-      createdAt: new Date().toISOString()
-    });
-
-    // Remove follow relationships
-    db.follows = db.follows.filter(f =>
-      !(f.followerId === userId && f.followingId === targetId) &&
-      !(f.followerId === targetId && f.followingId === userId)
-    );
-
+    stmts.insertBlock.run({ id: genId(), userId, blockedId: targetId, createdAt: new Date().toISOString() });
+    stmts.deleteFollowPair.run(userId, targetId, targetId, userId);
     return { blocked: true };
   },
 
   // ═══ REPORT ═══
   'report': (data) => {
     const { yankiId, userId, reason } = data;
-
-    db.reports.push({
-      id: genId(),
-      yankiId,
-      reporterId: userId,
-      reason,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
-
+    stmts.insertReport.run({ id: genId(), yankiId, reporterId: userId, reason, status: 'pending', createdAt: new Date().toISOString() });
     return { success: true };
   },
 
@@ -1150,53 +1341,44 @@ const routes = {
 
     if (q.startsWith('#')) {
       const tag = q.slice(1);
-      const yankis = db.yankis
-        .filter(y => y.text.toLowerCase().includes('#' + tag))
-        .map(y => enrichYanki(y, userId))
-        .filter(Boolean);
+      const yankis = sqlite.prepare("SELECT * FROM yankis WHERE LOWER(text) LIKE ? ORDER BY createdAt DESC").all(`%#${tag}%`)
+        .map(y => enrichYanki(y, userId)).filter(Boolean);
       return { yankis };
     }
-
     if (q.startsWith('@')) {
       const username = q.slice(1);
-      const users = db.users
-        .filter(u => u.username.includes(username))
-        .map(u => ({ ...u, password: undefined }));
+      const users = sqlite.prepare("SELECT * FROM users WHERE LOWER(username) LIKE ?").all(`%${username}%`)
+        .map(u => ({ ...parseUser(u), password: undefined }));
       return { users, yankis: [] };
     }
-
-    const yankis = db.yankis
-      .filter(y => y.text.toLowerCase().includes(q))
-      .map(y => enrichYanki(y, userId))
-      .filter(Boolean);
-
+    const yankis = sqlite.prepare("SELECT * FROM yankis WHERE LOWER(text) LIKE ? ORDER BY createdAt DESC").all(`%${q}%`)
+      .map(y => enrichYanki(y, userId)).filter(Boolean);
     return { yankis };
   },
 
   // ═══ TRENDING ═══
   'trending': () => {
-    const tagCounts = {};
-    const now = Date.now();
-    const dayAgo = now - 24 * 60 * 60 * 1000;
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const recentYankis = sqlite.prepare('SELECT text, createdAt FROM yankis WHERE createdAt > ?').all(dayAgo);
 
-    db.yankis
-      .filter(y => new Date(y.createdAt).getTime() > dayAgo)
-      .forEach(y => {
-        const matches = y.text.match(/#\w+/g) || [];
-        matches.forEach(tag => {
-          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-        });
+    const tagCountsDay = {};
+    const tagCountsHour = {};
+    recentYankis.forEach(y => {
+      const matches = y.text.match(/#\w+/g) || [];
+      matches.forEach(tag => {
+        tagCountsDay[tag] = (tagCountsDay[tag] || 0) + 1;
+        if (y.createdAt > hourAgo) tagCountsHour[tag] = (tagCountsHour[tag] || 0) + 1;
       });
+    });
 
-    const trends = Object.entries(tagCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
+    const trends = Object.entries(tagCountsDay)
+      .sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([tag, count]) => ({
-        tag,
-        count,
-        category: 'Gündem'
+        tag, count, category: 'Gündem',
+        countHour: tagCountsHour[tag] || 0, countDay: count,
+        rising: (tagCountsHour[tag] || 0) > count / 24
       }));
-
     return { trends };
   },
 
@@ -1205,206 +1387,637 @@ const routes = {
     const { hashtag } = data;
     const tag = hashtag.startsWith('#') ? hashtag : '#' + hashtag;
     const tagLower = tag.toLowerCase();
-
-    const allMatching = db.yankis.filter(y => y.text.toLowerCase().includes(tagLower));
-    const totalYankis = allMatching.length;
-
-    const now = Date.now();
-    const dayAgo = now - 24 * 60 * 60 * 1000;
-    const last24h = allMatching.filter(y => new Date(y.createdAt).getTime() > dayAgo).length;
-
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const totalYankis = sqlite.prepare("SELECT COUNT(*) as count FROM yankis WHERE LOWER(text) LIKE ?").get(`%${tagLower}%`).count;
+    const last24h = sqlite.prepare("SELECT COUNT(*) as count FROM yankis WHERE LOWER(text) LIKE ? AND createdAt > ?").get(`%${tagLower}%`, dayAgo).count;
     return { totalYankis, last24h };
+  },
+
+  'hashtag': (data) => {
+    const { hashtag, viewerId } = data;
+    const tag = hashtag.startsWith('#') ? hashtag : '#' + hashtag;
+    const tagLower = tag.toLowerCase();
+    const yankis = sqlite.prepare("SELECT * FROM yankis WHERE LOWER(text) LIKE ? AND replyToId IS NULL ORDER BY createdAt DESC").all(`%${tagLower}%`)
+      .map(y => enrichYanki(y, viewerId)).filter(Boolean);
+    const info = routes['hashtag/info']({ hashtag });
+    return { yankis, ...info };
   },
 
   // ═══ THREAD ═══
   'thread/create': (data) => {
     const { userId, items } = data;
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return { error: 'Thread items gerekli' };
-    }
+    if (!items || !Array.isArray(items) || items.length === 0) return { error: 'Thread items gerekli' };
 
     let previousId = null;
-    const createdYankis = [];
-
+    let count = 0;
     for (const item of items) {
       const yanki = {
-        id: genId(),
-        userId,
-        text: item.text || '',
-        image: item.image || null,
-        poll: null,
-        replyToId: previousId,
-        reyankiOfId: null,
-        pinned: false,
+        id: genId(), userId, text: item.text || '', image: item.image || null,
+        images: '[]', poll: null, replyToId: previousId, reyankiOfId: null, quoteOfId: null, pinned: 0, editedAt: null,
         createdAt: new Date().toISOString()
       };
-      db.yankis.push(yanki);
-      createdYankis.push(yanki);
-
-      // Add to comments if it's a reply
+      stmts.insertYanki.run(yanki);
       if (previousId) {
-        db.comments.push({
-          id: yanki.id,
-          yankiId: previousId,
-          userId,
-          text: yanki.text,
-          createdAt: yanki.createdAt
-        });
+        stmts.insertComment.run({ id: yanki.id, yankiId: previousId, userId, text: yanki.text, createdAt: yanki.createdAt });
       }
-
       previousId = yanki.id;
+      count++;
     }
-
-    return { success: true, count: createdYankis.length };
+    return { success: true, count };
   },
 
   // ═══ SCHEDULE ═══
   'schedule/create': (data) => {
     const { userId, text, image, poll, scheduledAt, threadItems } = data;
-
-    // For now, store the scheduled post
     const scheduled = {
-      id: genId(),
-      userId,
-      text: text || '',
-      image: image || null,
-      poll: poll || null,
+      id: genId(), userId, text: text || '', image: image || null,
+      poll: poll ? JSON.stringify(poll) : null,
       scheduledAt: scheduledAt || new Date().toISOString(),
-      threadItems: threadItems || null,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+      threadItems: threadItems ? JSON.stringify(threadItems) : null,
+      status: 'pending', createdAt: new Date().toISOString()
     };
-    db.scheduled.push(scheduled);
+    stmts.insertScheduled.run(scheduled);
 
-    // If scheduledAt is in the past or very soon, create immediately
     if (!scheduledAt || new Date(scheduledAt) <= new Date()) {
       if (threadItems && threadItems.length > 0) {
-        // Create as thread
         return routes['thread/create']({ userId, items: threadItems });
       } else {
-        // Create as single yanki
         const result = routes['yanki/create']({ userId, text, image, poll });
-        scheduled.status = 'published';
+        sqlite.prepare("UPDATE scheduled SET status = 'published' WHERE id = ?").run(scheduled.id);
         return { success: true, yanki: result.yanki };
       }
     }
-
     return { success: true, scheduledId: scheduled.id };
+  },
+
+  'schedule/list': (data) => {
+    const { userId } = data;
+    const scheduled = stmts.getScheduledByUser.all(userId).map(s => ({
+      ...s, poll: s.poll ? JSON.parse(s.poll) : null,
+      threadItems: s.threadItems ? JSON.parse(s.threadItems) : null
+    }));
+    return { scheduled };
+  },
+
+  'schedule/cancel': (data) => {
+    stmts.deleteScheduled.run(data.scheduleId, data.userId);
+    return { success: true };
   },
 
   // ═══ MESSAGES ═══
   'messages/conversations': (data) => {
     const { userId } = data;
-    // Return conversations the user is part of
-    const userConversations = db.conversations
+    const allConvs = stmts.getAllConversations.all().map(parseConversation);
+    const userConversations = allConvs
       .filter(c => c.participants.includes(userId))
       .map(c => {
         const otherUserId = c.participants.find(p => p !== userId);
         const otherUser = getUser(otherUserId);
-        const lastMessage = db.messages
-          .filter(m => m.conversationId === c.id)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-        const unread = db.messages
-          .filter(m => m.conversationId === c.id && m.userId !== userId && !m.read)
-          .length;
-
-        return {
-          id: c.id,
-          otherUser: otherUser ? { ...otherUser, password: undefined } : null,
-          lastMessage: lastMessage || null,
-          unread,
-          createdAt: c.createdAt
-        };
+        const msgs = stmts.getMessagesByConv.all(c.id).map(parseMessage);
+        const lastMessage = msgs.length > 0 ? msgs[msgs.length - 1] : null;
+        const unread = msgs.filter(m => m.userId !== userId && !m.read).length;
+        return { id: c.id, otherUser: otherUser ? { ...otherUser, password: undefined } : null, lastMessage, unread, createdAt: c.createdAt };
       });
-
     return { conversations: userConversations };
+  },
+
+  'messages/get': (data) => {
+    const { userId, otherId } = data;
+    const allConvs = stmts.getAllConversations.all().map(parseConversation);
+    const conv = allConvs.find(c => c.participants.includes(userId) && c.participants.includes(otherId));
+    if (!conv) return { messages: [], conversationId: null };
+    const messages = stmts.getMessagesByConv.all(conv.id).map(m => {
+      const pm = parseMessage(m);
+      const sender = getUser(pm.userId);
+      return { ...pm, username: sender?.username, displayName: sender?.displayName, profileImage: sender?.profileImage };
+    });
+    return { messages, conversationId: conv.id };
+  },
+
+  'messages/send': (data) => {
+    const { senderId, receiverId, text, image } = data;
+    if (!text && !image) return { error: 'Mesaj boş olamaz' };
+
+    const allConvs = stmts.getAllConversations.all().map(parseConversation);
+    let conv = allConvs.find(c => c.participants.includes(senderId) && c.participants.includes(receiverId));
+    if (!conv) {
+      conv = { id: genId(), participants: [senderId, receiverId], createdAt: new Date().toISOString() };
+      stmts.insertConversation.run({ id: conv.id, participants: JSON.stringify(conv.participants), createdAt: conv.createdAt });
+    }
+
+    const msg = {
+      id: genId(), conversationId: conv.id, userId: senderId,
+      text: text || '', image: image || null, read: 0, reactions: '[]',
+      createdAt: new Date().toISOString()
+    };
+    stmts.insertMessage.run(msg);
+    stmts.insertNotification.run({ id: genId(), userId: receiverId, fromId: senderId, type: 'message', read: 0, yankiId: null, createdAt: new Date().toISOString() });
+    return { success: true, message: parseMessage(msg) };
+  },
+
+  'messages/read': (data) => {
+    const { userId, otherId } = data;
+    const allConvs = stmts.getAllConversations.all().map(parseConversation);
+    const conv = allConvs.find(c => c.participants.includes(userId) && c.participants.includes(otherId));
+    if (conv) stmts.markMessagesRead.run(conv.id, otherId);
+    return { success: true };
+  },
+
+  'messages/delete': (data) => {
+    const result = stmts.deleteMessage.run(data.msgId, data.userId);
+    if (result.changes === 0) return { error: 'Mesaj bulunamadı' };
+    return { success: true };
+  },
+
+  'messages/react': (data) => {
+    const { userId, msgId, emoji } = data;
+    const row = sqlite.prepare('SELECT * FROM messages WHERE id = ?').get(msgId);
+    if (!row) return { error: 'Mesaj bulunamadı' };
+    const msg = parseMessage(row);
+    const existing = msg.reactions.find(r => r.userId === userId && r.emoji === emoji);
+    if (existing) {
+      msg.reactions = msg.reactions.filter(r => !(r.userId === userId && r.emoji === emoji));
+    } else {
+      msg.reactions.push({ userId, emoji, createdAt: new Date().toISOString() });
+    }
+    sqlite.prepare('UPDATE messages SET reactions = ? WHERE id = ?').run(JSON.stringify(msg.reactions), msgId);
+    return { success: true, reactions: msg.reactions };
   },
 
   // ═══ EXPLORE ═══
   'explore/suggested': (data) => {
     const { userId, limit } = data;
-    const following = db.follows.filter(f => f.followerId === userId).map(f => f.followingId);
-
-    const users = db.users
-      .filter(u => u.id !== userId && !following.includes(u.id))
-      .slice(0, limit || 5)
-      .map(u => ({ ...u, password: undefined }));
-
+    const followingIds = stmts.getFollowing.all(userId).map(f => f.followingId);
+    const allUsers = stmts.getAllUsers.all().map(parseUser);
+    const users = allUsers.filter(u => u.id !== userId && !followingIds.includes(u.id))
+      .slice(0, limit || 5).map(u => ({ ...u, password: undefined }));
     return { users };
   },
 
-  // Alias: explore/suggested-users -> explore/suggested
-  'explore/suggested-users': (data) => {
-    return routes['explore/suggested'](data);
-  },
+  'explore/suggested-users': (data) => routes['explore/suggested'](data),
 
   'explore/trending-yankis': (data) => {
     const { viewerId, limit } = data;
-    const maxItems = limit || 20;
-
-    // Get yankis sorted by engagement (likes + comments + reyankis)
-    const yankis = db.yankis
-      .filter(y => !y.replyToId)
-      .map(y => ({
-        yanki: y,
-        score: db.likes.filter(l => l.yankiId === y.id).length +
-               db.comments.filter(c => c.yankiId === y.id).length * 2 +
-               db.yankis.filter(r => r.reyankiOfId === y.id).length * 3
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, maxItems)
-      .map(item => enrichYanki(item.yanki, viewerId))
-      .filter(Boolean);
-
+    const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL').all();
+    const yankis = all.map(y => ({
+      yanki: y,
+      score: stmts.getLikeCount.get(y.id).count + stmts.getCommentCount.get(y.id).count * 2 + stmts.getReyankis.all(y.id).length * 3
+    })).sort((a, b) => b.score - a.score).slice(0, limit || 20)
+      .map(item => enrichYanki(item.yanki, viewerId)).filter(Boolean);
     return { yankis };
   },
 
   // ═══ POLL ═══
   'poll/vote': (data) => {
     const { yankiId, userId, optionIndex } = data;
-    const yanki = db.yankis.find(y => y.id === yankiId);
-
-    if (!yanki || !yanki.poll) {
-      return { error: 'Anket bulunamadı' };
-    }
-
-    // Check if already voted
-    const existing = db.pollVotes.find(v => v.yankiId === yankiId && v.userId === userId);
-    if (existing) {
-      return { error: 'Zaten oy kullandınız' };
-    }
-
-    db.pollVotes.push({
-      id: genId(),
-      yankiId,
-      userId,
-      optionIndex,
-      createdAt: new Date().toISOString()
-    });
-
-    // Update poll votes
-    if (!yanki.poll.votes) {
-      yanki.poll.votes = yanki.poll.options.map(() => 0);
-    }
-    yanki.poll.votes[optionIndex]++;
-    yanki.poll.votedIndex = optionIndex;
-
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || !yanki.poll) return { error: 'Anket bulunamadı' };
+    if (stmts.getUserPollVote.get(yankiId, userId)) return { error: 'Zaten oy kullandınız' };
+    stmts.insertPollVote.run({ id: genId(), yankiId, userId, optionIndex, createdAt: new Date().toISOString() });
     return { success: true };
+  },
+
+  // ═══ ADMIN ═══
+  'admin/stats': () => {
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    return {
+      userCount: sqlite.prepare('SELECT COUNT(*) as count FROM users').get().count,
+      yankiCount: sqlite.prepare('SELECT COUNT(*) as count FROM yankis').get().count,
+      reportCount: sqlite.prepare('SELECT COUNT(*) as count FROM reports').get().count,
+      activeCount: sqlite.prepare('SELECT COUNT(DISTINCT userId) as count FROM yankis WHERE createdAt > ?').get(dayAgo).count
+    };
+  },
+
+  'admin/users': () => {
+    const users = stmts.getAllUsers.all().map(u => {
+      const pu = parseUser(u);
+      return {
+        ...pu, password: undefined,
+        yankiCount: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(u.id).count,
+        followerCount: stmts.getFollowerCount.get(u.id).count,
+        followingCount: stmts.getFollowingCount.get(u.id).count
+      };
+    });
+    return { users };
+  },
+
+  'admin/user/ban': (data) => {
+    const user = getUser(data.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    const newBanned = user.banned ? 0 : 1;
+    sqlite.prepare('UPDATE users SET banned = ? WHERE id = ?').run(newBanned, data.userId);
+    return { success: true, banned: !!newBanned };
+  },
+
+  'admin/user/make-admin': (data) => {
+    const user = getUser(data.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    const newAdmin = user.isAdmin ? 0 : 1;
+    sqlite.prepare('UPDATE users SET isAdmin = ? WHERE id = ?').run(newAdmin, data.userId);
+    return { success: true, isAdmin: !!newAdmin };
+  },
+
+  'admin/user/delete': (data) => {
+    const { userId } = data;
+    const user = getUser(userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    sqlite.prepare('DELETE FROM users WHERE id = ?').run(userId);
+    sqlite.prepare('DELETE FROM yankis WHERE userId = ?').run(userId);
+    stmts.deleteLikesByUser.run(userId);
+    stmts.deleteFollowsByUser.run(userId, userId);
+    stmts.deleteNotificationsByUser.run(userId, userId);
+    stmts.deleteCommentsByUser.run(userId);
+    stmts.deleteSavesByUser.run(userId);
+    sqlite.prepare('DELETE FROM blocks WHERE userId = ? OR blockedId = ?').run(userId, userId);
+    return { success: true };
+  },
+
+  'admin/user/detail': (data) => {
+    const user = getUser(data.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    return {
+      user: {
+        ...user, password: undefined,
+        yankiCount: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(user.id).count,
+        commentCount: sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE userId = ?').get(user.id).count,
+        likeCount: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE userId = ?').get(user.id).count,
+        followerCount: stmts.getFollowerCount.get(user.id).count,
+        followingCount: stmts.getFollowingCount.get(user.id).count,
+        reportCount: sqlite.prepare('SELECT COUNT(*) as count FROM reports WHERE reporterId = ?').get(user.id).count
+      }
+    };
+  },
+
+  'admin/yanki/delete': (data) => {
+    const { yankiId } = data;
+    stmts.deleteYanki.run(yankiId);
+    stmts.deleteLikesByYanki.run(yankiId);
+    stmts.deleteCommentsByYanki.run(yankiId);
+    stmts.deleteSavesByYanki.run(yankiId);
+    return { success: true };
+  },
+
+  'admin/yankis/recent': (data) => {
+    const yankis = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC LIMIT ?').all(data.limit || 50)
+      .map(y => {
+        const author = getUser(y.userId);
+        return {
+          ...parseYanki(y), username: author?.username, displayName: author?.displayName,
+          profileImage: author?.profileImage,
+          likes: stmts.getLikeCount.get(y.id).count,
+          commentCount: stmts.getCommentCount.get(y.id).count
+        };
+      });
+    return { yankis };
+  },
+
+  'admin/reports': () => {
+    const reports = stmts.getAllReports.all().map(r => {
+      const reporter = getUser(r.reporterId);
+      const yanki = parseYanki(stmts.getYankiById.get(r.yankiId));
+      const yankiAuthor = yanki ? getUser(yanki.userId) : null;
+      return { ...r, reporterName: reporter?.displayName, reporterUsername: reporter?.username, yankiText: yanki?.text, yankiAuthor: yankiAuthor?.username };
+    });
+    return { reports };
+  },
+
+  'admin/yankis/bulk-delete': (data) => {
+    const { yankiIds } = data;
+    if (!Array.isArray(yankiIds)) return { error: 'yankiIds gerekli' };
+    const del = sqlite.transaction(() => {
+      yankiIds.forEach(id => {
+        stmts.deleteYanki.run(id);
+        stmts.deleteLikesByYanki.run(id);
+        stmts.deleteCommentsByYanki.run(id);
+        stmts.deleteSavesByYanki.run(id);
+      });
+    });
+    del();
+    return { success: true, deletedCount: yankiIds.length };
+  },
+
+  'admin/analytics': () => {
+    const now = Date.now();
+    const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const dailyActivity = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now - (i + 1) * 24 * 60 * 60 * 1000).toISOString();
+      const dayEnd = new Date(now - i * 24 * 60 * 60 * 1000).toISOString();
+      dailyActivity.push({
+        date: dayEnd.split('T')[0],
+        yankis: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ? AND createdAt <= ?').get(dayStart, dayEnd).count,
+        likes: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE createdAt > ? AND createdAt <= ?').get(dayStart, dayEnd).count,
+        users: sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE createdAt > ? AND createdAt <= ?').get(dayStart, dayEnd).count
+      });
+    }
+
+    return {
+      totalUsers: sqlite.prepare('SELECT COUNT(*) as count FROM users').get().count,
+      totalYankis: sqlite.prepare('SELECT COUNT(*) as count FROM yankis').get().count,
+      totalLikes: sqlite.prepare('SELECT COUNT(*) as count FROM likes').get().count,
+      totalComments: sqlite.prepare('SELECT COUNT(*) as count FROM comments').get().count,
+      newUsersToday: sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE createdAt > ?').get(dayAgo).count,
+      newYankisToday: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ?').get(dayAgo).count,
+      newUsersWeek: sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE createdAt > ?').get(weekAgo).count,
+      dailyActivity
+    };
+  },
+
+  'admin/bots': () => {
+    const bots = stmts.getBotUsers.all().map(b => {
+      const pb = parseUser(b);
+      return {
+        ...pb, password: undefined,
+        yankiCount: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(b.id).count,
+        likeCount: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE userId = ?').get(b.id).count,
+        commentCount: sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE userId = ?').get(b.id).count,
+        followerCount: stmts.getFollowerCount.get(b.id).count
+      };
+    });
+    return { bots, simulationRunning: botSimulationRunning };
+  },
+
+  'admin/feedback': () => ({ feedback: stmts.getAllFeedback.all() }),
+
+  'admin/bot/toggle': (data) => {
+    if (data.running) startBotAgents(); else stopBotAgents();
+    return { success: true, running: botSimulationRunning };
+  },
+
+  'admin/bot/trigger': () => { botAgentTick(); return { success: true }; },
+
+  // ═══ DRAFTS ═══
+  'draft/save': (data) => {
+    const draft = {
+      id: genId(), userId: data.userId, text: data.text || '',
+      image: data.image || null, poll: data.poll ? JSON.stringify(data.poll) : null,
+      createdAt: new Date().toISOString()
+    };
+    stmts.insertDraft.run(draft);
+    return { success: true, draft: { ...draft, poll: data.poll || null } };
+  },
+
+  'draft/list': (data) => {
+    const drafts = stmts.getDraftsByUser.all(data.userId).map(d => ({ ...d, poll: d.poll ? JSON.parse(d.poll) : null }));
+    return { drafts };
+  },
+
+  'draft/delete': (data) => {
+    stmts.deleteDraft.run(data.draftId, data.userId);
+    return { success: true };
+  },
+
+  // ═══ COLLECTIONS ═══
+  'collections/get': (data) => {
+    const collections = stmts.getCollectionsByUser.all(data.userId).map(c => ({
+      ...c, itemCount: stmts.getCollectionItemCount.get(c.id).count
+    }));
+    return { collections };
+  },
+
+  'collection/create': (data) => {
+    if (!data.name) return { error: 'Koleksiyon adı gerekli' };
+    const col = { id: genId(), userId: data.userId, name: data.name, emoji: data.emoji || null, createdAt: new Date().toISOString() };
+    stmts.insertCollection.run(col);
+    return { success: true, collection: col };
+  },
+
+  'collection/delete': (data) => {
+    stmts.deleteCollection.run(data.collectionId, data.userId);
+    stmts.deleteCollectionItemsByCol.run(data.collectionId);
+    return { success: true };
+  },
+
+  'collection/item-cols': (data) => {
+    const collections = stmts.getCollectionsByUser.all(data.userId).map(c => ({
+      ...c, hasItem: !!stmts.getCollectionItem.get(c.id, data.saveId)
+    }));
+    return { collections };
+  },
+
+  'collection/toggle-item': (data) => {
+    const col = sqlite.prepare('SELECT * FROM collections WHERE id = ? AND userId = ?').get(data.collectionId, data.userId);
+    if (!col) return { error: 'Koleksiyon bulunamadı' };
+    const existing = stmts.getCollectionItem.get(data.collectionId, data.saveId);
+    if (existing) {
+      stmts.deleteCollectionItem.run(data.collectionId, data.saveId);
+      return { success: true, added: false };
+    }
+    stmts.insertCollectionItem.run({ id: genId(), collectionId: data.collectionId, saveId: data.saveId, createdAt: new Date().toISOString() });
+    return { success: true, added: true };
+  },
+
+  'save/note': (data) => {
+    const save = sqlite.prepare('SELECT * FROM saves WHERE id = ? AND userId = ?').get(data.saveId, data.userId);
+    if (!save) return { error: 'Kayıt bulunamadı' };
+    sqlite.prepare('UPDATE saves SET note = ? WHERE id = ?').run(data.note || '', data.saveId);
+    return { success: true };
+  },
+
+  'saves/bulk-delete': (data) => {
+    if (!Array.isArray(data.saveIds)) return { error: 'saveIds gerekli' };
+    const del = sqlite.transaction(() => {
+      data.saveIds.forEach(sid => {
+        sqlite.prepare('DELETE FROM saves WHERE id = ? AND userId = ?').run(sid, data.userId);
+        sqlite.prepare('DELETE FROM collectionItems WHERE saveId = ?').run(sid);
+      });
+    });
+    del();
+    return { success: true, deletedCount: data.saveIds.length };
+  },
+
+  'yankis/saved': (data) => {
+    const { userId, sortBy, collectionId, search } = data;
+    let saves = stmts.getSavesByUser.all(userId);
+
+    if (collectionId) {
+      const colItems = stmts.getCollectionItems.all(collectionId).map(ci => ci.saveId);
+      saves = saves.filter(s => colItems.includes(s.id));
+    }
+
+    let yankis = saves.map(s => {
+      const yanki = parseYanki(stmts.getYankiById.get(s.yankiId));
+      if (!yanki) return null;
+      const enriched = enrichYanki(yanki, userId);
+      if (!enriched) return null;
+      return { ...enriched, saveId: s.id, savedAt: s.createdAt, note: s.note || '' };
+    }).filter(Boolean);
+
+    if (search) {
+      const q = search.toLowerCase();
+      yankis = yankis.filter(y => y.text.toLowerCase().includes(q));
+    }
+
+    if (sortBy === 'oldest') yankis.sort((a, b) => new Date(a.savedAt) - new Date(b.savedAt));
+    else yankis.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+    return { yankis };
+  },
+
+  // ═══ OTHER ═══
+  'blocked': (data) => {
+    const blockedIds = stmts.getBlocksByUser.all(data.userId).map(b => b.blockedId);
+    const users = blockedIds.map(id => { const u = getUser(id); return u ? { ...u, password: undefined } : null; }).filter(Boolean);
+    return { users };
+  },
+
+  'contact': (data) => {
+    if (!data.subject || !data.message) return { error: 'Konu ve mesaj gerekli' };
+    stmts.insertFeedback.run({ id: genId(), userId: data.userId || null, subject: data.subject, message: data.message, createdAt: new Date().toISOString() });
+    return { success: true };
+  },
+
+  'patchnotes': () => {
+    const rows = stmts.getAllPatchNotes.all();
+    const patchNotes = rows.map(r => {
+      const data = r.content ? JSON.parse(r.content) : {};
+      return { version: r.version, date: data.date || '', features: data.features || [], fixes: data.fixes || [] };
+    });
+    return { patchNotes };
+  },
+
+  'explore': (data) => {
+    const { viewerId } = data;
+    const followingIds = viewerId ? stmts.getFollowing.all(viewerId).map(f => f.followingId) : [];
+    const allUsers = stmts.getAllUsers.all().map(parseUser);
+    const suggestedUsers = allUsers.filter(u => u.id !== viewerId && !followingIds.includes(u.id))
+      .slice(0, 5).map(u => ({ ...u, password: undefined }));
+    const trendResult = routes['trending']();
+    const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL').all();
+    const trendingYankis = all.map(y => ({
+      yanki: y,
+      score: stmts.getLikeCount.get(y.id).count + stmts.getCommentCount.get(y.id).count * 2
+    })).sort((a, b) => b.score - a.score).slice(0, 10)
+      .map(item => enrichYanki(item.yanki, viewerId)).filter(Boolean);
+    return { suggestedUsers, trends: trendResult.trends, trendingYankis };
+  },
+
+  'clan': (data) => {
+    const user = getUser(data.userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    return { clan: null, available: [] };
+  },
+
+  'dna': (data) => {
+    const { userId } = data;
+    const user = getUser(userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    const yankiCount = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(userId).count;
+    const commentCount = sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE userId = ?').get(userId).count;
+    const likeCount = sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE userId = ?').get(userId).count;
+    const followerCount = stmts.getFollowerCount.get(userId).count;
+    return {
+      dna: {
+        activity: Math.min(100, yankiCount * 5),
+        social: Math.min(100, (commentCount + likeCount) * 3),
+        influence: Math.min(100, followerCount * 10),
+        creativity: Math.min(100, yankiCount * 4),
+        consistency: Math.min(100, 50)
+      }
+    };
+  },
+
+  // ═══ REACTIONS ═══
+  'yanki/react': (data) => {
+    const { yankiId, userId, emoji } = data;
+    if (!emoji) return { error: 'Emoji gerekli' };
+    const existing = stmts.getUserReaction.get(yankiId, userId, emoji);
+    if (existing) {
+      stmts.deleteReaction.run(existing.id);
+    } else {
+      stmts.insertReaction.run({ id: genId(), yankiId, userId, emoji, createdAt: new Date().toISOString() });
+      const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+      if (yanki && yanki.userId !== userId) {
+        stmts.insertNotification.run({ id: genId(), userId: yanki.userId, fromId: userId, type: 'reaction', yankiId, read: 0, createdAt: new Date().toISOString() });
+      }
+    }
+    return { success: true, reactions: stmts.getReactionCounts.all(yankiId) };
+  },
+
+  // ═══ LIKERS ═══
+  'yanki/likers': (data) => {
+    const { yankiId } = data;
+    const users = stmts.getLikersByYanki.all(yankiId).map(u => ({ ...u, verified: !!u.verified }));
+    return { users };
+  },
+
+  // ═══ QUOTE YANKI ═══
+  'yanki/quote': (data) => {
+    const { yankiId, userId, text } = data;
+    if (!text) return { error: 'Alıntı yorumu gerekli' };
+    const original = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!original) return { error: 'Yankı bulunamadı' };
+    const yanki = {
+      id: genId(), userId, text, image: null, images: '[]', poll: null,
+      replyToId: null, reyankiOfId: null, quoteOfId: yankiId, pinned: 0, editedAt: null,
+      createdAt: new Date().toISOString()
+    };
+    stmts.insertYanki.run(yanki);
+    if (original.userId !== userId) {
+      stmts.insertNotification.run({ id: genId(), userId: original.userId, fromId: userId, type: 'quote', yankiId: yanki.id, read: 0, createdAt: new Date().toISOString() });
+    }
+    return { yanki: enrichYanki(yanki, userId) };
+  },
+
+  // ═══ EDIT YANKI ═══
+  'yanki/edit': (data) => {
+    const { yankiId, userId, text } = data;
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    sqlite.prepare('UPDATE yankis SET text = ?, editedAt = ? WHERE id = ?').run(text, new Date().toISOString(), yankiId);
+    return { yanki: enrichYanki(yankiId, userId) };
+  },
+
+  // ═══ PROFILE STATS / BADGES / FEATURED ═══
+  'profile/stats': (data) => {
+    const { userId } = data;
+    const user = getUser(userId);
+    const totalLikesReceived = sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE yankiId IN (SELECT id FROM yankis WHERE userId = ?)').get(userId).count;
+    const totalCommentsReceived = sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE yankiId IN (SELECT id FROM yankis WHERE userId = ?)').get(userId).count;
+    const totalReyankis = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE reyankiOfId IN (SELECT id FROM yankis WHERE userId = ?)').get(userId).count;
+    const totalYankis = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(userId).count;
+    const joinedDaysAgo = Math.floor((Date.now() - new Date(user?.createdAt || Date.now()).getTime()) / (1000*60*60*24));
+    return { totalLikesReceived, totalCommentsReceived, totalReyankis, totalYankis, joinedDaysAgo };
+  },
+
+  'profile/badges': (data) => {
+    const { userId } = data;
+    const u = getUser(userId);
+    if (!u) return { badges: [] };
+    const yankiCount = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND replyToId IS NULL').get(userId).count;
+    const followerCount = stmts.getFollowerCount.get(userId).count;
+    const totalLikes = sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE yankiId IN (SELECT id FROM yankis WHERE userId = ?)').get(userId).count;
+    const badges = [];
+    if (yankiCount >= 1) badges.push({ id: 'first_yanki', name: 'İlk Yankı', icon: '🐣', desc: 'İlk yankını attın!', color: '#4ade80' });
+    if (yankiCount >= 10) badges.push({ id: 'yanki_10', name: 'Aktif', icon: '🐦', desc: '10 yankı attın!', color: '#60a5fa' });
+    if (yankiCount >= 50) badges.push({ id: 'yanki_50', name: 'Usta', icon: '🦅', desc: '50 yankı attın!', color: '#a78bfa' });
+    if (followerCount >= 5) badges.push({ id: 'followers_5', name: 'Sosyal', icon: '👥', desc: '5 takipçi!', color: '#fb923c' });
+    if (followerCount >= 10) badges.push({ id: 'followers_10', name: 'Popüler', icon: '⭐', desc: '10 takipçi!', color: '#facc15' });
+    if (followerCount >= 50) badges.push({ id: 'followers_50', name: 'Fenomen', icon: '🌟', desc: '50 takipçi!', color: '#f472b6' });
+    if (totalLikes >= 10) badges.push({ id: 'likes_10', name: 'Beğenilen', icon: '❤️', desc: '10 beğeni!', color: '#f87171' });
+    if (totalLikes >= 100) badges.push({ id: 'likes_100', name: 'Sevilen', icon: '💖', desc: '100 beğeni!', color: '#ec4899' });
+    if (u.verified) badges.push({ id: 'verified', name: 'Onaylı', icon: '✅', desc: 'Hesap onaylandı!', color: '#34d399' });
+    if (u.isAdmin) badges.push({ id: 'admin', name: 'Yönetici', icon: '🔧', desc: 'Platform yöneticisi', color: '#ef4444' });
+    return { badges };
+  },
+
+  'profile/featured': (data) => {
+    const { userId, viewerId } = data;
+    const yankis = sqlite.prepare('SELECT y.*, COUNT(l.id) as likeCount FROM yankis y LEFT JOIN likes l ON l.yankiId = y.id WHERE y.userId = ? AND y.replyToId IS NULL AND y.reyankiOfId IS NULL GROUP BY y.id ORDER BY likeCount DESC LIMIT 3').all(userId);
+    const featured = yankis.filter(y => y.likeCount > 0).map(y => enrichYanki(y, viewerId)).filter(Boolean);
+    return { featured };
   }
 };
 
 // ─── Server ────────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
+  if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
@@ -1413,26 +2026,18 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET') {
     let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
     const ext = path.extname(filePath);
-
     const mimeTypes = {
-      '.html': 'text/html',
-      '.css': 'text/css',
-      '.js': 'application/javascript',
-      '.json': 'application/json',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.svg': 'image/svg+xml',
-      '.ico': 'image/x-icon'
+      '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+      '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+      '.svg': 'image/svg+xml', '.ico': 'image/x-icon'
     };
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      const contentType = mimeTypes[ext] || 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
       fs.createReadStream(filePath).pipe(res);
       return;
     }
 
-    // SPA fallback
     if (!ext) {
       filePath = path.join(__dirname, 'public', 'index.html');
       if (fs.existsSync(filePath)) {
@@ -1446,20 +2051,22 @@ const server = http.createServer((req, res) => {
   // API routes
   if (req.method === 'POST') {
     const endpoint = pathname.slice(1);
-
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', () => {
       let data = {};
-      try {
-        data = JSON.parse(body || '{}');
-      } catch (e) {}
-
+      try { data = JSON.parse(body || '{}'); } catch (e) {}
       const handler = routes[endpoint];
       if (handler) {
-        const result = handler(data);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(result));
+        try {
+          const result = handler(data);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          console.error(`Error in ${endpoint}:`, err.message);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Sunucu hatası' }));
+        }
       } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not found' }));
@@ -1468,12 +2075,19 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 404
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🐦 Yankuş server running on port ${PORT}`);
+  console.log(`🐦 Yankuş v3.0 (SQLite) running on port ${PORT}`);
+  console.log(`📦 Database: ${DB_PATH}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  stopBotAgents();
+  sqlite.close();
+  process.exit(0);
 });
