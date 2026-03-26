@@ -2669,7 +2669,7 @@ const yankiCard=y=>{
         <div class="yanki-meta-right">
           <span class="yanki-time" title="${y.createdAt?new Date(y.createdAt).toLocaleString('tr-TR'):''}">${timeAgo(y.createdAt)}</span>${rt?`<span class="yanki-read-time">${rt}</span>`:''}
           <div class="yanki-menu" onclick="event.stopPropagation()">
-            <span class="yanki-menu-btn" onclick="toggleMenu('${y.id}')">⋯</span>
+            <span class="yanki-menu-btn" onclick="toggleMenu('${y.id}',event)">⋯</span>
             <div class="yanki-dropdown" id="menu-${y.id}">
               ${y.userId===user.id
                 ?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>
@@ -2938,7 +2938,8 @@ const submitReyanki = async () => {
 const votePoll=async(pollId,optionIndex,yankiId)=>{const r=await api('/poll/vote',{userId:user.id,yankiId:yankiId||pollId,optionIndex});if(r.success){toast('Oy verildi');openYanki(yankiId||pollId)}else toast(r.error)};
 let _floatingMenu=null;
 let _floatingMenuId=null;
-const toggleMenu=id=>{
+const toggleMenu=(id,evt)=>{
+  if(evt){evt.stopPropagation();evt.preventDefault();}
   // Eski floating menüyü kaldır
   if(_floatingMenu){_floatingMenu.remove();_floatingMenu=null}
   const wasOpen=_floatingMenuId===id;
@@ -2947,28 +2948,40 @@ const toggleMenu=id=>{
   if(wasOpen)return;
   const dd=$('menu-'+id);
   if(!dd)return;
-  const btn=dd.closest('.yanki-menu')?.querySelector('.yanki-menu-btn');
-  if(!btn)return;
+  // Pozisyon: event'ten tıklanan elementi bul
+  const clickedBtn=evt?.target?.closest('.yanki-menu-btn');
+  const fallbackBtn=dd.closest('.yanki-menu')?.querySelector('.yanki-menu-btn');
+  const btn=clickedBtn||fallbackBtn;
   // Dropdown'ı body'e kopyala (overflow sorununu aşmak için)
   const clone=dd.cloneNode(true);
   clone.removeAttribute('id');
   clone.className='yanki-dropdown show';
   clone.style.cssText='position:fixed;z-index:99999;display:block;animation:fadeIn .12s ease;min-width:160px;max-width:200px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;box-shadow:0 12px 32px rgba(0,0,0,.25);backdrop-filter:blur(16px)';
-  const r=btn.getBoundingClientRect();
   // Geçici ekle — yükseklik ölçmek için
   clone.style.visibility='hidden';
   document.body.appendChild(clone);
   const ddH=clone.offsetHeight;
   const ddW=clone.offsetWidth;
   clone.style.visibility='';
-  // Pozisyon — alta sığmazsa yukarı aç
-  if(r.bottom+4+ddH>window.innerHeight){
-    clone.style.top=(r.top-ddH-4)+'px';
+  // Pozisyon hesapla — btn rect veya event koordinatları
+  let anchorX,anchorY,anchorTop;
+  const r=btn?btn.getBoundingClientRect():null;
+  if(r&&(r.top||r.left)&&r.width>0){
+    anchorX=r.right;anchorY=r.bottom;anchorTop=r.top;
+  } else if(evt?.clientX){
+    anchorX=evt.clientX;anchorY=evt.clientY;anchorTop=evt.clientY;
   } else {
-    clone.style.top=(r.bottom+4)+'px';
+    // Son çare: ekran ortası
+    anchorX=window.innerWidth/2;anchorY=window.innerHeight/2;anchorTop=anchorY;
+  }
+  // Alta sığmazsa yukarı aç
+  if(anchorY+4+ddH>window.innerHeight){
+    clone.style.top=Math.max(8,anchorTop-ddH-4)+'px';
+  } else {
+    clone.style.top=(anchorY+4)+'px';
   }
   // Sol pozisyon — sağa taşmasın
-  const leftPos=r.right-ddW;
+  const leftPos=anchorX-ddW;
   clone.style.left=Math.max(8,Math.min(leftPos,window.innerWidth-ddW-8))+'px';
   _floatingMenu=clone;
   _floatingMenuId=id;
