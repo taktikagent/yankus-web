@@ -2173,7 +2173,7 @@ const server = http.createServer((req, res) => {
     };
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream', 'Cache-Control': 'no-cache, no-store, must-revalidate' });
       fs.createReadStream(filePath).pipe(res);
       return;
     }
@@ -2181,7 +2181,7 @@ const server = http.createServer((req, res) => {
     if (!ext) {
       filePath = path.join(__dirname, 'public', 'index.html');
       if (fs.existsSync(filePath)) {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache, no-store, must-revalidate' });
         fs.createReadStream(filePath).pipe(res);
         return;
       }
