@@ -98,8 +98,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .top-title{font-size:calc(var(--font-size) + 1px);font-weight:700;flex:1;text-align:center;font-family:var(--font-display);letter-spacing:-.2px}
 .content{flex:1}
 .panel{display:none}.panel.active{display:block}
-.composer{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg);position:relative;z-index:10}
-.composer-row{display:flex;gap:12px;align-items:flex-start}
+.composer{padding:0;border-bottom:none;background:transparent;position:relative;z-index:10;margin:12px 14px}
+.composer-wrap{background:var(--card);border:1px solid var(--border);border-radius:28px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.06);transition:box-shadow .3s,border-color .3s}
+.composer-wrap:focus-within{border-color:var(--accent);box-shadow:0 16px 48px rgba(0,0,0,.2),0 0 20px var(--accent-glow)}
+.composer-row{display:flex;gap:14px;align-items:flex-start;padding:18px 20px 10px}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden;flex-shrink:0;transition:all .2s}.avatar:hover{transform:scale(1.08)}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .avatar-sm{width:28px;height:28px;font-size:12px}
@@ -110,16 +112,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .avatar-frame-purple{border:3px solid var(--frame-purple);box-shadow:0 0 12px rgba(139,92,246,.4)}
 .avatar-frame-rainbow{border:3px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,var(--frame-rainbow) border-box;animation:ringPulse 2s infinite}
 .composer-body{flex:1;display:flex;flex-direction:column;gap:0}
-.composer-input{width:100%;min-height:80px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:8px 4px;color:var(--text);font-size:calc(var(--font-size) + 1px);font-family:var(--font);resize:none;display:block;line-height:1.7}
-.composer-input:focus{outline:none;border-color:var(--accent-focus)}
+/* Mood bar */
+.composer-mood{display:flex;gap:6px;margin-bottom:10px;align-items:center}
+.composer-mood-label{font-size:11px;color:var(--muted);margin-right:2px}
+.composer-mood-item{width:28px;height:28px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.composer-mood-item:hover{background:var(--accent-active);border-color:var(--accent);transform:scale(1.15)}
+.composer-mood-item.selected{background:var(--accent-active);border-color:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.composer-input{width:100%;min-height:56px;background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:10px 14px;color:var(--text);font-size:calc(var(--font-size));font-family:var(--font);resize:none;display:block;line-height:1.6;transition:all .2s}
+.composer-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus);background:var(--hover)}
 .composer-input::placeholder{color:var(--muted);opacity:1}
-.composer-tools{display:flex;gap:4px;margin-top:10px;padding-top:10px;border-top:1px solid var(--accent-hover);align-items:center;flex-wrap:wrap}
-.tool-btn{width:32px;height:32px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--accent);transition:all .15s;opacity:.7}
-.tool-btn:hover{background:var(--accent-hover);opacity:1;transform:scale(1.1)}
+/* Canlı önizleme */
+.composer-live-preview{margin-top:8px;padding:6px 10px;background:var(--elevated);border-radius:10px;border:1px dashed var(--border);font-size:12px;color:var(--muted);line-height:1.5;display:none}
+.composer-live-preview.has-content{display:block}
+.composer-live-preview .ht{color:var(--accent);font-weight:600}
+.composer-live-preview .mt{color:#8b5cf6;font-weight:600}
+/* Draft indicator */
+.composer-draft{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(34,197,139,.5);padding:0 20px 8px;display:none}
+.composer-draft.show{display:flex}
+.composer-draft-dot{width:5px;height:5px;border-radius:50%;background:#22c58b;animation:pulse 2s infinite}
+.composer-tools{display:flex;gap:3px;padding:8px 16px 14px;border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.tool-btn{width:32px;height:32px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--accent);transition:all .2s;opacity:.5}
+.tool-btn:hover{background:var(--accent-active);opacity:1;transform:scale(1.1)}
 .tool-btn.active-tool{background:var(--accent-active);opacity:1;color:var(--accent)}
-.char-count{margin-left:auto;font-size:calc(var(--font-size) - 3px);color:var(--muted);padding:2px 0}
-.char-count.warn{color:var(--accent)}.char-count.bad{color:var(--accent2)}
-.btn-yanki{background:var(--accent2);color:#fff;border:none;padding:9px 22px;border-radius:22px;font-size:calc(var(--font-size) - 2px);font-weight:700;cursor:pointer;margin-left:8px;letter-spacing:.02em;font-family:var(--font);transition:all .2s}.btn-yanki:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--accent-glow)}
+/* Circular char counter */
+.char-ring{width:28px;height:28px;position:relative;margin-left:auto}
+.char-ring svg{transform:rotate(-90deg)}
+.char-ring .ring-bg{stroke:var(--border)}
+.char-ring .ring-fill{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .3s}
+.char-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--muted);font-weight:600}
+.char-count{display:none}
+.btn-yanki{background:var(--gradient);color:#fff;border:none;padding:9px 20px;border-radius:20px;font-size:calc(var(--font-size) - 2px);font-weight:700;cursor:pointer;margin-left:8px;letter-spacing:.02em;font-family:var(--font);transition:all .2s;box-shadow:0 4px 16px var(--accent-glow)}.btn-yanki:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--accent-glow)}
 .btn-yanki:disabled{opacity:.5;cursor:not-allowed}
 .image-preview{margin-top:12px;position:relative;display:inline-block}
 .image-preview img{max-width:100%;max-height:200px;border-radius:12px}
@@ -144,7 +166,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .hashtag-stat-label{font-size:calc(var(--font-size) - 4px);color:var(--muted)}
 .hashtag-popup-btn{width:100%;background:var(--gradient);color:#fff;border:none;padding:10px;border-radius:10px;font-size:calc(var(--font-size) - 2px);font-weight:600;cursor:pointer}
 /* ── YANKI KARTLARI — v3 ── */
-.yanki{padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.yanki{padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:all .25s ease;background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-left:1px solid var(--border);border-right:1px solid var(--border);position:relative;overflow:visible}
+.yanki::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 0%,rgba(181,114,129,.06) 0%,transparent 60%);pointer-events:none;transition:opacity .3s;opacity:0}
+.yanki:hover::before{opacity:1}
 .yanki-row{display:flex;gap:12px}
 .yanki-avatar-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
 .yanki-thread-line{width:2px;flex:1;background:linear-gradient(180deg,var(--accent) 0%,transparent 100%);border-radius:1px;margin-top:6px;min-height:16px;opacity:.3}
@@ -185,16 +209,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .poll-info{font-size:calc(var(--font-size) - 3px);color:var(--muted);margin-top:8px}
 
 /* Aksiyon butonları — Minimal */
-.yanki-actions{display:flex;gap:2px;margin:4px -4px 0}
-.yanki-action{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:calc(var(--font-size) - 3px);cursor:pointer;padding:5px 10px;border-radius:20px;transition:all .15s;user-select:none;flex:1;justify-content:center}
+.yanki-actions{display:flex;gap:2px;margin:8px -4px 0;padding-top:8px;border-top:1px solid var(--border)}
+.yanki-action{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:calc(var(--font-size) - 3px);cursor:pointer;padding:5px 10px;border-radius:20px;transition:all .2s;user-select:none;flex:1;justify-content:center;position:relative}
 .yanki-action:hover{background:var(--accent-hover);color:var(--accent)}
+.yanki-action[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);backdrop-filter:blur(8px);color:#fff;font-size:10px;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;animation:fadeIn .15s ease}
 .yanki-action.liked{color:var(--accent2)}.yanki-action.liked .action-icon{animation:heartPop .4s cubic-bezier(.34,1.56,.64,1)}
 .yanki-action.saved{color:var(--accent)}
 .yanki-action.reyanked{color:#22c55e}
 
 /* Hover glow + lift */
-.yanki{transition:background .15s,transform .2s,box-shadow .2s}
-.yanki:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.yanki{transition:all .25s ease,transform .2s,box-shadow .2s}
+.yanki:hover{background:var(--hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.1),0 0 20px var(--accent-glow);border-color:var(--accent)}
 
 /* Çift tıkla beğen animasyonu */
 @keyframes doubleTapHeart{0%{transform:scale(0) translate(-50%,-50%);opacity:1}50%{transform:scale(1.2) translate(-50%,-50%);opacity:1}100%{transform:scale(1.4) translate(-50%,-50%);opacity:0}}
@@ -202,9 +227,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 /* Reaksiyon bar */
 .yanki-reactions{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}
-.yanki-reaction-btn{display:inline-flex;align-items:center;gap:3px;background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:12px;cursor:pointer;transition:all .15s;user-select:none}
-.yanki-reaction-btn:hover{border-color:var(--accent-focus);background:var(--accent-hover)}
-.yanki-reaction-btn.active{border-color:var(--accent);background:var(--accent-soft)}
+.yanki-reaction-btn{display:inline-flex;align-items:center;gap:3px;background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:12px;cursor:pointer;transition:all .2s;user-select:none;backdrop-filter:blur(8px)}
+.yanki-reaction-btn:hover{border-color:var(--accent);background:var(--accent-active)}
+.yanki-reaction-btn.active{border-color:var(--accent);background:var(--accent-active);box-shadow:0 0 8px var(--accent-glow)}
 .yanki-reaction-btn .r-count{font-size:11px;color:var(--muted);font-weight:600}
 .yanki-react-add{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--elevated);border:1px dashed var(--border);border-radius:50%;font-size:12px;cursor:pointer;transition:all .15s;opacity:.6}
 .yanki-react-add:hover{opacity:1;border-color:var(--accent);background:var(--accent-hover)}
@@ -261,7 +286,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .yanki-menu{position:relative;z-index:1}
 .yanki-menu-btn{padding:5px 8px;color:var(--muted);cursor:pointer;border-radius:16px;transition:all .15s;opacity:.6}
 .yanki-menu-btn:hover{background:var(--accent-hover);color:var(--text);opacity:1}
-.yanki-dropdown{position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;min-width:160px;display:none;z-index:999;box-shadow:0 12px 32px rgba(0,0,0,.5);backdrop-filter:blur(16px)}
+.yanki-dropdown{position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;min-width:160px;max-width:200px;display:none;z-index:999;box-shadow:0 12px 32px rgba(0,0,0,.25);backdrop-filter:blur(16px)}
 .yanki-dropdown.show{display:block;animation:fadeIn .12s ease}
 .yanki-dropdown-item{padding:9px 14px;border-radius:8px;font-size:12px;cursor:pointer;transition:background .1s}
 .yanki-dropdown-item:hover{background:var(--hover)}
@@ -358,13 +383,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .profile-badge-item::after{content:attr(data-label);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);padding:3px 8px;border-radius:6px;font-size:9px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;color:var(--text);z-index:50}
 .profile-badge-item:hover::after{opacity:1}
 
-/* Öne çıkan yankılar */
-.profile-featured{display:flex;gap:10px;overflow-x:auto;padding:12px 12px 4px;scrollbar-width:none;animation:pfFadeUp .5s .4s both}
+/* Öne çıkan yankılar — Yatay carousel */
+.profile-featured-wrap{position:relative;overflow:visible;padding:8px 0}
+.profile-featured-label{padding:6px 12px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(181,114,129,.06),transparent);border-radius:8px}
+.profile-featured-label::after{content:'';flex:1;height:1.5px;background:linear-gradient(90deg,var(--accent),transparent)}
+.profile-featured{display:flex;gap:12px;overflow-x:auto;overflow-y:visible;padding:12px 12px;scrollbar-width:none;animation:pfFadeUp .5s .4s both;scroll-behavior:smooth}
 .profile-featured::-webkit-scrollbar{display:none}
-.profile-featured-card{min-width:200px;max-width:240px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;flex-shrink:0;cursor:pointer;transition:all .3s}
-.profile-featured-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px var(--accent-glow)}
-.profile-featured-text{font-size:12px;color:var(--dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.profile-featured-stats{display:flex;gap:10px;margin-top:8px;font-size:10px;color:var(--muted)}
+@keyframes featuredScroll{0%{transform:translateX(0)}100%{transform:translateX(calc(-50%))}}
+.profile-featured.auto-scroll{animation:featuredScroll 20s linear infinite}
+.profile-featured.auto-scroll:hover{animation-play-state:paused}
+.profile-featured-card{min-width:220px;max-width:260px;background:linear-gradient(135deg,rgba(181,114,129,.08) 0%,rgba(169,17,1,.06) 100%);backdrop-filter:blur(12px);border:1.5px solid rgba(181,114,129,.25);border-radius:16px;padding:14px 16px;flex-shrink:0;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(181,114,129,.08)}
+.profile-featured-card::before{content:'⭐';position:absolute;top:8px;right:10px;font-size:12px;opacity:.7;filter:drop-shadow(0 0 4px rgba(255,215,0,.4))}
+.profile-featured-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient);border-radius:16px 16px 0 0}
+.profile-featured-card:hover{border-color:var(--accent);transform:translateY(-3px) scale(1.02);box-shadow:0 8px 28px var(--accent-glow),0 0 16px rgba(181,114,129,.12)}
+.profile-featured-text{font-size:12px;color:var(--text);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.profile-featured-stats{display:flex;gap:12px;margin-top:10px;font-size:10px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border)}
 .profile-featured-stats span{display:flex;align-items:center;gap:3px}
 .profile-featured-empty{padding:16px 12px;font-size:12px;color:var(--muted);text-align:center}
 
@@ -784,6 +817,52 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .reply:hover{opacity:1}
 .comment-form{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
 .comment-input{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:22px;padding:10px 16px;color:var(--text);font-size:13px;font-family:inherit;transition:border-color .2s,box-shadow .2s}.comment-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+/* ── Reyankı Popup ── */
+.reyanki-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:99999;display:none;align-items:center;justify-content:center;padding:24px}
+.reyanki-popup-overlay.show{display:flex;animation:fadeIn .15s ease}
+.reyanki-popup{width:100%;max-width:480px;background:var(--card);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 80px rgba(0,0,0,.3),0 0 40px var(--accent-glow);overflow:hidden;animation:slideUp .2s ease}
+.reyanki-popup-header{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border)}
+.reyanki-popup-icon{width:40px;height:40px;border-radius:14px;background:rgba(34,197,139,.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.reyanki-popup-title{font-size:16px;font-weight:700;color:var(--text)}
+.reyanki-popup-subtitle{font-size:12px;color:var(--dim);margin-top:2px}
+.reyanki-popup-close{margin-left:auto;width:32px;height:32px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);cursor:pointer;font-size:14px;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.reyanki-popup-close:hover{background:rgba(239,68,68,.15);color:var(--error);border-color:rgba(239,68,68,.3)}
+.reyanki-popup-preview{margin:16px 20px;background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:14px;font-size:13px;color:var(--dim);line-height:1.6;max-height:120px;overflow:hidden}
+.reyanki-popup-compose{padding:0 20px 12px}
+.reyanki-popup-textarea{width:100%;min-height:60px;max-height:100px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:12px 14px;color:var(--text);font-size:14px;font-family:var(--font);resize:none;line-height:1.6;transition:border-color .2s}
+.reyanki-popup-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus)}
+.reyanki-popup-textarea::placeholder{color:var(--muted)}
+.reyanki-popup-tools{display:flex;gap:4px;padding:8px 20px;align-items:center}
+.reyanki-popup-tool{width:30px;height:30px;border-radius:10px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;color:var(--accent);opacity:.6;transition:all .15s}
+.reyanki-popup-tool:hover{background:rgba(181,114,129,.12);opacity:1}
+.reyanki-popup-charcount{margin-left:auto;font-size:11px;color:var(--muted)}
+.reyanki-popup-divider{height:1px;margin:4px 20px;background:linear-gradient(90deg,transparent,rgba(181,114,129,.15),transparent)}
+.reyanki-popup-tabs{display:flex;gap:0;padding:0 20px;margin-bottom:4px}
+.reyanki-popup-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.reyanki-popup-tab:hover{color:var(--dim)}
+.reyanki-popup-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.reyanki-popup-actions{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border)}
+.reyanki-popup-btn{flex:1;padding:12px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s;text-align:center}
+.reyanki-popup-btn.cancel{background:transparent;border:1px solid var(--border);color:var(--text)}
+.reyanki-popup-btn.cancel:hover{background:var(--elevated);border-color:var(--accent)}
+.reyanki-popup-btn.primary{background:var(--gradient);border:none;color:#fff;font-weight:700;box-shadow:0 4px 16px var(--glow)}
+.reyanki-popup-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--glow)}
+.reyanki-popup-btn.quote-btn{background:rgba(181,114,129,.15);border:1px solid rgba(181,114,129,.3);color:var(--accent);font-weight:700}
+.reyanki-popup-btn.quote-btn:hover{background:rgba(181,114,129,.25);border-color:rgba(181,114,129,.5)}
+/* ── Yorum Composer Yeni ── */
+.comment-composer{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;background:var(--card)}
+.comment-composer-body{flex:1;display:flex;flex-direction:column;gap:0}
+.comment-composer-textarea{width:100%;min-height:44px;max-height:120px;background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--font);resize:none;line-height:1.6;transition:all .2s}
+.comment-composer-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus);background:var(--hover)}
+.comment-composer-textarea::placeholder{color:var(--muted)}
+.comment-composer-preview{margin-top:6px;padding:6px 10px;background:var(--elevated);border-radius:10px;border:1px dashed var(--border);font-size:12px;color:var(--muted);line-height:1.5;display:none}
+.comment-composer-preview.has-content{display:block}
+.comment-composer-tools{display:flex;align-items:center;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.comment-composer-tool{width:28px;height:28px;border-radius:8px;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.comment-composer-tool:hover{background:var(--accent-active);border-color:var(--accent)}
+.comment-composer-charcount{font-size:11px;color:var(--muted);margin-left:auto}
+.comment-composer-send{padding:6px 16px;border-radius:14px;background:var(--gradient);border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:6px;transition:all .2s;box-shadow:0 2px 8px var(--glow)}
+.comment-composer-send:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--glow)}
 .search-box{padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:49px;background:var(--bg);z-index:40}
 .search-input{width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:24px;padding:12px 18px;color:var(--text);font-size:14px}
 .search-input:focus{outline:none;border-color:var(--accent)}
@@ -1163,10 +1242,67 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .sv-emoji-opt.on{background:var(--elevated);border-color:var(--accent)}
 
 /* ── FEED SEKMELERİ ── */
-.feed-tabs-bar{display:flex;border-bottom:1px solid var(--border);background:rgba(6,7,15,.96);position:sticky;top:49px;z-index:8;flex-shrink:0}
-.feed-tab-item{flex:1;padding:13px 6px;text-align:center;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .18s;letter-spacing:.01em}
+/* ── Tab Navigasyonu (Animated) ── */
+.feed-tabs-bar{display:flex;border-bottom:1px solid var(--border);background:var(--bg);backdrop-filter:blur(12px);position:sticky;top:49px;z-index:8;flex-shrink:0}
+.feed-tab-item{flex:1;padding:13px 6px;text-align:center;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:color .2s;letter-spacing:.01em;position:relative}
 .feed-tab-item:hover{color:var(--text);background:var(--accent-hover)}
-.feed-tab-item.on{color:var(--text);border-bottom-color:var(--accent2);font-weight:600}
+.feed-tab-item.on{color:var(--text);font-weight:600}
+.tab-badge{position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:var(--accent2);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:badgePop .3s ease}
+.feed-tab-indicator{position:absolute;bottom:0;height:2.5px;background:var(--gradient);border-radius:2px;transition:left .3s cubic-bezier(.4,0,.2,1),width .3s cubic-bezier(.4,0,.2,1);z-index:2}
+.feed-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:var(--accent2);color:#fff;font-size:9px;font-weight:700;margin-left:4px;padding:0 4px;line-height:1}
+/* ── Scroll Progress Bar ── */
+.scroll-progress{position:fixed;top:0;left:0;height:2px;background:var(--gradient);z-index:99998;transition:width .1s linear;width:0;pointer-events:none}
+/* ── Back to Top ── */
+.back-to-top{position:fixed;bottom:24px;right:24px;width:42px;height:42px;border-radius:50%;background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:9998;opacity:0;transform:translateY(20px);transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none}
+.back-to-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.back-to-top:hover{background:var(--accent-active);border-color:var(--accent);transform:translateY(-2px)}
+/* ── Skeleton Loading ── */
+@keyframes skeletonPulse{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+.skeleton-card{padding:14px 18px;border-bottom:1px solid var(--border)}
+.skeleton-row{display:flex;gap:12px}
+.skeleton-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(90deg,var(--elevated) 0px,var(--hover) 40px,var(--elevated) 80px);background-size:200px 100%;animation:skeletonPulse 1.5s infinite;flex-shrink:0}
+.skeleton-lines{flex:1;display:flex;flex-direction:column;gap:8px}
+.skeleton-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--elevated) 0px,var(--hover) 40px,var(--elevated) 80px);background-size:200px 100%;animation:skeletonPulse 1.5s infinite}
+.skeleton-line.short{width:60%}
+.skeleton-line.medium{width:80%}
+.skeleton-actions{display:flex;gap:24px;margin-top:10px}
+.skeleton-action{width:40px;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--elevated) 0px,var(--hover) 40px,var(--elevated) 80px);background-size:200px 100%;animation:skeletonPulse 1.5s infinite}
+/* ── Feed Suggest Card ── */
+.feed-suggest-wrap{padding:14px 18px;border-bottom:1px solid var(--border)}
+.feed-suggest-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;letter-spacing:.5px}
+.feed-suggest-list{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.feed-suggest-list::-webkit-scrollbar{display:none}
+.feed-suggest-item{min-width:140px;background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:14px 12px;text-align:center;flex-shrink:0;cursor:pointer;transition:all .2s}
+.feed-suggest-item:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.feed-suggest-item .avatar{margin:0 auto 8px}
+.feed-suggest-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-suggest-handle{font-size:10px;color:var(--muted);margin-bottom:8px}
+.feed-suggest-btn{padding:5px 14px;border-radius:14px;background:var(--gradient);border:none;color:#fff;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s}
+.feed-suggest-btn:hover{box-shadow:0 2px 8px var(--glow)}
+/* ── Pinned Yankı ── */
+.pinned-frame{border:1px solid rgba(255,215,0,.2);background:rgba(255,215,0,.03);position:relative}
+.pinned-frame::before{content:'📌 Sabitlenmiş';position:absolute;top:-10px;left:16px;background:var(--bg);padding:0 8px;font-size:10px;color:rgba(255,215,0,.7);font-weight:600;letter-spacing:.5px}
+/* ── Sidebar Sparkline ── */
+.sparkline{display:inline-block;vertical-align:middle;margin-left:6px}
+.sparkline-bar{display:inline-block;width:3px;border-radius:1.5px;background:var(--accent);opacity:.6;margin-right:1px;vertical-align:bottom}
+/* ── Live Activity Feed ── */
+.live-activity{max-height:260px;overflow-y:auto;scrollbar-width:thin}
+.live-activity-item{display:flex;align-items:flex-start;gap:10px;padding:10px 8px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border);cursor:pointer;border-radius:10px;transition:background .15s}
+.live-activity-item:hover{background:var(--accent-hover)}
+.live-activity-item:last-child{border-bottom:none}
+.live-activity-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative}
+.live-activity-avatar img{width:100%;height:100%;object-fit:cover}
+.live-activity-avatar .la-icon{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:8px;border:1px solid var(--border)}
+.live-activity-body{flex:1;min-width:0;line-height:1.5}
+.live-activity-name{font-weight:600;color:var(--text);font-size:11px}
+.live-activity-desc{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-activity-meta{display:flex;align-items:center;gap:6px;margin-top:2px}
+.live-activity-time{font-size:9px;color:var(--muted);flex-shrink:0}
+.live-activity-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.live-activity-dot.like{background:#ef4444}.live-activity-dot.comment{background:#3b82f6}.live-activity-dot.follow{background:#22c58b}.live-activity-dot.reyanki{background:#f5b83a}.live-activity-dot.mention{background:#8b5cf6}
+/* ── Theme Transition ── */
+*{transition-property:background-color,border-color,color,box-shadow;transition-duration:0s}
+.theme-transitioning *{transition-duration:.3s!important}
 
 /* ── YENİ YANKI BANDI ── */
 #new-yanki-band{background:var(--gradient);color:#fff;text-align:center;padding:9px;font-size:12.5px;font-weight:700;cursor:pointer;position:sticky;top:calc(49px + 44px);z-index:44;display:none;align-items:center;justify-content:center;gap:8px;letter-spacing:.02em;box-shadow:0 4px 20px var(--glow)}
@@ -1275,6 +1411,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <p class="auth-switch">Hesabın var mı? <a onclick="showScreen('login')">Giriş Yap</a></p>
 </div></div></div>
 
+<!-- Scroll Progress Bar -->
+<div class="scroll-progress" id="scroll-progress"></div>
+<!-- Back to Top -->
+<div class="back-to-top" id="back-to-top" onclick="scrollToTop()">↑</div>
+
 <div id="screen-dashboard" class="screen">
 <div class="dashboard-container">
 <div class="sidebar">
@@ -1317,11 +1458,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="panel active" id="panel-home">
 
 <!-- FEED SEKMELERİ -->
-<div class="feed-tabs-bar">
+<div class="feed-tabs-bar" id="feed-tabs-bar">
   <div class="feed-tab-item on" id="ftab-following" onclick="setFeedTab('following',this)">Takipler</div>
   <div class="feed-tab-item" id="ftab-smart" onclick="setFeedTab('smart',this)">✦ Gündem</div>
   <div class="feed-tab-item" id="ftab-explore" onclick="setFeedTab('explore',this)">Keşfet</div>
   <div class="feed-tab-item" id="ftab-media" onclick="setFeedTab('media',this)">Medya</div>
+  <div class="feed-tab-indicator" id="feed-tab-indicator"></div>
 </div>
 
 <!-- YENİ YANKI BANDI -->
@@ -1329,14 +1471,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <span>↑</span> <span id="new-yanki-count">0</span> yeni yankı var — görmek için tıkla
 </div>
 
-<!-- COMPOSER -->
+<!-- COMPOSER - Floating Bubble -->
 <div class="composer">
+<div class="composer-wrap">
 <div class="composer-row">
-<div class="avatar" id="composer-avatar">👤</div>
+<div class="avatar" id="composer-avatar" style="border-radius:16px;box-shadow:0 4px 12px rgba(169,17,1,.2)">👤</div>
 <div class="composer-body">
+<!-- Mood bar -->
+<div class="composer-mood">
+  <span class="composer-mood-item" onclick="selectComposerMood(this,'😊')" title="Mutlu">😊</span>
+  <span class="composer-mood-item" onclick="selectComposerMood(this,'🔥')" title="Motive">🔥</span>
+  <span class="composer-mood-item" onclick="selectComposerMood(this,'🤔')" title="Düşünceli">🤔</span>
+  <span class="composer-mood-item" onclick="selectComposerMood(this,'😢')" title="Üzgün">😢</span>
+  <span class="composer-mood-item" onclick="selectComposerMood(this,'😂')" title="Eğlenceli">😂</span>
+  <span class="composer-mood-item" onclick="selectComposerMood(this,'💻')" title="Kodluyor">💻</span>
+</div>
 <!-- Thread items buraya eklenir -->
 <div id="thread-items-wrap"></div>
-<textarea class="composer-input" id="yanki-input" placeholder="Neler oluyor?" oninput="updateChar()"></textarea>
+<textarea class="composer-input" id="yanki-input" placeholder="Neler oluyor?" oninput="updateChar();updateLivePreview()"></textarea>
+<!-- Canlı önizleme -->
+<div class="composer-live-preview" id="composer-preview"></div>
 <div id="image-preview"></div>
 <div id="poll-creator"></div>
 <!-- Zamanlama -->
@@ -1347,19 +1501,34 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
     <span class="schedule-cancel" onclick="cancelSchedule()" title="İptal">✕</span>
   </div>
 </div>
+</div></div>
+<!-- Draft indicator -->
+<div class="composer-draft" id="composer-draft">
+  <span class="composer-draft-dot"></span>
+  Taslak otomatik kaydedildi
+</div>
 <div class="composer-tools">
-<button class="tool-btn" onclick="formatText('bold')" title="Kalın"><b>B</b></button>
-<button class="tool-btn" onclick="formatText('italic')" title="İtalik"><i>I</i></button>
 <button class="tool-btn" onclick="triggerImageUpload()" title="Resim">🖼️</button>
 <button class="tool-btn" onclick="togglePollCreator()" title="Anket">📊</button>
-<button class="tool-btn" id="thread-btn" onclick="toggleThreadMode()" title="Thread/İplik">🧵</button>
-<button class="tool-btn" id="draft-btn" onclick="saveDraftBtn()" title="Taslak kaydet">💾</button>
+<button class="tool-btn" id="thread-btn" onclick="toggleThreadMode()" title="Thread">🧵</button>
 <button class="tool-btn" id="schedule-btn" onclick="toggleSchedule()" title="Zamanla">⏰</button>
-<div class="tool-btn" onclick="toggleEmoji(event)" style="position:relative">😊<div class="emoji-picker" id="emoji-picker"></div></div>
+<div class="tool-btn" onclick="toggleEmoji(event)" style="position:relative" title="Emoji">😊<div class="emoji-picker" id="emoji-picker"></div></div>
+<button class="tool-btn" id="draft-btn" onclick="saveDraftBtn()" title="Taslak">💾</button>
+<button class="tool-btn" onclick="formatText('bold')" title="Kalın"><b>B</b></button>
+<button class="tool-btn" onclick="formatText('italic')" title="İtalik"><i>I</i></button>
 <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+<!-- Circular char counter -->
+<div class="char-ring" id="char-ring">
+  <svg width="28" height="28" viewBox="0 0 28 28">
+    <circle class="ring-bg" cx="14" cy="14" r="11" fill="none" stroke-width="2.2"/>
+    <circle class="ring-fill" id="char-ring-fill" cx="14" cy="14" r="11" fill="none" stroke-width="2.2" stroke-dasharray="69.1" stroke-dashoffset="69.1"/>
+  </svg>
+  <span class="char-ring-text" id="char-ring-text">0</span>
+</div>
 <span class="char-count" id="char-count">0/500</span>
 <button class="btn-yanki" id="btn-post" onclick="postYanki()" disabled>Yankıla</button>
-</div></div></div></div>
+</div>
+</div></div>
 
 <div id="home-feed"></div>
 </div>
@@ -1694,6 +1863,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <span class="trend-cat-filter" onclick="setTrendCat('seyahat',this)">✈️ Seyahat</span>
 </div>
 <div id="trending-list"></div>
+</div>
+<!-- Sana Özel Kişi Önerileri -->
+<div class="side-box" id="sidebar-suggest-box">
+  <div class="side-title">👤 Sana Özel</div>
+  <div id="sidebar-suggest-list" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+<!-- Canlı Aktivite -->
+<div class="side-box" id="sidebar-activity-box">
+  <div class="side-title">⚡ Canlı Aktivite</div>
+  <div class="live-activity" id="live-activity-list"></div>
 </div>
 </div>
 </div></div><!-- dashboard-container -->
@@ -2035,6 +2214,7 @@ const init=()=>{
   setTimeout(()=>{
     if(typeof _bandSnapshot!=='undefined') _bandSnapshot=Date.now();
     if(typeof startNewBandPoller==='function') startNewBandPoller();
+    if(typeof initHomepageFeatures==='function') initHomepageFeatures();
   }, 100);
   // Gamification & Settings
   loadGameData();
@@ -2056,7 +2236,7 @@ const dmUpdateBadge = async () => {
 // Emoji picker ve react picker click-outside
 // dm click → unified handler
 const applyTheme=()=>{const light=user.theme==='light';document.documentElement.setAttribute('data-theme',light?'light':'dark');$('theme-toggle')?.classList.toggle('on',light)};
-const toggleTheme=async()=>{user.theme=user.theme==='light'?'dark':'light';await api('/profile/update',{userId:user.id,theme:user.theme});localStorage.setItem('yankus-user',JSON.stringify(user));applyTheme()};
+const toggleTheme=async()=>{user.theme=user.theme==='light'?'dark':'light';await api('/profile/update',{userId:user.id,theme:user.theme});localStorage.setItem('yankus-user',JSON.stringify(user));if(typeof smoothThemeToggle==='function')smoothThemeToggle(user.theme==='light'?'light':'dark');else applyTheme();$('theme-toggle')?.classList.toggle('on',user.theme==='light')};
 const initEmojis=()=>{$('emoji-picker').innerHTML=emojis.map(e=>`<div class="emoji-item" onclick="insertEmoji('${e}')">${e}</div>`).join('')};
 const toggleEmoji=e=>{e.stopPropagation();$('emoji-picker').classList.toggle('show')};
 const insertEmoji=e=>{$('yanki-input').value+=e;updateChar();$('emoji-picker').classList.remove('show')};
@@ -2085,9 +2265,10 @@ const goPanel=(name,add=true)=>{
 const goBack=()=>{if(navStack.length>1){navStack.pop();goPanel(navStack[navStack.length-1],false)}};
 
 // Feed
+const skeletonHTML=()=>`${[1,2,3,4].map(()=>`<div class="skeleton-card"><div class="skeleton-row"><div class="skeleton-avatar"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div><div class="skeleton-actions"><div class="skeleton-action"></div><div class="skeleton-action"></div><div class="skeleton-action"></div></div></div></div></div>`).join('')}`;
 const loadFeed=async(algo)=>{
   const a=algo||feedTab||'following';
-  $('home-feed').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
+  $('home-feed').innerHTML=skeletonHTML();
   let r;
   if(a==='explore'||a==='media'){
     r=await api('/feed',{userId:user.id,algo:a});
@@ -2099,6 +2280,8 @@ const loadFeed=async(algo)=>{
   renderYankis(r.yankis||[],'home-feed');
   // Band sıfırla
   newBandCount=0;$('new-yanki-band').classList.remove('visible');
+  // Tab indicator'ı feed yüklendikten sonra güncelle
+  if(typeof initTabIndicator==='function') initTabIndicator();
 };
 const loadExplore=async()=>{
   $('explore-content').innerHTML='';
@@ -2423,6 +2606,8 @@ const renderYankis=(yankis,cid,emptyMsg='Henüz yankı yok',append=false)=>{
   }
   if(append) c.insertAdjacentHTML('beforeend',yankis.map(yankiCard).join(''));
   else c.innerHTML=yankis.map(yankiCard).join('');
+  // Feed'e suggest card ekle (3. karttan sonra, sadece home-feed'de)
+  if(cid==='home-feed'&&yankis.length>=3&&!append){injectFeedSuggest(c);}
 };
 const formatYankiText=t=>t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/(#[\wğüşıöçĞÜŞİÖÇ]+)/gi,m=>`<span class="tag hashtag-tag" data-tag="${m}">${m}</span>`).replace(/(@[\wğüşıöçĞÜŞİÖÇ_]+)/gi,m=>`<span class="tag mention-tag" data-user="${m.slice(1)}" onclick="event.stopPropagation();goUser('${m}')">${m}</span>`);
 const readTime=t=>{const w=(t||'').split(/\s+/).length;return w>30?`${Math.ceil(w/200)} dk okuma`:'';};
@@ -2457,6 +2642,7 @@ const yankiCard=y=>{
               ${y.userId===user.id
                 ?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>
                   <div class="yanki-dropdown-item" onclick="pinYanki('${y.id}')">${y.pinned?'📌 Sabiti Kaldır':'📌 Sabitle'}</div>
+                  <div class="yanki-dropdown-item" onclick="toggleFeatured('${y.id}')">${y.featured?'⭐ Öne Çıkarmayı Kaldır':'⭐ Öne Çıkar'}</div>
                   <div class="yanki-dropdown-item danger" onclick="deleteYanki('${y.id}')">🗑 Sil</div>`
                 :`<div class="yanki-dropdown-item" onclick="openChat('${y.userId}')">💬 Mesaj</div>
                   <div class="yanki-dropdown-item" onclick="reportYanki('${y.id}')">🚨 Şikayet Et</div>
@@ -2492,19 +2678,19 @@ const yankiCard=y=>{
       ${y.poll?renderPoll(y.poll,y.id):''}
       ${reactionsHtml?`<div class="yanki-reactions" onclick="event.stopPropagation()">${reactionsHtml}<span class="yanki-react-add" onclick="toggleReactPicker('${y.id}',this)" title="Tepki ekle">+</span><div class="react-picker" id="rpick-${y.id}">${REACTION_EMOJIS.map(e=>`<span onclick="toggleReaction('${y.id}','${e}');closeReactPickers()">${e}</span>`).join('')}</div></div>`:''}
       <div class="yanki-actions" onclick="event.stopPropagation()">
-        <div class="yanki-action" onclick="openYanki('${y.id}')">
+        <div class="yanki-action" onclick="openYanki('${y.id}')" title="Yorum">
           <span class="action-icon">💬</span><span class="action-count">${y.commentCount||0}</span>
         </div>
-        <div class="yanki-action ${y.isReyanked?'reyanked':''}" onclick="showReyankiMenu('${y.id}',event)">
+        <div class="yanki-action ${y.isReyanked?'reyanked':''}" onclick="showReyankiMenu('${y.id}',event)" title="Reyankı">
           <span class="action-icon">🔁</span><span class="action-count">${y.reyankiCount||0}</span>
         </div>
-        <div class="yanki-action ${y.isLiked?'liked':''}" onclick="likeYanki('${y.id}',this)">
+        <div class="yanki-action ${y.isLiked?'liked':''}" onclick="likeYanki('${y.id}',this)" title="Beğen">
           <span class="action-icon">❤️</span><span class="action-count like-count-${y.id}">${y.likes||0}</span>
         </div>
         <div class="yanki-action" onclick="toggleReactPicker('${y.id}',this)" style="flex:0" title="Tepki">
           <span class="action-icon">😊</span>
         </div>
-        <div class="yanki-action ${y.isSaved?'saved':''}" onclick="saveYanki('${y.id}',this)">
+        <div class="yanki-action ${y.isSaved?'saved':''}" onclick="saveYanki('${y.id}',this)" title="Kaydet">
           <span class="action-icon">🔖</span>
         </div>
         <div class="yanki-action" onclick="showShareMenu('${y.id}',event)" style="flex:0;position:relative" title="Paylaş">
@@ -2522,6 +2708,7 @@ const yankiCard=y=>{
 const renderPoll=(p,yid)=>`<div class="yanki-poll">${p.options.map(o=>`<div class="poll-option-vote"><div class="poll-option-bar ${p.myVote===o.id?'voted':''}" onclick="event.stopPropagation();${p.myVote||p.expired?'':`votePoll('${p.id}','${o.id}','${yid}')`}"><div class="poll-option-fill" style="width:${p.totalVotes?(o.votes/p.totalVotes*100):0}%"></div><div class="poll-option-text"><span>${o.text}</span><span>${p.totalVotes?Math.round(o.votes/p.totalVotes*100):0}%</span></div></div></div>`).join('')}<div class="poll-info">${p.totalVotes} oy${p.expired?' · Sona erdi':''}</div></div>`;
 
 // Composer
+let _composerMood=null;
 const updateChar=()=>{
   const l=$('yanki-input').value.length;
   $('char-count').textContent=l+'/500';
@@ -2529,6 +2716,35 @@ const updateChar=()=>{
   const validPoll=pollOptions.filter(o=>o.trim()).length>=2;
   const hasContent=threadMode?threadItems.some(t=>t.trim())||l>0:(l>0||!!selectedImage||validPoll);
   $('btn-post').disabled=(!hasContent)||(l>500);
+  // Circular ring update
+  const pct=Math.min(l/500,1);
+  const fill=document.getElementById('char-ring-fill');
+  const txt=document.getElementById('char-ring-text');
+  if(fill){fill.setAttribute('stroke-dashoffset',69.1-(69.1*pct));fill.style.stroke=l>500?'#ef4444':l>450?'var(--accent2)':'var(--accent)';}
+  if(txt)txt.textContent=l;
+  // Draft indicator
+  const draft=document.getElementById('composer-draft');
+  if(draft){if(l>0){draft.classList.add('show')}else{draft.classList.remove('show')}}
+};
+const updateLivePreview=()=>{
+  const text=$('yanki-input')?.value?.trim()||'';
+  const preview=document.getElementById('composer-preview');
+  if(!preview)return;
+  if(!text){preview.classList.remove('has-content');preview.innerHTML='';return;}
+  // Only show if has hashtag or mention
+  const hasSpecial=/#\S|@\S/.test(text);
+  if(!hasSpecial){preview.classList.remove('has-content');preview.innerHTML='';return;}
+  preview.classList.add('has-content');
+  let html=text.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  html=html.replace(/#(\S+)/g,'<span class="ht">#$1</span>');
+  html=html.replace(/@(\w+)/g,'<span class="mt">@$1</span>');
+  preview.innerHTML=html;
+};
+const selectComposerMood=(el,emoji)=>{
+  document.querySelectorAll('.composer-mood-item').forEach(e=>e.classList.remove('selected'));
+  if(_composerMood===emoji){_composerMood=null;return;}
+  el.classList.add('selected');
+  _composerMood=emoji;
 };
 const formatText=type=>{const i=$('yanki-input'),s=i.selectionStart,e=i.selectionEnd,t=i.value,m=type==='bold'?'**':'*';if(s===e){i.value=t.substring(0,s)+m+m+t.substring(e);i.selectionStart=i.selectionEnd=s+m.length}else{i.value=t.substring(0,s)+m+t.substring(s,e)+m+t.substring(e)}i.focus();updateChar()};
 const triggerImageUpload=()=>$('image-upload').click();
@@ -2602,6 +2818,7 @@ const likeYanki=async(id,el)=>{
 const saveYanki=async(id,el)=>{const r=await api('/yanki/save',{userId:user.id,yankiId:id});if(r.success){el.classList.toggle('saved',r.saved);toast(r.saved?'Kaydedildi':'Kaldırıldı')}};
 const deleteYanki=async id=>askConfirm('Bu yankıyı silmek istiyor musunuz?',async()=>{await api('/yanki/delete',{userId:user.id,yankiId:id});toast('Silindi');loadFeed()});
 const pinYanki=async id=>{const r=await api('/yanki/pin',{userId:user.id,yankiId:id});if(r.success){toast(r.pinned?'Sabitlendi':'Kaldırıldı');loadFeed()}};
+const toggleFeatured=async id=>{const r=await api('/yanki/feature',{userId:user.id,yankiId:id});if(r.success){toast(r.featured?'⭐ Öne çıkarıldı':'Öne çıkarmadan kaldırıldı');loadFeed()}else{toast(r.error||'Hata oluştu','error')}};
 let _reyankiTargetId = null;
 
 const reyanki = async id => {
@@ -2620,26 +2837,110 @@ const reyanki = async id => {
     <div style="color:var(--text)">${text ? formatYankiText(text) : '<span style="color:var(--muted)">Görsel içerik</span>'}</div>`;
   }
   const overlay = document.getElementById('reyanki-modal-overlay');
-  if (overlay) { overlay.style.display = 'flex'; }
+  if (overlay) { overlay.classList.add('show'); }
+  switchReyankiTab('repost');
 };
+
+let _reyankiMode = 'repost'; // 'repost' or 'quote'
 
 const closeReyankiModal = () => {
   const overlay = document.getElementById('reyanki-modal-overlay');
-  if (overlay) overlay.style.display = 'none';
+  if (overlay) overlay.classList.remove('show');
   _reyankiTargetId = null;
+  _reyankiMode = 'repost';
+  const ti = document.getElementById('reyanki-text-input');
+  if(ti) ti.value = '';
+  updateReyankiChar();
 };
 
-const confirmReyanki = async () => {
+const switchReyankiTab = (mode) => {
+  _reyankiMode = mode;
+  const tabRepost = document.getElementById('reyanki-tab-repost');
+  const tabQuote = document.getElementById('reyanki-tab-quote');
+  const composeArea = document.getElementById('reyanki-compose-area');
+  const toolsArea = document.getElementById('reyanki-tools-area');
+  const submitBtn = document.getElementById('reyanki-submit-btn');
+  tabRepost.classList.toggle('active', mode === 'repost');
+  tabQuote.classList.toggle('active', mode === 'quote');
+  composeArea.style.display = mode === 'quote' ? 'block' : 'none';
+  toolsArea.style.display = mode === 'quote' ? 'block' : 'none';
+  submitBtn.innerHTML = mode === 'quote' ? '💬 Alıntıla' : '🔁 Reyankıla';
+  submitBtn.className = mode === 'quote' ? 'reyanki-popup-btn quote-btn' : 'reyanki-popup-btn primary';
+  if(mode === 'quote') document.getElementById('reyanki-text-input')?.focus();
+};
+
+const updateReyankiChar = () => {
+  const ti = document.getElementById('reyanki-text-input');
+  const cc = document.getElementById('reyanki-charcount');
+  if(ti && cc) cc.textContent = (ti.value?.length || 0) + '/500';
+};
+
+const insertReyankiEmoji = (emoji) => {
+  const ti = document.getElementById('reyanki-text-input');
+  if(!ti) return;
+  const start = ti.selectionStart;
+  ti.value = ti.value.slice(0, start) + emoji + ti.value.slice(ti.selectionEnd);
+  ti.selectionStart = ti.selectionEnd = start + emoji.length;
+  ti.focus();
+  updateReyankiChar();
+};
+
+const submitReyanki = async () => {
   if (!_reyankiTargetId) return;
   const id = _reyankiTargetId;
-  closeReyankiModal();
-  const r = await api('/yanki/create', { userId: user.id, text: '', reyanki: id });
-  if (r.error) { toast('Hata: ' + r.error); return; }
-  toast('🔁 Reyankılandı!');
-  loadFeed();
+  if (_reyankiMode === 'quote') {
+    const text = document.getElementById('reyanki-text-input')?.value?.trim();
+    if (!text) { toast('Alıntı için yorum yazın'); return; }
+    closeReyankiModal();
+    const r = await api('/yanki/quote', { yankiId: id, userId: user.id, text });
+    if (r.error) toast('Hata: ' + r.error);
+    else { toast('💬 Alıntı yankı paylaşıldı!'); loadFeed(); }
+  } else {
+    closeReyankiModal();
+    const r = await api('/yanki/create', { userId: user.id, text: '', reyanki: id });
+    if (r.error) { toast('Hata: ' + r.error); return; }
+    toast('🔁 Reyankılandı!');
+    loadFeed();
+  }
 };
 const votePoll=async(pollId,optionIndex,yankiId)=>{const r=await api('/poll/vote',{userId:user.id,yankiId:yankiId||pollId,optionIndex});if(r.success){toast('Oy verildi');openYanki(yankiId||pollId)}else toast(r.error)};
-const toggleMenu=id=>{document.querySelectorAll('.yanki-dropdown').forEach(d=>d.classList.remove('show'));$('menu-'+id)?.classList.toggle('show')};
+let _floatingMenu=null;
+let _floatingMenuId=null;
+const toggleMenu=id=>{
+  // Eski floating menüyü kaldır
+  if(_floatingMenu){_floatingMenu.remove();_floatingMenu=null}
+  const wasOpen=_floatingMenuId===id;
+  _floatingMenuId=null;
+  document.querySelectorAll('.yanki-dropdown').forEach(d=>d.classList.remove('show'));
+  if(wasOpen)return;
+  const dd=$('menu-'+id);
+  if(!dd)return;
+  const btn=dd.closest('.yanki-menu')?.querySelector('.yanki-menu-btn');
+  if(!btn)return;
+  // Dropdown'ı body'e kopyala (overflow sorununu aşmak için)
+  const clone=dd.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.className='yanki-dropdown show';
+  clone.style.cssText='position:fixed;z-index:99999;display:block;animation:fadeIn .12s ease;min-width:160px;max-width:200px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;box-shadow:0 12px 32px rgba(0,0,0,.25);backdrop-filter:blur(16px)';
+  const r=btn.getBoundingClientRect();
+  // Geçici ekle — yükseklik ölçmek için
+  clone.style.visibility='hidden';
+  document.body.appendChild(clone);
+  const ddH=clone.offsetHeight;
+  const ddW=clone.offsetWidth;
+  clone.style.visibility='';
+  // Pozisyon — alta sığmazsa yukarı aç
+  if(r.bottom+4+ddH>window.innerHeight){
+    clone.style.top=(r.top-ddH-4)+'px';
+  } else {
+    clone.style.top=(r.bottom+4)+'px';
+  }
+  // Sol pozisyon — sağa taşmasın
+  const leftPos=r.right-ddW;
+  clone.style.left=Math.max(8,Math.min(leftPos,window.innerWidth-ddW-8))+'px';
+  _floatingMenu=clone;
+  _floatingMenuId=id;
+};
 // ── TEK BİRLEŞİK CLICK HANDLER ──────────────────────────────
 document.addEventListener('click', e => {
   // DM emoji + react picker
@@ -2647,8 +2948,10 @@ document.addEventListener('click', e => {
   if (!e.target.closest('[onclick*="dmShowReactPicker"]') && !e.target.closest('.dm-react-picker'))
     document.querySelectorAll('.dm-react-picker').forEach(p => p.classList.remove('show'));
   // Yanki dropdown
-  if (!e.target.closest('.yanki-menu'))
+  if (!e.target.closest('.yanki-menu') && !e.target.closest('.yanki-dropdown')){
     document.querySelectorAll('.yanki-dropdown').forEach(d => d.classList.remove('show'));
+    if(_floatingMenu){_floatingMenu.remove();_floatingMenu=null;_floatingMenuId=null}
+  }
   // Composer emoji
   if (!e.target.closest('[onclick*="toggleEmoji"]') && !e.target.closest('.emoji-picker'))
     $('emoji-picker')?.classList.remove('show');
@@ -2670,27 +2973,30 @@ const openYanki=async id=>{
   let commentImg=null;
   $('yanki-content').innerHTML=
     `<div class="yanki-detail">${yankiCard(r).replaceAll('onclick="openYanki','onclick="_noop')}</div>`
-    +`<div class="comment-form-rich" id="rich-comment-form-${id}">
+    +`<div class="comment-composer" id="rich-comment-form-${id}">
         <div class="avatar avatar-sm">${avatar(user.profileImage)}</div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
-          <textarea class="comment-input" id="comment-input" placeholder="Yanıtla..." data-id="${id}" data-reply=""
-            oninput="showTypingHint('${id}')" style="resize:none;min-height:44px;max-height:120px"></textarea>
+        <div class="comment-composer-body">
+          <textarea class="comment-composer-textarea" id="comment-input" placeholder="Yanıtını yaz..." data-id="${id}" data-reply=""
+            oninput="onCommentInput('${id}')" style="resize:none"></textarea>
+          <div class="comment-composer-preview" id="comment-preview-${id}"></div>
           <div id="comment-img-preview-${id}" style="display:none">
-            <img id="cip-img-${id}" style="max-height:100px;border-radius:10px;max-width:200px">
-            <span onclick="clearCommentImg('${id}')" style="cursor:pointer;color:var(--accent2);font-size:18px;margin-left:6px">✕</span>
+            <img id="cip-img-${id}" style="max-height:80px;border-radius:10px;max-width:180px">
+            <span onclick="clearCommentImg('${id}')" style="cursor:pointer;color:var(--accent2);font-size:16px;margin-left:6px">✕</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);padding-top:8px">
-            <label style="cursor:pointer;width:28px;height:28px;border-radius:8px;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid var(--border);flex-shrink:0" title="Fotoğraf ekle">
+          <div class="comment-composer-tools">
+            <label class="comment-composer-tool" title="Fotoğraf">
               📷<input type="file" accept="image/*" style="display:none" onchange="previewCommentImg(this,'${id}')">
             </label>
-            <button onclick="postCommentLike('${id}')" style="width:28px;height:28px;border-radius:8px;background:var(--elevated);border:1px solid var(--border);cursor:pointer;font-size:14px;flex-shrink:0" title="Beğen">❤️</button>
-            <span id="typing-hint-${id}" style="font-size:11px;color:var(--muted);flex:1"></span>
-            <span class="char-count" id="cc-${id}">0/500</span>
-            <button class="btn btn-sm btn-follow" onclick="postComment('${id}')">Gönder</button>
+            <div class="comment-composer-tool" onclick="postCommentLike('${id}')" title="Beğen">❤️</div>
+            <div class="comment-composer-tool" onclick="insertCommentEmoji('${id}','😊')" title="Emoji">😊</div>
+            <div class="comment-composer-tool" onclick="insertCommentEmoji('${id}','🔥')">🔥</div>
+            <span id="typing-hint-${id}" style="font-size:11px;color:var(--muted)"></span>
+            <span class="comment-composer-charcount" id="cc-${id}">0/500</span>
+            <button class="comment-composer-send" onclick="postComment('${id}')">Gönder</button>
           </div>
         </div>
       </div>`
-    +(r.comments||[]).map(cm=>`<div class="comment"><div class="comment-row"><div class="avatar avatar-sm">${avatar(cm.profileImage)}</div><div class="comment-body"><div class="yanki-user"><span class="yanki-name">${cm.displayName}</span>${cm.isBot?'<span class="yanki-bot">BOT</span>':''}<span class="yanki-handle">@${cm.username}</span></div><div class="comment-text">${formatYankiText(cm.text)}</div><div style="display:flex;gap:10px;margin-top:4px"><span class="comment-action" onclick="replyTo('${cm.id}','${cm.username}')">Yanıtla</span></div></div></div>${(cm.replies||[]).map(rep=>`<div class="comment reply"><div class="comment-row"><div class="avatar avatar-sm">${avatar(rep.profileImage)}</div><div class="comment-body"><div class="yanki-user"><span class="yanki-name">${rep.displayName}</span></div><div class="comment-text">${formatYankiText(rep.text)}</div></div></div></div>`).join('')}</div>`).join('');
+    +(r.comments||[]).map(cm=>`<div class="comment"><div class="comment-row"><div class="avatar avatar-sm">${avatar(cm.profileImage)}</div><div class="comment-body"><div class="yanki-user"><span class="yanki-name">${cm.displayName}</span>${cm.isBot?'<span class="yanki-bot">BOT</span>':''}<span class="yanki-handle">@${cm.username}</span></div><div class="comment-text">${formatYankiText(cm.text)}</div><div style="display:flex;gap:10px;margin-top:4px"><span class="comment-action" onclick="replyTo('${cm.id}','${cm.username}')">Yanıtla</span><span class="comment-action" onclick="reyankiComment('${cm.id}','${cm.text}','${cm.username}')">🔁 Reyankıla</span></div></div></div>${(cm.replies||[]).map(rep=>`<div class="comment reply"><div class="comment-row"><div class="avatar avatar-sm">${avatar(rep.profileImage)}</div><div class="comment-body"><div class="yanki-user"><span class="yanki-name">${rep.displayName}</span></div><div class="comment-text">${formatYankiText(rep.text)}</div></div></div></div>`).join('')}</div>`).join('');
   // char counter
   const ta = $('comment-input');
   if(ta) ta.addEventListener('input',()=>{const cc=$('cc-'+id);if(cc)cc.textContent=ta.value.length+'/500';});
@@ -2749,6 +3055,73 @@ const postComment=async(yankiId)=>{
 };
 const replyTo=(id,u)=>{const i=$('comment-input');i.dataset.reply=id;i.value=`@${u} `;i.focus()};
 
+// Yorum canlı önizleme + karakter sayacı
+const onCommentInput=(yankiId)=>{
+  const ta=$('comment-input');
+  if(!ta)return;
+  const cc=$('cc-'+yankiId);
+  if(cc)cc.textContent=ta.value.length+'/500';
+  // Canlı önizleme
+  const preview=document.getElementById('comment-preview-'+yankiId);
+  if(preview){
+    const text=ta.value.trim();
+    if(text){
+      preview.classList.add('has-content');
+      preview.innerHTML=formatYankiText(text);
+    } else {
+      preview.classList.remove('has-content');
+      preview.innerHTML='';
+    }
+  }
+  showTypingHint(yankiId);
+};
+
+// Yorum emoji ekleme
+const insertCommentEmoji=(yankiId,emoji)=>{
+  const ta=$('comment-input');
+  if(!ta)return;
+  const start=ta.selectionStart;
+  ta.value=ta.value.slice(0,start)+emoji+ta.value.slice(ta.selectionEnd);
+  ta.selectionStart=ta.selectionEnd=start+emoji.length;
+  ta.focus();
+  onCommentInput(yankiId);
+};
+
+// Yorumlarda Reyankı — yorumu yankı olarak paylaş
+const reyankiComment=(commentId,text,username)=>{
+  // Escape single quotes in text for safe HTML
+  const safeText=(text||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  // Reyankı popup'ını aç, preview'da yorum metnini göster
+  _reyankiTargetId=null; // özel mod: yorum reyankı
+  const overlay=document.getElementById('reyanki-modal-overlay');
+  const preview=document.getElementById('reyanki-preview');
+  if(preview){
+    preview.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--muted);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:6px">💬 Yorum</span>
+      <span style="font-weight:600;color:var(--text)">@${username}</span>
+    </div>
+    <div style="color:var(--text)">${formatYankiText(text||'')}</div>`;
+  }
+  if(overlay) overlay.classList.add('show');
+  switchReyankiTab('quote');
+  // Override submit for comment reyankı
+  const submitBtn=document.getElementById('reyanki-submit-btn');
+  if(submitBtn){
+    submitBtn.onclick=async()=>{
+      const quoteText=document.getElementById('reyanki-text-input')?.value?.trim();
+      if(!quoteText){toast('Alıntı için yorum yazın');return;}
+      closeReyankiModal();
+      // Yeni yankı olarak paylaş — yorum metnini alıntıla
+      const fullText=quoteText+'\n\n💬 @'+username+': "'+text+'"';
+      const r=await api('/yanki/create',{userId:user.id,text:fullText});
+      if(r.error) toast('Hata: '+r.error);
+      else{toast('💬 Yorum alıntılandı!');loadFeed();}
+      // Restore original submit handler
+      submitBtn.onclick=submitReyanki;
+    };
+  }
+};
+
 // Hashtag Popup
 const showHashtagPopup=async(tag,e)=>{currentPopupTag=tag;const popup=$('hashtag-popup');const r=await api('/hashtag/info',{hashtag:tag});$('popup-tag').textContent=tag;$('popup-total').textContent=r.totalYankis||0;$('popup-24h').textContent=r.last24h||0;const px=e.clientX||100,py=e.clientY||100;
 popup.style.left=Math.min(px,window.innerWidth-310)+'px';
@@ -2773,7 +3146,7 @@ const renderProfile=(p,yankis,cid)=>{
   const _loc = p.location || '';
   const _web = p.website || '';
   const _interests = p.interests || [];
-  const _mood = p.mood || null;
+  const _mood = p.mood ? { emoji: p.moodEmoji || '😊', label: p.mood } : null;
 
   $(cid).innerHTML=`
 <div class="profile-header">
@@ -2865,6 +3238,10 @@ const renderProfile=(p,yankis,cid)=>{
 
 <!-- YANKI SEKMESİ -->
 <div class="profile-tab-content active" id="profile-tab-yankis-${p.id}">
+  <div class="profile-featured-wrap" id="featured-wrap-${p.id}" style="display:none">
+    <div class="profile-featured-label">⭐ Öne Çıkanlar</div>
+    <div class="profile-featured" id="featured-${p.id}"></div>
+  </div>
   ${pinnedYanki?`<div class="profile-pinned-label">📌 Sabitlenmiş Yankı</div>${yankiCard(pinnedYanki)}<hr style="border:none;border-top:1px solid var(--border);margin:0">`:'' }
   ${regularYankis.length?regularYankis.map(yankiCard).join(''):'<div class="empty"><div class="empty-icon">🐦</div><p>Henüz yankı yok</p></div>'}
 </div>
@@ -2887,7 +3264,6 @@ const renderProfile=(p,yankis,cid)=>{
 <!-- HAKKINDA SEKMESİ -->
 <div class="profile-tab-content" id="profile-tab-about-${p.id}">
   <div id="badges-${p.id}" style="padding:8px 12px"></div>
-  <div id="featured-${p.id}" style="padding:0 0 4px"></div>
   <div id="clan-block-${p.id}" style="padding:4px 0"></div>
   <div id="dna-block-${p.id}" style="padding:4px 0"></div>
 </div>
@@ -2931,11 +3307,22 @@ const loadFeatured=async(uid)=>{
   try{
     const r=await api('/profile/featured',{userId:uid});
     const el=document.getElementById('featured-'+uid);
-    if(!el||!r.featured||!r.featured.length){if(el)el.style.display='none';return}
-    el.innerHTML=r.featured.map(y=>`<div class="profile-featured-card" onclick="openYanki('${y.id}')">
+    const wrap=document.getElementById('featured-wrap-'+uid);
+    if(!el||!r.featured||!r.featured.length){if(wrap)wrap.style.display='none';return}
+    if(wrap)wrap.style.display='';
+    // Kartları iki kez oluştur — sonsuz kayma illüzyonu için
+    const cardsHTML=r.featured.map(y=>`<div class="profile-featured-card" onclick="openYanki('${y.id}')">
       <div class="profile-featured-text">${y.text||''}</div>
-      <div class="profile-featured-stats"><span>❤️ ${y.likesCount||0}</span><span>💬 ${y.commentsCount||0}</span></div>
+      <div class="profile-featured-stats"><span>❤️ ${y.likesCount||0}</span><span>💬 ${y.commentsCount||0}</span><span>🔁 ${y.reyankisCount||0}</span></div>
     </div>`).join('');
+    // 3+ kart varsa oto-kayma aktif, kartları çoğalt
+    if(r.featured.length>=3){
+      el.innerHTML=cardsHTML+cardsHTML;
+      el.classList.add('auto-scroll');
+    } else {
+      el.innerHTML=cardsHTML;
+      el.classList.remove('auto-scroll');
+    }
   }catch(e){console.log('featured err',e)}
 };
 
@@ -2955,7 +3342,7 @@ const openMoodSelector=()=>{
 };
 const saveMood=async(idx)=>{
   const m=MOOD_OPTIONS[idx];
-  await api('/profile/update',{userId:user.id,mood:{emoji:m.emoji,label:m.label}});
+  await api('/profile/update',{userId:user.id,mood:m.label,moodEmoji:m.emoji,moodUpdatedAt:new Date().toISOString()});
   $('modal-users').classList.remove('active');
   loadMyProfile();
 };
@@ -3182,16 +3569,17 @@ const NF_META = {
   trending:       { emoji:'🔥', bg:'#f59e0b' },
   dm:             { emoji:'💌', bg:'#ec4899' },
 };
+const _nfUser = n => n.fromUser?.displayName || n.fromName || 'Biri';
 const NF_TEXT = {
-  like:           n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> yankını beğendi`,
-  comment:        n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> yankına yorum yaptı`,
-  reply:          n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> yorumunu yanıtladı`,
-  follow:         n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> seni takip etmeye başladı`,
-  reyanki:        n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> yankını reyankıladı`,
-  mention:        n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> senden bahsetti`,
+  like:           n=>`<strong>${_nfUser(n)}</strong> yankını beğendi`,
+  comment:        n=>`<strong>${_nfUser(n)}</strong> yankına yorum yaptı`,
+  reply:          n=>`<strong>${_nfUser(n)}</strong> yorumunu yanıtladı`,
+  follow:         n=>`<strong>${_nfUser(n)}</strong> seni takip etmeye başladı`,
+  reyanki:        n=>`<strong>${_nfUser(n)}</strong> yankını reyankıladı`,
+  mention:        n=>`<strong>${_nfUser(n)}</strong> senden bahsetti`,
   milestone_like: n=>`🏆 Yankın <strong>${n.data?.count} beğeni</strong> aldı!`,
   trending:       n=>`🔥 Yankın şu an <strong>trending</strong>de!`,
-  dm:             n=>`<strong>${n.fromUser?.displayName||'Biri'}</strong> sana mesaj gönderdi`,
+  dm:             n=>`<strong>${_nfUser(n)}</strong> sana mesaj gönderdi`,
 };
 
 let _nfState = { tab:'all', onlyUnread:false };
@@ -3250,8 +3638,9 @@ const nfItem = (n, i) => {
   const extra = isMile
     ? `<div class="nf-extra-badge nf-mile-badge">🏆 ${n.data.count} Beğeni Rozeti</div>`
     : isTrend ? `<div class="nf-extra-badge nf-trend-badge">🔥 Trend'de</div>` : '';
-  const avHtml = n.fromUser
-    ? `<div class="avatar avatar-sm">${avatar(n.fromUser.profileImage)}</div>`
+  const _avImg = n.fromUser?.profileImage || n.fromProfileImage || null;
+  const avHtml = (n.fromUser || n.fromName)
+    ? `<div class="avatar avatar-sm">${avatar(_avImg)}</div>`
     : `<div class="avatar avatar-sm" style="background:${m.bg};font-size:16px;display:flex;align-items:center;justify-content:center">${m.emoji}</div>`;
   return `<div class="nf-item${n.read?'':' unread'}${isMile?' milestone-item':''}${isTrend?' trending-item':''}"
     style="animation-delay:${i*18}ms"
@@ -3323,7 +3712,8 @@ const nfShowPopup = (n) => {
   const m=NF_META[n.type]||{emoji:'🔔'};
   const txt=NF_TEXT[n.type]?.(n)||'Yeni bildirim';
   const dur=n.type==='milestone_like'||n.type==='trending'?6000:4000;
-  const avHtml=n.fromUser?`<div class="avatar avatar-sm">${avatar(n.fromUser.profileImage)}</div>`:m.emoji;
+  const _pAvImg=n.fromUser?.profileImage||n.fromProfileImage||null;
+  const avHtml=(n.fromUser||n.fromName)?`<div class="avatar avatar-sm">${avatar(_pAvImg)}</div>`:m.emoji;
   const card=document.createElement('div');
   card.className=`nf-popup ${n.type==='milestone_like'?'mile-popup':''} ${n.type==='trending'?'trend-popup':''}`;
   card.innerHTML=`<div class="nf-popup-icon">${avHtml}</div>
@@ -3785,7 +4175,7 @@ const renderTrendingList=()=>{
         <span class="trend-topic" style="flex:1;margin:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.topic}</span>
         ${t.rising?'<span class="trend-rising">▲</span>':''}
       </div>
-      <div class="trend-count">${countKey||0} yankı</div>
+      <div class="trend-count">${countKey||0} yankı${typeof miniSparkline==='function'?miniSparkline(countKey||0):''}</div>
       <div class="trend-mini-bars">${bars}</div>
     </div>`;
   }).join('');
@@ -3871,20 +4261,14 @@ const copyYankiLink=(yid)=>{
 // Alıntı yankı
 const quoteYanki=(yid)=>{
   document.querySelectorAll('.share-popup.show').forEach(p=>p.classList.remove('show'));
-  const text=prompt('Alıntı yorumunuz:');
-  if(!text||!text.trim())return;
-  api('/yanki/quote',{yankiId:yid,userId:user.id,text:text.trim()}).then(r=>{
-    if(r.error)toast('Hata: '+r.error);
-    else{toast('💬 Alıntı yankı paylaşıldı!');loadFeed();}
-  });
+  reyanki(yid);
+  setTimeout(()=>switchReyankiTab('quote'),100);
 };
 
 // Reyankı menüsü (reyankı veya alıntıla seçeneği)
 const showReyankiMenu=(yid,ev)=>{
   ev.stopPropagation();
-  const choice=confirm('Alıntılamak ister misiniz?\n\nTamam = Alıntıla\nİptal = Normal Reyankı');
-  if(choice)quoteYanki(yid);
-  else reyanki(yid);
+  reyanki(yid);
 };
 
 // Beğenenleri gör
@@ -4194,8 +4578,30 @@ const setFeedTab=(tab, el)=>{
   feedTab=tab;
   document.querySelectorAll('.feed-tab-item').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
+  updateTabIndicator(el);
   loadFeed(tab);
 };
+// Animated tab indicator
+const updateTabIndicator=(el)=>{
+  const ind=document.getElementById('feed-tab-indicator');
+  const bar=document.getElementById('feed-tabs-bar');
+  if(!ind||!bar||!el)return;
+  const barRect=bar.getBoundingClientRect();
+  const elRect=el.getBoundingClientRect();
+  ind.style.left=(elRect.left-barRect.left)+'px';
+  ind.style.width=elRect.width+'px';
+};
+// Init indicator on load — use rAF chain for reliable DOM measurement
+const initTabIndicator=()=>{
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const active=document.querySelector('.feed-tab-item.on');
+      if(active) updateTabIndicator(active);
+    });
+  });
+};
+// Also re-measure on window resize
+window.addEventListener('resize',()=>{const a=document.querySelector('.feed-tab-item.on');if(a)updateTabIndicator(a);});
 
 // Yeni yanki bant polling (30sn'de bir kontrol)
 let _bandSnapshot=0;
@@ -4221,6 +4627,199 @@ const dismissNewBand=()=>{
   $('new-yanki-band').classList.remove('visible');
   loadFeed(feedTab);
 };
+
+// ═══════════════════════════════════════════════════════════════
+// SCROLL HANDLERS (Progress bar + Back to top + Infinite scroll)
+// ═══════════════════════════════════════════════════════════════
+const initScrollHandlers=()=>{
+  const content=document.querySelector('.main-col')||window;
+  const scrollEl=document.querySelector('.main-col')||document.documentElement;
+  const handler=()=>{
+    // Scroll progress bar
+    const prog=document.getElementById('scroll-progress');
+    if(prog){
+      const h=scrollEl.scrollHeight-scrollEl.clientHeight;
+      const pct=h>0?(scrollEl.scrollTop/h)*100:0;
+      prog.style.width=pct+'%';
+    }
+    // Back to top visibility
+    const btn=document.getElementById('back-to-top');
+    if(btn){btn.classList.toggle('visible',scrollEl.scrollTop>400);}
+    // Infinite scroll - load more when near bottom
+    if(scrollEl.scrollTop+scrollEl.clientHeight>=scrollEl.scrollHeight-200){
+      loadMoreFeed();
+    }
+  };
+  if(content===window)window.addEventListener('scroll',handler,{passive:true});
+  else content.addEventListener('scroll',handler,{passive:true});
+};
+const scrollToTop=()=>{
+  const el=document.querySelector('.main-col')||document.documentElement;
+  el.scrollTo({top:0,behavior:'smooth'});
+};
+let _loadingMore=false;
+const loadMoreFeed=async()=>{
+  if(_loadingMore)return;
+  const feed=$('home-feed');
+  if(!feed)return;
+  const cards=feed.querySelectorAll('.yanki');
+  if(cards.length<5)return; // not enough to paginate
+  // Infinite scroll placeholder - could be extended with offset-based pagination
+};
+// initScrollHandlers called from initHomepageFeatures
+
+// ═══════════════════════════════════════════════════════════════
+// TAB BADGE COUNTS (Okunmamış sayısı)
+// ═══════════════════════════════════════════════════════════════
+let _lastBadgeCheck=0;
+const updateTabBadges=async()=>{
+  try{
+    const now=Date.now();
+    if(now-_lastBadgeCheck<30000)return;
+    _lastBadgeCheck=now;
+    // Her sekme için yankı sayısını kontrol et
+    const tabs=document.querySelectorAll('.feed-tab-item');
+    tabs.forEach(tab=>{
+      let badge=tab.querySelector('.tab-badge');
+      // Sadece aktif olmayan sekmelere badge koy
+      if(tab.classList.contains('on')){
+        if(badge)badge.remove();
+        return;
+      }
+      // Akıllı sekme için new band count kullan
+      const algo=tab.getAttribute('onclick')?.match(/setFeedTab\('(\w+)'/)?.[1];
+      if(algo&&newBandCount>0&&algo!==feedTab){
+        if(!badge){
+          badge=document.createElement('span');
+          badge.className='tab-badge';
+          tab.appendChild(badge);
+        }
+        badge.textContent=newBandCount>9?'9+':newBandCount;
+      } else if(badge){
+        badge.remove();
+      }
+    });
+  }catch(e){}
+};
+
+// ═══════════════════════════════════════════════════════════════
+// FEED SUGGEST CARD (Araya kişi önerisi)
+// ═══════════════════════════════════════════════════════════════
+const injectFeedSuggest=async(container)=>{
+  try{
+    const r=await api('/explore/suggestions',{userId:user.id});
+    if(!r.suggestions||r.suggestions.length<2)return;
+    const users=r.suggestions.slice(0,5);
+    const html=`<div class="feed-suggest-wrap">
+      <div class="feed-suggest-title">TAKİP EDEBİLECEĞİN KİŞİLER</div>
+      <div class="feed-suggest-list">${users.map(u=>`
+        <div class="feed-suggest-item" onclick="goUser('@${u.username}')">
+          <div class="avatar">${avatar(u.profileImage)}</div>
+          <div class="feed-suggest-name">${u.displayName}</div>
+          <div class="feed-suggest-handle">@${u.username}</div>
+          <button class="feed-suggest-btn" onclick="event.stopPropagation();quickFollow('${u.id}',this)">Takip Et</button>
+        </div>`).join('')}
+      </div>
+    </div>`;
+    // 3. karttan sonra ekle
+    const cards=container.querySelectorAll('.yanki');
+    if(cards[2])cards[2].insertAdjacentHTML('afterend',html);
+  }catch(e){}
+};
+const quickFollow=async(uid,btn)=>{
+  const r=await api('/follow',{followerId:user.id,followingId:uid});
+  if(r.following){btn.textContent='Takip';btn.style.opacity='.5';}
+  else{btn.textContent='Takip Et';btn.style.opacity='1';}
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SIDEBAR: Kişi Önerileri + Canlı Aktivite + Sparkline
+// ═══════════════════════════════════════════════════════════════
+const loadSidebarSuggestions=async()=>{
+  try{
+    const r=await api('/explore/suggestions',{userId:user.id});
+    const el=document.getElementById('sidebar-suggest-list');
+    if(!el||!r.suggestions||!r.suggestions.length){
+      const box=document.getElementById('sidebar-suggest-box');
+      if(box)box.style.display='none';return;
+    }
+    el.innerHTML=r.suggestions.slice(0,3).map(u=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer" onclick="goUser('@${u.username}')">
+        <div class="avatar avatar-sm">${avatar(u.profileImage)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.displayName}</div>
+          <div style="font-size:10px;color:var(--muted)">@${u.username}</div>
+        </div>
+        <button onclick="event.stopPropagation();quickFollow('${u.id}',this)" style="padding:4px 12px;border-radius:12px;background:var(--gradient);border:none;color:#fff;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0">Takip</button>
+      </div>`).join('');
+  }catch(e){}
+};
+
+const loadLiveActivity=async()=>{
+  try{
+    const r=await api('/notifications',{userId:user.id});
+    const el=document.getElementById('live-activity-list');
+    if(!el)return;
+    const notifs=(r.notifications||[]).slice(0,10);
+    if(!notifs.length){
+      const box=document.getElementById('sidebar-activity-box');
+      if(box)box.style.display='none';return;
+    }
+    const box=document.getElementById('sidebar-activity-box');
+    if(box)box.style.display='';
+    const typeEmoji={like:'❤️',comment:'💬',follow:'👤',reyanki:'🔁',mention:'📢'};
+    const typeLabel={like:'beğendi',comment:'yorum yaptı',follow:'takip etti',reyanki:'reyankıladı',mention:'bahsetti'};
+    const typeDesc={like:'yankını beğendi',comment:'yankına yorum yaptı',follow:'seni takip etmeye başladı',reyanki:'yankını reyankıladı',mention:'senden bahsetti'};
+    el.innerHTML=notifs.map(n=>{
+      const ago=timeAgo(n.createdAt);
+      const avImg=n.fromProfileImage?`<img src="${n.fromProfileImage}">`:`<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:var(--elevated);color:var(--muted);font-size:12px">👤</span>`;
+      const clickAction=n.type==='follow'?`goUser('@${n.fromUsername||''}')`:n.yankiId?`openYanki('${n.yankiId}')`:'';
+      return`<div class="live-activity-item" onclick="${clickAction}">
+        <div class="live-activity-avatar">${avImg}<div class="la-icon">${typeEmoji[n.type]||'🔔'}</div></div>
+        <div class="live-activity-body">
+          <span class="live-activity-name">${n.fromName||n.fromDisplayName||'Bilinmeyen'}</span>
+          <div class="live-activity-desc">${typeDesc[n.type]||'etkileşim'}</div>
+          <div class="live-activity-meta"><div class="live-activity-dot ${n.type}"></div><span class="live-activity-time">${ago}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){}
+};
+
+// Mini sparkline generator
+const miniSparkline=(count)=>{
+  const bars=[];
+  for(let i=0;i<7;i++){
+    const h=Math.max(3,Math.min(14,Math.random()*14*(count>0?1:0.3)));
+    bars.push(`<span class="sparkline-bar" style="height:${h}px"></span>`);
+  }
+  return`<span class="sparkline">${bars.join('')}</span>`;
+};
+
+// ═══════════════════════════════════════════════════════════════
+// THEME SMOOTH TRANSITION
+// ═══════════════════════════════════════════════════════════════
+const smoothThemeToggle=(theme)=>{
+  document.documentElement.classList.add('theme-transitioning');
+  document.documentElement.setAttribute('data-theme',theme);
+  setTimeout(()=>document.documentElement.classList.remove('theme-transitioning'),400);
+};
+
+// ═══════════════════════════════════════════════════════════════
+// INIT sidebar features after login
+// ═══════════════════════════════════════════════════════════════
+const initHomepageFeatures=()=>{
+  loadSidebarSuggestions();
+  loadLiveActivity();
+  initScrollHandlers();
+  initTabIndicator();
+  updateTabBadges();
+  // Refresh activity every 60s, badges every 45s
+  setInterval(loadLiveActivity,60000);
+  setInterval(updateTabBadges,45000);
+};
+// Hook into post-login: find where loadFeed is first called
+const _origLoadFeed=loadFeed;
 
 // ═══════════════════════════════════════════════════════════════
 // THREAD MOD
@@ -4521,20 +5120,42 @@ document.addEventListener('keydown',e=>{
 </script>
 
 <!-- Reyanki Modal -->
-<div id="reyanki-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="if(event.target===this)closeReyankiModal()">
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 28px 24px;width:100%;max-width:400px;margin:16px;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:fadeIn .18s ease">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-      <div style="width:44px;height:44px;border-radius:14px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🔁</div>
+<div class="reyanki-popup-overlay" id="reyanki-modal-overlay" onclick="if(event.target===this)closeReyankiModal()">
+  <div class="reyanki-popup">
+    <div class="reyanki-popup-header">
+      <div class="reyanki-popup-icon">🔁</div>
       <div>
-        <div style="font-size:17px;font-weight:700;color:var(--text)">Reyankıla</div>
-        <div style="font-size:13px;color:var(--dim);margin-top:2px">Bu yankıyı profilinde paylaş</div>
+        <div class="reyanki-popup-title">Reyankıla</div>
+        <div class="reyanki-popup-subtitle">Paylaş veya alıntılayarak yorum ekle</div>
       </div>
-      <button onclick="closeReyankiModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center">✕</button>
+      <div class="reyanki-popup-close" onclick="closeReyankiModal()">✕</div>
     </div>
-    <div id="reyanki-preview" style="background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:20px;font-size:14px;color:var(--dim);line-height:1.5;max-height:120px;overflow:hidden"></div>
-    <div style="display:flex;gap:10px">
-      <button onclick="closeReyankiModal()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">İptal</button>
-      <button onclick="confirmReyanki()" style="flex:1;padding:12px;border-radius:12px;border:none;background:var(--gradient);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px var(--glow)">🔁 Reyankıla</button>
+    <!-- Tabs: Reyankı / Alıntıla -->
+    <div class="reyanki-popup-tabs">
+      <div class="reyanki-popup-tab active" id="reyanki-tab-repost" onclick="switchReyankiTab('repost')">🔁 Reyankıla</div>
+      <div class="reyanki-popup-tab" id="reyanki-tab-quote" onclick="switchReyankiTab('quote')">💬 Alıntıla</div>
+    </div>
+    <!-- Orijinal yankı önizleme -->
+    <div class="reyanki-popup-preview" id="reyanki-preview"></div>
+    <!-- Compose alanı (alıntı modu) -->
+    <div class="reyanki-popup-compose" id="reyanki-compose-area" style="display:none">
+      <textarea class="reyanki-popup-textarea" id="reyanki-text-input" placeholder="Düşüncelerini ekle..." oninput="updateReyankiChar()"></textarea>
+    </div>
+    <div id="reyanki-tools-area" style="display:none">
+      <div class="reyanki-popup-tools">
+        <div class="reyanki-popup-tool" onclick="insertReyankiEmoji('😊')">😊</div>
+        <div class="reyanki-popup-tool" onclick="insertReyankiEmoji('🔥')">🔥</div>
+        <div class="reyanki-popup-tool" onclick="insertReyankiEmoji('❤️')">❤️</div>
+        <div class="reyanki-popup-tool" onclick="insertReyankiEmoji('👏')">👏</div>
+        <div class="reyanki-popup-tool" onclick="insertReyankiEmoji('💯')">💯</div>
+        <span class="reyanki-popup-charcount" id="reyanki-charcount">0/500</span>
+      </div>
+      <div class="reyanki-popup-divider"></div>
+    </div>
+    <!-- Aksiyon butonları -->
+    <div class="reyanki-popup-actions">
+      <div class="reyanki-popup-btn cancel" onclick="closeReyankiModal()">İptal</div>
+      <div class="reyanki-popup-btn primary" id="reyanki-submit-btn" onclick="submitReyanki()">🔁 Reyankıla</div>
     </div>
   </div>
 </div>

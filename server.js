@@ -227,6 +227,9 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_blocks_userId ON blocks(userId);
 `);
 
+// Migration: featured sütunu ekle
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN featured INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
+
 // ─── Prepared Statements ───────────────────────────────────────
 const stmts = {
   // Users
@@ -379,6 +382,7 @@ function parseYanki(row) {
   return {
     ...row,
     pinned: !!row.pinned,
+    featured: !!row.featured,
     poll: row.poll ? JSON.parse(row.poll) : null
   };
 }
@@ -1045,13 +1049,24 @@ const routes = {
     let yankis;
     switch (algo) {
       case 'smart': {
-        const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC').all();
+        const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC LIMIT 200').all();
+        const now = Date.now();
         yankis = all
           .filter(y => !blockedIds.includes(y.userId))
           .map(y => {
-            const score = stmts.getLikeCount.get(y.id).count +
-              stmts.getCommentCount.get(y.id).count * 2 +
-              stmts.getReyankis.all(y.id).length * 3;
+            const likes = stmts.getLikeCount.get(y.id).count;
+            const comments = stmts.getCommentCount.get(y.id).count;
+            const reyankis = stmts.getReyankis.all(y.id).length;
+            // Etkileşim puanı
+            const engagement = likes + comments * 2 + reyankis * 3;
+            // Zaman faktörü — son 1 saat: x4, son 6 saat: x2, son 24 saat: x1.5, eski: x1
+            const ageH = (now - new Date(y.createdAt).getTime()) / 3600000;
+            const timeFactor = ageH < 1 ? 4 : ageH < 6 ? 2 : ageH < 24 ? 1.5 : Math.max(0.5, 1 - (ageH - 24) / 120);
+            // Hız bonusu — etkileşim/saat
+            const velocity = ageH > 0 ? engagement / ageH : engagement * 10;
+            // Çeşitlilik — farklı kaynaklardan etkileşim
+            const diversity = (likes > 0 ? 1 : 0) + (comments > 0 ? 1 : 0) + (reyankis > 0 ? 1 : 0);
+            const score = (engagement * timeFactor) + (velocity * 0.5) + (diversity * 2);
             return { yanki: y, score };
           })
           .sort((a, b) => b.score - a.score)
@@ -1200,6 +1215,21 @@ const routes = {
     }
     sqlite.prepare('UPDATE yankis SET pinned = ? WHERE id = ?').run(newPinned, yankiId);
     return { success: true, pinned: !!newPinned };
+  },
+
+  // ═══ FEATURE (Öne Çıkar) ═══
+  'yanki/feature': (data) => {
+    const { userId, yankiId } = data;
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    const newFeatured = yanki.featured ? 0 : 1;
+    // Maksimum 5 öne çıkarılmış yankı
+    if (newFeatured) {
+      const count = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE userId = ? AND featured = 1').get(userId).c;
+      if (count >= 5) return { error: 'En fazla 5 yankı öne çıkarabilirsiniz' };
+    }
+    sqlite.prepare('UPDATE yankis SET featured = ? WHERE id = ?').run(newFeatured, yankiId);
+    return { success: true, featured: !!newFeatured };
   },
 
   // ═══ COMMENT ═══
@@ -2005,8 +2035,14 @@ const routes = {
 
   'profile/featured': (data) => {
     const { userId, viewerId } = data;
-    const yankis = sqlite.prepare('SELECT y.*, COUNT(l.id) as likeCount FROM yankis y LEFT JOIN likes l ON l.yankiId = y.id WHERE y.userId = ? AND y.replyToId IS NULL AND y.reyankiOfId IS NULL GROUP BY y.id ORDER BY likeCount DESC LIMIT 3').all(userId);
-    const featured = yankis.filter(y => y.likeCount > 0).map(y => enrichYanki(y, viewerId)).filter(Boolean);
+    // Önce kullanıcının elle seçtiği öne çıkan yankıları getir
+    let yankis = sqlite.prepare('SELECT * FROM yankis WHERE userId = ? AND featured = 1 AND replyToId IS NULL ORDER BY createdAt DESC LIMIT 5').all(userId);
+    // Yoksa en çok beğenilenleri göster
+    if (!yankis.length) {
+      yankis = sqlite.prepare('SELECT y.*, COUNT(l.id) as likeCount FROM yankis y LEFT JOIN likes l ON l.yankiId = y.id WHERE y.userId = ? AND y.replyToId IS NULL AND y.reyankiOfId IS NULL GROUP BY y.id ORDER BY likeCount DESC LIMIT 3').all(userId);
+      yankis = yankis.filter(y => y.likeCount > 0);
+    }
+    const featured = yankis.map(y => enrichYanki(y, viewerId)).filter(Boolean);
     return { featured };
   }
 };
