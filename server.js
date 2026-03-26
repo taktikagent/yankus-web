@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// YANKUŞ v3.0 — SERVER (SQLite)
+// YANKUŞ v3.2 — SERVER (SQLite)
 // ═══════════════════════════════════════════════════════════════
 
 const http = require('http');
@@ -2180,7 +2180,7 @@ const server = http.createServer((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🐦 Yankuş v3.0 (SQLite) running on port ${PORT}`);
+  console.log(`🐦 Yankuş v3.2 (SQLite) running on port ${PORT}`);
   console.log(`📦 Database: ${DB_PATH}`);
 });
 

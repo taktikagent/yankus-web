@@ -2230,7 +2230,7 @@ const dmUpdateBadge = async () => {
   const badge = $('msg-badge');
   if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
   // Konuşma listesi açıksa güncelle
-  if (dm.convs.length > 0 || $('dm-conv-list')) { dm.convs = r.conversations||[]; dmRenderConvList(); }
+  if (dm.convs.length > 0 || $('dm-conv-list')) { dm.convs = (r.conversations||[]).map(c => ({ ...c, userId: c.otherUser?.id || c.userId, displayName: c.otherUser?.displayName || c.displayName || 'Kullanıcı', username: c.otherUser?.username || c.username, profileImage: c.otherUser?.profileImage || c.profileImage, verified: c.otherUser?.verified || c.verified, isBot: c.otherUser?.isBot || c.isBot })); dmRenderConvList(); }
 };
 
 // Emoji picker ve react picker click-outside
@@ -3788,7 +3788,15 @@ let dm = {
 const loadConversations = async () => {
   // Mesajlar paneline geçince sol listeyi yükle, sohbet alanını hazırla
   const r = await api('/messages/conversations', { userId: user.id });
-  dm.convs = r.conversations || [];
+  dm.convs = (r.conversations || []).map(c => ({
+    ...c,
+    userId: c.otherUser?.id || c.userId,
+    displayName: c.otherUser?.displayName || c.displayName || 'Kullanıcı',
+    username: c.otherUser?.username || c.username,
+    profileImage: c.otherUser?.profileImage || c.profileImage,
+    verified: c.otherUser?.verified || c.verified,
+    isBot: c.otherUser?.isBot || c.isBot,
+  }));
   dmRenderConvList();
   // Eğer zaten açık sohbet varsa koru
   if (dm.activeChatId) dmOpenChat(dm.activeChatId);
@@ -3821,7 +3829,7 @@ const dmRenderConvList = () => {
           ${c.unread?`<span class="dm-conv-badge">${c.unread}</span>`:''}
         </div>
         <div class="dm-conv-preview ${c.unread?'unseen':''}">
-          ${c.lastMessage?.deleted?'<i>Mesaj silindi</i>':(c.lastMessage?.fromUserId===user.id?'Sen: ':'')+( c.lastMessage?.image&&!c.lastMessage?.text?'📷 Görsel':c.lastMessage?.text||'')}
+          ${c.lastMessage?.deleted?'<i>Mesaj silindi</i>':((c.lastMessage?.fromUserId||c.lastMessage?.userId)===user.id?'Sen: ':'')+( c.lastMessage?.image&&!c.lastMessage?.text?'📷 Görsel':c.lastMessage?.text||'')}
         </div>
       </div>
     </div>`).join('');
@@ -4018,8 +4026,8 @@ const dmSend = async () => {
   if ((!text && !dm.imgData) || !dm.activeChatId) return;
 
   const r = await api('/messages/send', {
-    fromUserId: user.id,
-    toUserId: dm.activeChatId,
+    senderId: user.id,
+    receiverId: dm.activeChatId,
     text,
     image: dm.imgData || null,
     replyTo: dm.replyTo ? { id: dm.replyTo.id, text: dm.replyTo.text, fromUserId: dm.replyTo.fromUserId } : null
