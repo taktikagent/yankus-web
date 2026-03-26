@@ -769,8 +769,71 @@ function initData() {
 
   // Yama notları
   const patchCount = sqlite.prepare('SELECT COUNT(*) as count FROM patchNotes').get().count;
+  // v3.2 yoksa yeni notları ekle
+  const has32 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.2'").get().c;
+  if (!has32 && patchCount > 0) {
+    const insertPatch = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
+    insertPatch.run({
+      id: genId(), version: '3.2', title: 'Öne Çıkar + Light Tema + Bug Fix',
+      content: JSON.stringify({ date: '26 Mart 2026', features: ['Yankı menüsüne ⭐ Öne Çıkar özelliği eklendi (maks 5)','Profilde öne çıkan kartlar gradient kenarlıkla belirginleştirildi','Bildirimlerde gerçek kullanıcı adları gösteriliyor','Dropdown menü viewport sınır kontrolü eklendi'], fixes: ['Light/dark tema geçişinde 30+ renk uyumsuzluğu düzeltildi','Composer, reyankı popup, yorum kutusu tema uyumlu hale getirildi','Dropdown menü overflow sorunu çözüldü','Skeleton kartlar ve sidebar tema uyumu düzeltildi'] }),
+      createdAt: new Date().toISOString()
+    });
+    insertPatch.run({
+      id: genId(), version: '3.1', title: 'Anasayfa UI/UX + 18 Yeni Özellik',
+      content: JSON.stringify({ date: '24 Mart 2026', features: ['Floating Bubble yankı kutusu tasarımı','Dairesel karakter sayacı','Canlı önizleme (hashtag/mention)','Mood seçici','Taslak otomatik kayıt','Sonsuz scroll + Başa dön','Skeleton loading','Feed takip önerisi kartları','Animasyonlu sekme göstergesi','Gündem sparkline grafikleri','Sidebar canlı aktivite','Scroll ilerleme çubuğu','Yumuşak tema geçişi','Özel reyankı popup','Glassmorphism kartlar'], fixes: ['Profil mood düzeltildi','Öne çıkanlar Yankılar sekmesine taşındı','Reyankı özel popup'] }),
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    });
+  }
   if (patchCount === 0) {
     const notes = [
+      {
+        id: genId(), version: '3.2', title: 'Öne Çıkar + Light Tema + Bug Fix',
+        content: JSON.stringify({
+          date: '26 Mart 2026',
+          features: [
+            'Yankı menüsüne ⭐ Öne Çıkar özelliği eklendi (maks 5)',
+            'Profilde öne çıkan kartlar gradient kenarlıkla belirginleştirildi',
+            'Bildirimlerde gerçek kullanıcı adları gösteriliyor',
+            'Dropdown menü viewport sınır kontrolü eklendi'
+          ],
+          fixes: [
+            'Light/dark tema geçişinde 30+ renk uyumsuzluğu düzeltildi',
+            'Composer, reyankı popup, yorum kutusu tema uyumlu hale getirildi',
+            'Dropdown menü overflow sorunu çözüldü (position:fixed)',
+            'Skeleton kartlar ve sidebar tema uyumu düzeltildi'
+          ]
+        }),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: genId(), version: '3.1', title: 'Anasayfa UI/UX + 18 Yeni Özellik',
+        content: JSON.stringify({
+          date: '24 Mart 2026',
+          features: [
+            'Floating Bubble yankı kutusu tasarımı',
+            'Dairesel karakter sayacı (SVG ring)',
+            'Canlı önizleme (hashtag/mention renklendirme)',
+            'Mood/ruh hali seçici',
+            'Taslak otomatik kayıt göstergesi',
+            'Sonsuz scroll + Başa dön butonu',
+            'Skeleton loading kartları',
+            'Feed içi takip önerisi kartları',
+            'Animasyonlu sekme göstergesi',
+            'Gündem sparkline grafikleri',
+            'Sidebar kişi önerisi ve canlı aktivite',
+            'Scroll ilerleme çubuğu',
+            'Yumuşak tema geçiş animasyonu',
+            'Özel reyankı popup tasarımı (glassmorphism)',
+            'Glassmorphism yankı kartları'
+          ],
+          fixes: [
+            'Profil durum (mood) özelliği düzeltildi',
+            'Öne çıkan yankılar Hakkında\'dan Yankılar sekmesine taşındı',
+            'Reyankı tarayıcı popup yerine özel popup kullanıyor'
+          ]
+        }),
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
       {
         id: genId(), version: '3.0', title: 'SQLite Veritabanı + Social Hub',
         content: JSON.stringify({
