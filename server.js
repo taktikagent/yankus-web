@@ -1067,8 +1067,9 @@ const buildProfileResponse = (user, viewerId) => {
 const routes = {
   // ═══ AUTH ═══
   'register': (data) => {
-    const { username, password, displayName } = data;
+    const { username, password, displayName, email } = data;
     if (!username || !password || !displayName) return { error: 'Tüm alanları doldurun' };
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Geçerli bir e-posta adresi girin' };
     if (stmts.getUserByUsername.get(username)) return { error: 'Bu kullanıcı adı zaten alınmış' };
 
     const user = {

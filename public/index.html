@@ -45,18 +45,30 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 @keyframes levelUp{0%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.15);filter:brightness(1.3)}100%{transform:scale(1);filter:brightness(1)}}
 @keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(-50px) rotate(360deg);opacity:0}}
 .screen{display:none;min-height:100vh}.screen.active{display:flex}
-.auth-screen{align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 20% 0%,var(--accent-hover),transparent 60%)}
-.auth-box{width:100%;max-width:400px}
-.auth-header{text-align:center;margin-bottom:28px}
-.logo{width:88px;height:88px;background:var(--gradient);border-radius:26px;display:inline-flex;align-items:center;justify-content:center;font-size:46px;margin-bottom:18px;animation:glow 3s infinite;box-shadow:0 8px 32px var(--glow)}
-.auth-header h1{font-size:38px;font-family:var(--font-display);font-weight:800;background:linear-gradient(135deg,var(--text) 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.auth-screen{align-items:center;justify-content:center;padding:24px;background:var(--bg);position:relative;overflow:hidden}
+.auth-screen::before{content:'';position:absolute;top:-40%;left:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(181,114,129,.12) 0%,transparent 70%);pointer-events:none}
+.auth-screen::after{content:'';position:absolute;bottom:-30%;right:-15%;width:60%;height:60%;background:radial-gradient(circle,rgba(139,26,16,.08) 0%,transparent 70%);pointer-events:none}
+.auth-box{width:100%;max-width:420px;position:relative;z-index:1}
+.auth-header{text-align:center;margin-bottom:32px}
+.logo{width:80px;height:80px;background:var(--gradient);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:16px;animation:glow 3s infinite;box-shadow:0 8px 32px var(--glow);transition:transform .3s}
+.logo:hover{transform:scale(1.05) rotate(-3deg)}
+.auth-header h1{font-size:36px;font-family:var(--font-display);font-weight:800;background:linear-gradient(135deg,var(--text) 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
 .auth-header p{color:var(--dim);margin-top:6px;font-size:var(--font-size)}
-.auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px}
-.auth-card h2{font-size:calc(var(--font-size) + 3px);margin-bottom:20px;text-align:center}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 8px 40px rgba(0,0,0,.12)}
+.auth-card h2{font-size:calc(var(--font-size) + 4px);margin-bottom:6px;text-align:center;font-weight:700}
+.auth-card-sub{text-align:center;color:var(--muted);font-size:12px;margin-bottom:20px}
 .form-group{margin-bottom:16px}
-.form-label{display:block;color:var(--dim);font-size:calc(var(--font-size) - 4px);font-weight:600;margin-bottom:6px;text-transform:uppercase}
-.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:var(--font-size);font-family:var(--font)}
-.form-input:focus{outline:none;border-color:var(--accent)}
+.form-label{display:block;color:var(--dim);font-size:calc(var(--font-size) - 4px);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px}
+.form-input{width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:12px 16px;color:var(--text);font-size:var(--font-size);font-family:var(--font);transition:all .2s}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus);background:var(--hover)}
+.form-input::placeholder{color:var(--muted)}
+.form-row{display:flex;gap:12px}
+.form-row .form-group{flex:1}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px}
+.form-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:12px}
+.form-divider::before,.form-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-footer{text-align:center;margin-top:24px;font-size:11px;color:var(--muted);opacity:.6}
+.auth-footer span{font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .btn{padding:12px 24px;border-radius:12px;font-size:var(--font-size);font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
 .btn-main{width:100%;background:var(--gradient);color:#fff}
 .btn-main:hover{transform:translateY(-2px);box-shadow:0 4px 20px var(--glow)}
@@ -1419,26 +1431,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="auth-box">
 <div class="auth-header"><div class="logo">🐦</div><h1>Yankuş</h1><p>Sesin Yankılansın</p></div>
 <div class="auth-card">
-<h2>Giriş Yap</h2>
+<h2>Tekrar Hoş Geldin</h2>
+<div class="auth-card-sub">Hesabına giriş yaparak devam et</div>
 <div class="error-msg" id="login-error"></div>
-<div class="form-group"><label class="form-label">Kullanıcı Adı</label><input class="form-input" id="login-username" placeholder="@kullaniciadi"></div>
-<div class="form-group"><label class="form-label">Şifre</label><input class="form-input" type="password" id="login-password" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+<div class="form-group"><label class="form-label">Kullanıcı Adı</label><input class="form-input" id="login-username" placeholder="@kullaniciadi" autocomplete="username"></div>
+<div class="form-group"><label class="form-label">Şifre</label><input class="form-input" type="password" id="login-password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
 <button class="btn btn-main" onclick="doLogin()">Giriş Yap</button>
 <p class="auth-switch">Hesabın yok mu? <a onclick="showScreen('register')">Kayıt Ol</a></p>
-</div></div></div>
+</div>
+<div class="auth-footer">Powered by <span>Lara's Engine</span></div>
+</div></div>
 
 <div id="screen-register" class="screen auth-screen">
 <div class="auth-box">
 <div class="auth-header"><div class="logo">🐦</div><h1>Yankuş</h1><p>Sesin Yankılansın</p></div>
 <div class="auth-card">
-<h2>Kayıt Ol</h2>
+<h2>Hesap Oluştur</h2>
+<div class="auth-card-sub">Yankuş'a katıl, sesini duyur</div>
 <div class="error-msg" id="register-error"></div>
-<div class="form-group"><label class="form-label">Görünen Ad</label><input class="form-input" id="register-name" placeholder="Adınız"></div>
-<div class="form-group"><label class="form-label">Kullanıcı Adı</label><input class="form-input" id="register-username" placeholder="@kullaniciadi"></div>
-<div class="form-group"><label class="form-label">Şifre</label><input class="form-input" type="password" id="register-password" placeholder="En az 6 karakter"></div>
-<button class="btn btn-main" onclick="doRegister()">Kayıt Ol</button>
+<div class="form-group"><label class="form-label">Görünen Ad</label><input class="form-input" id="register-name" placeholder="Adın Soyadın" autocomplete="name"><div class="form-hint">Profilinde görünecek isim</div></div>
+<div class="form-group"><label class="form-label">E-posta</label><input class="form-input" type="email" id="register-email" placeholder="ornek@mail.com" autocomplete="email"><div class="form-hint">Bildirimler ve hesap kurtarma için</div></div>
+<div class="form-row">
+<div class="form-group"><label class="form-label">Kullanıcı Adı</label><input class="form-input" id="register-username" placeholder="@kullaniciadi" autocomplete="username"><div class="form-hint">Sadece harf, rakam ve _</div></div>
+<div class="form-group"><label class="form-label">Şifre</label><input class="form-input" type="password" id="register-password" placeholder="En az 6 karakter" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()"><div class="form-hint">Güçlü şifre seç</div></div>
+</div>
+<button class="btn btn-main" onclick="doRegister()">Hesap Oluştur</button>
+<div class="form-divider">veya</div>
 <p class="auth-switch">Hesabın var mı? <a onclick="showScreen('login')">Giriş Yap</a></p>
-</div></div></div>
+</div>
+<div class="auth-footer">Powered by <span>Lara's Engine</span></div>
+</div></div>
 
 <!-- Scroll Progress Bar -->
 <div class="scroll-progress" id="scroll-progress"></div>
@@ -2229,7 +2251,7 @@ const doLogin=async()=>{
     if(btn){btn.disabled=false;btn.textContent='Giriş Yap';}
   }
 };
-const doRegister=async()=>{const n=$('register-name').value.trim(),u=$('register-username').value.trim(),p=$('register-password').value;if(!n||!u||!p)return showError('register','Tüm alanları doldurun');if(p.length<6)return showError('register','Şifre en az 6 karakter');const r=await api('/register',{username:u,password:p,displayName:n});if(r.error)return showError('register',r.error);user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('Hoş geldin!')};
+const doRegister=async()=>{const n=$('register-name').value.trim(),u=$('register-username').value.trim(),p=$('register-password').value,e=$('register-email')?.value?.trim()||'';if(!n||!u||!p)return showError('register','Tüm alanları doldurun');if(e&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))return showError('register','Geçerli bir e-posta adresi girin');if(p.length<6)return showError('register','Şifre en az 6 karakter');if(!/^[a-zA-Z0-9_]+$/.test(u))return showError('register','Kullanıcı adı sadece harf, rakam ve _ içerebilir');const r=await api('/register',{username:u,password:p,displayName:n,email:e});if(r.error)return showError('register',r.error);user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('Hoş geldin!')};
 const doLogout=()=>{user=null;localStorage.removeItem('yankus-user');showScreen('login')};
 
 // Init
