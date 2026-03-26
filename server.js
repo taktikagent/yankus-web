@@ -771,6 +771,15 @@ function initData() {
   // Yama notları
   const patchCount = sqlite.prepare('SELECT COUNT(*) as count FROM patchNotes').get().count;
   // v3.2 yoksa yeni notları ekle
+  const has33 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.3'").get().c;
+  if (!has33 && patchCount > 0) {
+    const insertPatch33 = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
+    insertPatch33.run({
+      id: genId(), version: '3.3', title: 'DM Yenileme + Son Görülme + Okundu Bilgisi',
+      content: JSON.stringify({ date: '26 Mart 2026', features: ['DM mesaj baloncukları yenilendi: gradient arka plan, gölge efekti, farklı renk paleti','Sohbet başlığında son görülme bilgisi (çevrimiçi/uzakta/çevrimdışı)','WhatsApp tarzı okundu bilgisi: gri ✓ (gönderildi), mavi ✓✓ (okundu)','Online durum göstergesi: yeşil pulsing dot, sarı uzakta, otomatik güncelleme','Boş sohbet ekranı yenilendi: animasyonlu illüstrasyon ve Yeni Mesaj butonu','Heartbeat sistemi: 60sn periyodik lastSeen güncelleme','Konuşma listesinde online/away durum göstergesi'], fixes: ['DM parametre uyumsuzluğu düzeltildi (fromUserId→senderId)','Konuşma listesinde "undefined" isim hatası düzeltildi','Mesaj gönderen/alıcı ayrımı (fromUserId/userId) düzeltildi','Dropdown menü pozisyon hatası düzeltildi (profil sayfası)'] }),
+      createdAt: new Date().toISOString()
+    });
+  }
   const has32 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.2'").get().c;
   if (!has32 && patchCount > 0) {
     const insertPatch = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
@@ -787,6 +796,28 @@ function initData() {
   }
   if (patchCount === 0) {
     const notes = [
+      {
+        id: genId(), version: '3.3', title: 'DM Yenileme + Son Görülme + Okundu Bilgisi',
+        content: JSON.stringify({
+          date: '26 Mart 2026',
+          features: [
+            'DM mesaj baloncukları yenilendi: gradient arka plan, gölge efekti, farklı renk paleti',
+            'Sohbet başlığında son görülme bilgisi (çevrimiçi/uzakta/çevrimdışı)',
+            'WhatsApp tarzı okundu bilgisi: gri ✓ (gönderildi), mavi ✓✓ (okundu)',
+            'Online durum göstergesi: yeşil pulsing dot, sarı uzakta, otomatik güncelleme',
+            'Boş sohbet ekranı yenilendi: animasyonlu illüstrasyon ve Yeni Mesaj butonu',
+            'Heartbeat sistemi: 60sn periyodik lastSeen güncelleme',
+            'Konuşma listesinde online/away durum göstergesi'
+          ],
+          fixes: [
+            'DM parametre uyumsuzluğu düzeltildi (fromUserId→senderId)',
+            'Konuşma listesinde "undefined" isim hatası düzeltildi',
+            'Mesaj gönderen/alıcı ayrımı (fromUserId/userId) düzeltildi',
+            'Dropdown menü pozisyon hatası düzeltildi (profil sayfası)'
+          ]
+        }),
+        createdAt: new Date().toISOString()
+      },
       {
         id: genId(), version: '3.2', title: 'Öne Çıkar + Light Tema + Bug Fix',
         content: JSON.stringify({
