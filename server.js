@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// YANKUŞ v3.2 — SERVER (SQLite)
+// YANKUŞ v3.3 — SERVER (SQLite)
 // ═══════════════════════════════════════════════════════════════
 
 const http = require('http');
@@ -229,6 +229,7 @@ sqlite.exec(`
 
 // Migration: featured sütunu ekle
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN featured INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN lastSeen TEXT').run(); } catch(e) { /* zaten var */ }
 
 // ─── Prepared Statements ───────────────────────────────────────
 const stmts = {
@@ -1056,8 +1057,16 @@ const routes = {
     const { username, password } = data;
     const row = stmts.getUserByUsername.get(username);
     if (!row || row.password !== password) return { error: 'Kullanıcı adı veya şifre hatalı' };
-    const user = parseUser(row);
+    sqlite.prepare('UPDATE users SET lastSeen = ? WHERE id = ?').run(new Date().toISOString(), row.id);
+    const user = parseUser(stmts.getUserById.get(row.id));
     return { user: { ...user, password: undefined } };
+  },
+
+  'heartbeat': (data) => {
+    const { userId } = data;
+    if (!userId) return { error: 'userId gerekli' };
+    sqlite.prepare('UPDATE users SET lastSeen = ? WHERE id = ?').run(new Date().toISOString(), userId);
+    return { success: true };
   },
 
   // ═══ PROFILE ═══
@@ -2180,7 +2189,7 @@ const server = http.createServer((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🐦 Yankuş v3.2 (SQLite) running on port ${PORT}`);
+  console.log(`🐦 Yankuş v3.3 (SQLite) running on port ${PORT}`);
   console.log(`📦 Database: ${DB_PATH}`);
 });
 

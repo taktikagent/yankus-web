@@ -502,93 +502,113 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 /* ═══════════════════════════════════════════════════════════
    DM / MESAJLAŞMA — TAM YENİ TASARIM
 ═══════════════════════════════════════════════════════════ */
-@keyframes dmFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes dmBubbleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-@keyframes dmSlideLeft{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
-@keyframes dmSlideRight{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes dmFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dmBubbleIn{0%{opacity:0;transform:scale(.88) translateY(8px)}60%{opacity:1;transform:scale(1.02) translateY(-1px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes dmSlideLeft{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes dmSlideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
 @keyframes dmTyping{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 @keyframes dmReactionPop{0%{transform:scale(0)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes dmPulseOnline{0%,100%{box-shadow:0 0 0 0 rgba(52,199,89,.4)}50%{box-shadow:0 0 0 4px rgba(52,199,89,0)}}
+@keyframes dmEmptyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes dmEmptyPulse{0%,100%{opacity:.6}50%{opacity:1}}
 
 /* ── İki sütunlu layout ── */
 .dm-shell{display:flex;height:calc(100vh - 49px);overflow:hidden}
 
 /* ── Sol panel: konuşmalar listesi ── */
-.dm-list-panel{width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--card)}
-.dm-list-head{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
-.dm-list-title{font-size:16px;font-weight:700;margin-bottom:10px}
-.dm-search{display:flex;align-items:center;gap:8px;background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:7px 12px;transition:border-color .2s}
-.dm-search:focus-within{border-color:var(--accent)}
+.dm-list-panel{width:320px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--card)}
+.dm-list-head{padding:16px 16px 12px;border-bottom:1px solid var(--border)}
+.dm-list-title{font-size:18px;font-weight:800;margin-bottom:10px;letter-spacing:-.3px}
+.dm-search{display:flex;align-items:center;gap:8px;background:var(--elevated);border:1px solid var(--border);border-radius:22px;padding:8px 14px;transition:all .2s}
+.dm-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus)}
 .dm-search input{flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-family:inherit;outline:none}
 .dm-search-icon{color:var(--muted);font-size:13px}
-.dm-new-btn{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:#fff;flex-shrink:0;transition:transform .15s}
-.dm-new-btn:hover{transform:scale(1.1)}
-.dm-tabs{display:flex;border-bottom:1px solid var(--border)}
-.dm-tab{flex:1;padding:9px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.dm-new-btn{width:32px;height:32px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:#fff;flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px var(--glow)}
+.dm-new-btn:hover{transform:scale(1.12);box-shadow:0 4px 14px var(--glow)}
+.dm-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 8px}
+.dm-tab{flex:1;padding:10px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.dm-tab:hover{color:var(--text)}
 .dm-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 .dm-list-scroll{flex:1;overflow-y:auto}
 .dm-list-scroll::-webkit-scrollbar{width:3px}
 
 /* Konuşma satırı */
-.dm-conv{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;transition:background .12s;position:relative;border-bottom:1px solid rgba(255,255,255,.03)}
+.dm-conv{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:all .15s;position:relative;border-bottom:1px solid var(--border)}
 .dm-conv:hover{background:var(--hover)}
-.dm-conv.on{background:var(--accent-hover)}
-.dm-conv.unread{background:var(--accent-hover)}
+.dm-conv.on{background:var(--accent-hover);border-left:3px solid var(--accent)}
+.dm-conv.unread{background:rgba(181,114,129,.06)}
 .dm-conv-av{position:relative;flex-shrink:0}
-.dm-conv-online{position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:var(--success);border:2px solid var(--card);border-radius:50%}
+.dm-conv-online{position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:#34c759;border:2.5px solid var(--card);border-radius:50%;animation:dmPulseOnline 2s infinite}
+.dm-conv-online.away{background:#ffcc00;animation:none}
+.dm-conv-online.offline{display:none}
 .dm-conv-info{flex:1;min-width:0}
 .dm-conv-top{display:flex;align-items:center;gap:4px}
-.dm-conv-name{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-conv-name{font-size:13.5px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-conv-time{font-size:10px;color:var(--muted);flex-shrink:0}
-.dm-conv-preview{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.dm-conv-preview{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
 .dm-conv-preview.unseen{color:var(--text);font-weight:600}
-.dm-conv-badge{background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;flex-shrink:0}
+.dm-conv-badge{background:var(--gradient);color:#fff;font-size:10px;min-width:18px;height:18px;padding:0 5px;border-radius:10px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--glow)}
 .dm-conv-pin{font-size:10px;color:var(--accent);margin-left:2px}
 
 /* Boş durum */
-.dm-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:100%;padding:32px;text-align:center;color:var(--muted)}
-.dm-empty-icon{font-size:44px;opacity:.3}
+.dm-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:100%;padding:40px;text-align:center;color:var(--muted)}
+.dm-empty-icon{font-size:48px;opacity:.4;animation:dmEmptyFloat 3s ease-in-out infinite}
+.dm-empty-text{font-size:15px;font-weight:600;color:var(--text);opacity:.7}
+.dm-empty-sub{font-size:13px;color:var(--muted);max-width:240px;line-height:1.5}
 
 /* ── Sağ panel: sohbet ── */
 .dm-chat-panel{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
-.dm-chat-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted)}
-.dm-chat-placeholder-icon{font-size:56px;opacity:.2}
+.dm-chat-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--muted);padding:40px}
+.dm-chat-placeholder-icon{font-size:72px;opacity:.15;animation:dmEmptyFloat 4s ease-in-out infinite}
+.dm-chat-placeholder-title{font-size:18px;font-weight:700;color:var(--text);opacity:.6}
+.dm-chat-placeholder-sub{font-size:13px;color:var(--muted);max-width:260px;text-align:center;line-height:1.5}
+.dm-chat-placeholder-btn{padding:10px 24px;background:var(--gradient);color:#fff;border:none;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px var(--glow)}
+.dm-chat-placeholder-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px var(--glow)}
 
 /* Sohbet başlığı */
-.dm-chat-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card);flex-shrink:0}
-.dm-chat-head-av{position:relative;flex-shrink:0;cursor:pointer}
-.dm-head-online{position:absolute;bottom:0;right:0;width:11px;height:11px;background:var(--success);border:2px solid var(--card);border-radius:50%}
+.dm-chat-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--card);flex-shrink:0;backdrop-filter:blur(12px)}
+.dm-chat-head-av{position:relative;flex-shrink:0;cursor:pointer;transition:transform .15s}
+.dm-chat-head-av:hover{transform:scale(1.05)}
+.dm-head-online{position:absolute;bottom:0;right:0;width:12px;height:12px;background:#34c759;border:2.5px solid var(--card);border-radius:50%;animation:dmPulseOnline 2s infinite}
+.dm-head-online.away{background:#ffcc00;animation:none}
 .dm-head-info{flex:1;min-width:0;cursor:pointer}
 .dm-head-name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
-.dm-head-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.dm-head-sub{font-size:11.5px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
+.dm-head-status{display:inline-flex;align-items:center;gap:4px}
+.dm-head-status-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dm-head-status-dot.online{background:#34c759}
+.dm-head-status-dot.away{background:#ffcc00}
+.dm-head-status-dot.offline{background:var(--muted)}
 .dm-head-actions{display:flex;gap:6px}
-.dm-head-btn{width:34px;height:34px;border-radius:10px;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--dim);transition:all .15s}
-.dm-head-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dm-head-btn{width:36px;height:36px;border-radius:12px;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--dim);transition:all .2s}
+.dm-head-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.05)}
 
 /* Arama mesaj çubuğu (açılabilir) */
 .dm-msg-search{padding:8px 16px;border-bottom:1px solid var(--border);display:none;gap:8px;align-items:center;background:var(--card)}
 .dm-msg-search.show{display:flex;animation:dmFadeUp .15s ease}
-.dm-msg-search input{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:7px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none}
-.dm-msg-search input:focus{border-color:var(--accent)}
-.dm-msg-search-close{cursor:pointer;color:var(--muted);font-size:14px}
+.dm-msg-search input{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:8px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
+.dm-msg-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus)}
+.dm-msg-search-close{cursor:pointer;color:var(--muted);font-size:14px;padding:4px}
 
 /* Reply bar */
-.dm-reply-bar{padding:8px 16px;border-top:1px solid var(--border);background:var(--elevated);display:none;align-items:center;gap:10px}
+.dm-reply-bar{padding:10px 16px;border-top:1px solid var(--border);background:var(--elevated);display:none;align-items:center;gap:10px}
 .dm-reply-bar.show{display:flex;animation:dmFadeUp .12s ease}
-.dm-reply-line{width:3px;height:28px;background:var(--accent);border-radius:2px;flex-shrink:0}
+.dm-reply-line{width:3px;height:28px;background:var(--gradient);border-radius:2px;flex-shrink:0}
 .dm-reply-content{flex:1;min-width:0}
 .dm-reply-from{font-size:11px;font-weight:700;color:var(--accent)}
 .dm-reply-text{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dm-reply-close{cursor:pointer;color:var(--muted);font-size:16px;padding:4px}
+.dm-reply-close{cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:50%;transition:background .15s}
+.dm-reply-close:hover{background:var(--hover)}
 
 /* Mesaj alanı */
-.dm-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:4px}
+.dm-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:4px}
 .dm-messages::-webkit-scrollbar{width:4px}
 .dm-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 /* Tarih ayırıcı */
-.dm-date-sep{text-align:center;margin:12px 0;position:relative}
+.dm-date-sep{text-align:center;margin:16px 0;position:relative}
 .dm-date-sep::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border)}
-.dm-date-sep span{background:var(--bg);padding:2px 12px;font-size:11px;color:var(--muted);position:relative;border-radius:10px;border:1px solid var(--border)}
+.dm-date-sep span{background:var(--bg);padding:3px 14px;font-size:11px;color:var(--muted);position:relative;border-radius:12px;border:1px solid var(--border);font-weight:500}
 
 /* Mesaj gruplama */
 .dm-msg-group{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}
@@ -600,37 +620,44 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 /* Bubble */
 .dm-bubble-wrap{display:flex;flex-direction:column;max-width:68%;gap:2px}
 .dm-msg-row.mine .dm-bubble-wrap{align-items:flex-end}
-.dm-bubble{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.55;word-break:break-word;position:relative;animation:dmBubbleIn .18s ease;cursor:pointer}
-.dm-msg-row:not(.mine) .dm-bubble{background:var(--elevated);border-bottom-left-radius:5px;color:var(--text)}
-.dm-msg-row.mine .dm-bubble{background:linear-gradient(135deg,#8b1a10,var(--accent2));color:#fff;border-bottom-right-radius:5px}
-.dm-bubble.deleted{opacity:.5;font-style:italic;font-size:13px}
-.dm-bubble.highlighted{outline:2px solid var(--accent2);outline-offset:2px}
+.dm-bubble{padding:11px 15px;border-radius:20px;font-size:14px;line-height:1.55;word-break:break-word;position:relative;animation:dmBubbleIn .25s cubic-bezier(.175,.885,.32,1.1);cursor:pointer;transition:box-shadow .2s}
+.dm-msg-row:not(.mine) .dm-bubble{background:var(--elevated);border:1px solid var(--border);border-bottom-left-radius:6px;color:var(--text)}
+.dm-msg-row:not(.mine) .dm-bubble:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.dm-msg-row.mine .dm-bubble{background:linear-gradient(135deg,#a13547 0%,#8b1a10 40%,#6b1520 100%);color:#fff;border-bottom-right-radius:6px;box-shadow:0 2px 12px rgba(139,26,16,.25)}
+.dm-msg-row.mine .dm-bubble:hover{box-shadow:0 6px 24px rgba(139,26,16,.35)}
+.dm-bubble.deleted{opacity:.45;font-style:italic;font-size:13px}
+.dm-bubble.highlighted{outline:2px solid var(--accent2);outline-offset:3px;animation:dmBubbleIn .25s cubic-bezier(.175,.885,.32,1.1)}
 
 /* Resim mesajı */
-.dm-bubble-img{max-width:240px;border-radius:14px;display:block;cursor:zoom-in}
-.dm-bubble.img-only{padding:4px;background:transparent!important}
+.dm-bubble-img{max-width:260px;border-radius:14px;display:block;cursor:zoom-in;transition:transform .2s}
+.dm-bubble-img:hover{transform:scale(1.02)}
+.dm-bubble.img-only{padding:4px;background:transparent!important;border:none!important;box-shadow:none!important}
 .dm-msg-row.mine .dm-bubble.img-only{background:transparent!important}
 
 /* Reply önizleme (bubble içi) */
-.dm-bubble-reply{background:rgba(0,0,0,.18);border-left:3px solid rgba(255,255,255,.5);border-radius:8px;padding:6px 8px;margin-bottom:6px;font-size:12px;cursor:pointer}
+.dm-bubble-reply{background:rgba(0,0,0,.15);border-left:3px solid rgba(255,255,255,.45);border-radius:10px;padding:7px 10px;margin-bottom:6px;font-size:12px;cursor:pointer;transition:background .15s}
+.dm-bubble-reply:hover{background:rgba(0,0,0,.22)}
 .dm-msg-row:not(.mine) .dm-bubble-reply{background:var(--hover);border-left-color:var(--accent)}
+.dm-msg-row:not(.mine) .dm-bubble-reply:hover{background:var(--accent-hover)}
 .dm-reply-preview-from{font-weight:700;font-size:11px;margin-bottom:2px;opacity:.85}
-.dm-reply-preview-text{opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-reply-preview-text{opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 
 /* Meta (zaman + durum) */
-.dm-msg-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);margin-top:2px}
+.dm-msg-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);margin-top:3px;padding:0 2px}
 .dm-msg-row.mine .dm-msg-meta{justify-content:flex-end}
-.dm-read-tick{color:var(--accent)}
+.dm-read-tick{font-size:12px;font-weight:600;letter-spacing:-1px}
+.dm-read-tick.sent{color:var(--muted)}
+.dm-read-tick.read{color:#3498db}
 
 /* Reaksiyonlar */
-.dm-reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
-.dm-reaction-pill{display:flex;align-items:center;gap:3px;background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:2px 7px;font-size:12px;cursor:pointer;transition:all .12s;animation:dmReactionPop .2s ease}
-.dm-reaction-pill:hover{border-color:var(--accent)}
+.dm-reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.dm-reaction-pill{display:flex;align-items:center;gap:3px;background:var(--elevated);border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-size:12px;cursor:pointer;transition:all .15s;animation:dmReactionPop .2s ease}
+.dm-reaction-pill:hover{border-color:var(--accent);transform:scale(1.05)}
 .dm-reaction-pill.mine{background:rgba(181,72,93,.15);border-color:var(--accent)}
 .dm-reaction-pill span{font-size:10px;color:var(--muted)}
 
 /* Yazıyor göstergesi */
-.dm-typing{display:none;align-items:center;gap:6px;padding:4px 16px;font-size:12px;color:var(--muted)}
+.dm-typing{display:none;align-items:center;gap:8px;padding:6px 20px;font-size:12px;color:var(--muted)}
 .dm-typing.show{display:flex;animation:dmFadeUp .2s ease}
 .dm-typing-dots{display:flex;gap:3px}
 .dm-typing-dot{width:6px;height:6px;background:var(--muted);border-radius:50%}
@@ -639,45 +666,47 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .dm-typing-dot:nth-child(3){animation:dmTyping 1s .3s infinite}
 
 /* Hoverkontekst menü */
-.dm-bubble-ctx{position:absolute;top:-36px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:4px 6px;display:none;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.35);z-index:50;white-space:nowrap}
+.dm-bubble-ctx{position:absolute;top:-38px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:4px 6px;display:none;gap:2px;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:50;white-space:nowrap;backdrop-filter:blur(12px)}
 .dm-msg-row.mine .dm-bubble-ctx{right:0}
 .dm-msg-row:not(.mine) .dm-bubble-ctx{left:0}
 .dm-bubble:hover .dm-bubble-ctx{display:flex}
-.dm-ctx-btn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:background .12s}
-.dm-ctx-btn:hover{background:var(--hover)}
+.dm-ctx-btn{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .15s}
+.dm-ctx-btn:hover{background:var(--hover);transform:scale(1.1)}
 
 /* Emoji tepki seçici */
-.dm-react-picker{position:absolute;top:-68px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:6px 8px;display:none;gap:4px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:51}
+.dm-react-picker{position:absolute;top:-68px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:6px 8px;display:none;gap:4px;box-shadow:0 6px 20px rgba(0,0,0,.35);z-index:51;backdrop-filter:blur(12px)}
 .dm-msg-row.mine .dm-react-picker{right:0}
 .dm-msg-row:not(.mine) .dm-react-picker{left:0}
 .dm-react-picker.show{display:flex;animation:dmFadeUp .12s ease}
-.dm-react-opt{font-size:18px;cursor:pointer;padding:3px 4px;border-radius:8px;transition:transform .1s}
-.dm-react-opt:hover{transform:scale(1.3)}
+.dm-react-opt{font-size:18px;cursor:pointer;padding:3px 4px;border-radius:8px;transition:transform .12s}
+.dm-react-opt:hover{transform:scale(1.35)}
 
 /* Giriş alanı */
-.dm-input-area{border-top:1px solid var(--border);background:var(--card);flex-shrink:0}
-.dm-input-row{display:flex;align-items:flex-end;gap:8px;padding:10px 14px}
-.dm-input-btn{width:36px;height:36px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--dim);transition:all .15s;flex-shrink:0}
-.dm-input-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
-.dm-input-box{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:22px;padding:10px 16px;color:var(--text);font-size:14px;font-family:inherit;resize:none;max-height:120px;overflow-y:auto;line-height:1.4;outline:none;transition:border-color .2s}
-.dm-input-box:focus{border-color:var(--accent)}
-.dm-send-btn{width:38px;height:38px;border-radius:50%;background:var(--gradient);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#fff;flex-shrink:0;transition:transform .15s;box-shadow:0 2px 10px var(--glow)}
-.dm-send-btn:hover{transform:scale(1.08)}
-.dm-send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.dm-input-area{border-top:1px solid var(--border);background:var(--card);flex-shrink:0;backdrop-filter:blur(12px)}
+.dm-input-row{display:flex;align-items:flex-end;gap:8px;padding:12px 16px}
+.dm-input-btn{width:38px;height:38px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--dim);transition:all .2s;flex-shrink:0}
+.dm-input-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.08)}
+.dm-input-box{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:22px;padding:11px 18px;color:var(--text);font-size:14px;font-family:inherit;resize:none;max-height:120px;overflow-y:auto;line-height:1.45;outline:none;transition:all .2s}
+.dm-input-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus);background:var(--hover)}
+.dm-send-btn{width:40px;height:40px;border-radius:50%;background:var(--gradient);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#fff;flex-shrink:0;transition:all .2s;box-shadow:0 3px 12px var(--glow)}
+.dm-send-btn:hover{transform:scale(1.1);box-shadow:0 5px 18px var(--glow)}
+.dm-send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
 
 /* Emoji picker (DM) */
-.dm-emoji-picker{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px;display:none;grid-template-columns:repeat(7,1fr);gap:4px;width:260px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.dm-emoji-picker{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px;display:none;grid-template-columns:repeat(7,1fr);gap:4px;width:260px;z-index:200;box-shadow:0 8px 28px rgba(0,0,0,.35);backdrop-filter:blur(12px)}
 .dm-emoji-picker.show{display:grid;animation:dmFadeUp .15s ease}
 .dm-emoji-wrap{position:relative}
 
 /* Görsel önizleme (göndermeden önce) */
 .dm-img-preview{padding:8px 14px 0;display:none}
-.dm-img-preview.show{display:flex;align-items:center;gap:8px}
-.dm-img-preview img{width:60px;height:60px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
-.dm-img-preview-remove{cursor:pointer;color:var(--muted);font-size:16px}
+.dm-img-preview.show{display:flex;align-items:center;gap:10px;animation:dmFadeUp .15s ease}
+.dm-img-preview img{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--border)}
+.dm-img-preview-remove{cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:50%;transition:all .15s}
+.dm-img-preview-remove:hover{background:var(--hover);color:var(--accent2)}
 
 /* Scroll to bottom btn */
-.dm-scroll-btn{position:absolute;bottom:90px;right:20px;width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:none;align-items:center;justify-content:center;cursor:pointer;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,.3);z-index:10}
+.dm-scroll-btn{position:absolute;bottom:90px;right:20px;width:38px;height:38px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:none;align-items:center;justify-content:center;cursor:pointer;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:10;transition:all .2s;backdrop-filter:blur(8px)}
+.dm-scroll-btn:hover{transform:scale(1.1);border-color:var(--accent)}
 .dm-scroll-btn.show{display:flex;animation:dmFadeUp .15s ease}
 
 /* Admin Panel - Düzeltilmiş */
@@ -1423,7 +1452,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="sidebar-brand-icon">🐦</div>
   <div class="sidebar-brand-text">
     <div class="sidebar-brand-name">Yankuş</div>
-    <div class="sidebar-brand-version">v3.2 ✨</div>
+    <div class="sidebar-brand-version">v3.3 ✨</div>
   </div>
 </div>
 <nav class="sidebar-menu">
@@ -1596,8 +1625,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="dm-chat-panel" id="dm-chat-panel">
     <div class="dm-chat-placeholder" id="dm-placeholder">
       <div class="dm-chat-placeholder-icon">💬</div>
-      <div style="font-size:16px;font-weight:600">Bir konuşma seç</div>
-      <div style="font-size:13px">veya yeni mesaj başlat</div>
+      <div class="dm-chat-placeholder-title">Mesajlarına Hoş Geldin</div>
+      <div class="dm-chat-placeholder-sub">Bir sohbet seç ya da yeni bir konuşma başlatarak arkadaşlarınla bağlantıda kal</div>
+      <button class="dm-chat-placeholder-btn" onclick="dmNewMessage()">✏️ Yeni Mesaj</button>
     </div>
   </div>
 
@@ -2209,6 +2239,8 @@ const init=()=>{
   if(user.isAdmin){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');$('admin-indicator').style.display='block'}
   dmUpdateBadge();
   setInterval(dmUpdateBadge, 15000);
+  api('/heartbeat', { userId: user.id });
+  setInterval(() => api('/heartbeat', { userId: user.id }), 60000);
   setTimeout(()=>{ nfPoll(); setInterval(nfPoll, 12000); }, 3000);
   // Band poller — defer so all functions are defined
   setTimeout(()=>{
@@ -3813,14 +3845,20 @@ const dmRenderConvList = () => {
 
   const list = $('dm-conv-list');
   if (!convs.length) {
-    list.innerHTML = `<div class="dm-empty"><div class="dm-empty-icon">💬</div><div>${dm.convSearch ? 'Sonuç yok' : 'Henüz mesaj yok'}</div></div>`;
+    list.innerHTML = `<div class="dm-empty">
+      <div class="dm-empty-icon">${dm.convSearch ? '🔍' : '💬'}</div>
+      <div class="dm-empty-text">${dm.convSearch ? 'Sonuç yok' : 'Henüz mesaj yok'}</div>
+      <div class="dm-empty-sub">${dm.convSearch ? 'Farklı anahtar kelimeler dene' : 'Yeni bir sohbet başlat!'}</div>
+    </div>`;
     return;
   }
-  list.innerHTML = convs.map(c => `
+  list.innerHTML = convs.map(c => {
+    const st = c.isBot ? 'online' : dmOnlineStatus(c.lastSeen || c.otherUser?.lastSeen);
+    return `
     <div class="dm-conv ${c.unread?'unread':''} ${dm.activeChatId===c.userId?'on':''}" onclick="dmOpenChat('${c.userId}')">
       <div class="dm-conv-av">
         <div class="avatar">${avatar(c.profileImage)}</div>
-        <!-- online dot: gerçek presence sistemi olmadan gösterilmez -->
+        ${st !== 'offline' ? `<div class="dm-conv-online ${st}"></div>` : ''}
       </div>
       <div class="dm-conv-info">
         <div class="dm-conv-top">
@@ -3832,7 +3870,7 @@ const dmRenderConvList = () => {
           ${c.lastMessage?.deleted?'<i>Mesaj silindi</i>':((c.lastMessage?.fromUserId||c.lastMessage?.userId)===user.id?'Sen: ':'')+( c.lastMessage?.image&&!c.lastMessage?.text?'📷 Görsel':c.lastMessage?.text||'')}
         </div>
       </div>
-    </div>`).join('');
+    </div>`}).join('');
 };
 
 const dmOpenChat = async (otherId) => {
@@ -3848,7 +3886,7 @@ const dmOpenChat = async (otherId) => {
     api('/messages/get', { userId: user.id, otherId })
   ]);
   dm.activeProfile = profRes.user || profRes;
-  dm.msgs = msgRes.messages || [];
+  dm.msgs = (msgRes.messages || []).map(m => ({ ...m, fromUserId: m.fromUserId || m.userId }));
 
   // Okundu işaretle
   await api('/messages/read', { userId: user.id, otherId });
@@ -3859,21 +3897,40 @@ const dmOpenChat = async (otherId) => {
   dmRenderChat();
 };
 
+const dmLastSeenText = (lastSeen) => {
+  if (!lastSeen) return 'çevrimdışı';
+  const diff = Date.now() - new Date(lastSeen).getTime();
+  if (diff < 2 * 60000) return 'çevrimiçi';
+  if (diff < 60 * 60000) return `${Math.floor(diff/60000)}dk önce aktifti`;
+  if (diff < 24 * 3600000) return `${Math.floor(diff/3600000)}sa önce aktifti`;
+  if (diff < 7 * 86400000) return `${Math.floor(diff/86400000)}g önce aktifti`;
+  return 'uzun süredir çevrimdışı';
+};
+const dmOnlineStatus = (lastSeen) => {
+  if (!lastSeen) return 'offline';
+  const diff = Date.now() - new Date(lastSeen).getTime();
+  if (diff < 2 * 60000) return 'online';
+  if (diff < 15 * 60000) return 'away';
+  return 'offline';
+};
+
 const dmRenderChat = () => {
   const panel = $('dm-chat-panel');
   const p = dm.activeProfile;
   if (!p) return;
+  const status = p.isBot ? 'online' : dmOnlineStatus(p.lastSeen);
+  const statusText = p.isBot ? 'Bot · Her zaman aktif' : dmLastSeenText(p.lastSeen);
 
   panel.innerHTML = `
     <!-- Başlık -->
     <div class="dm-chat-head">
       <div class="dm-chat-head-av" onclick="goUser('@${p.username}')">
         <div class="avatar">${avatar(p.profileImage)}</div>
-        <div class="dm-head-online"></div>
+        ${status !== 'offline' ? `<div class="dm-head-online ${status}"></div>` : ''}
       </div>
       <div class="dm-head-info" onclick="goUser('@${p.username}')">
         <div class="dm-head-name">${p.displayName}${p.verified?' <span style="color:var(--accent)">✓</span>':''}${p.isBot?' <span class="yanki-bot">BOT</span>':''}</div>
-        <div class="dm-head-sub">@${p.username}${p.isBot?' · Bot hesabı':''}</div>
+        <div class="dm-head-sub"><span class="dm-head-status"><span class="dm-head-status-dot ${status}"></span> ${statusText}</span></div>
       </div>
       <div class="dm-head-actions">
         <div class="dm-head-btn" onclick="dmToggleMsgSearch()" title="Mesajlarda ara">🔍</div>
@@ -3941,7 +3998,11 @@ const dmRenderMessages = () => {
   let msgs = dm.msgs.filter(m => !dm.msgSearchQ || m.text?.toLowerCase().includes(dm.msgSearchQ));
 
   if (!msgs.length) {
-    inner.innerHTML = `<div class="dm-empty" style="height:auto;padding:40px"><div class="dm-empty-icon">💬</div><div>${dm.msgSearchQ ? 'Mesaj bulunamadı' : 'Henüz mesaj yok. İlkini sen gönder!'}</div></div>`;
+    inner.innerHTML = `<div class="dm-empty" style="height:auto;padding:60px 40px">
+      <div class="dm-empty-icon">${dm.msgSearchQ ? '🔍' : '✨'}</div>
+      <div class="dm-empty-text">${dm.msgSearchQ ? 'Mesaj bulunamadı' : 'Sohbete başla!'}</div>
+      <div class="dm-empty-sub">${dm.msgSearchQ ? 'Farklı anahtar kelimeler dene' : `${dm.activeProfile?.displayName || 'Bu kişi'} ile ilk mesajını gönder ve sohbeti başlat`}</div>
+    </div>`;
     dmScrollBottom();
     return;
   }
@@ -4013,7 +4074,7 @@ const dmRenderMsgRow = (m, firstInGroup) => {
         ${reactionsHtml ? `<div class="dm-reactions">${reactionsHtml}</div>` : ''}
         <div class="dm-msg-meta">
           ${timeAgo(m.createdAt)}
-          ${mine ? `<span class="dm-read-tick">${m.read?'✓✓':'✓'}</span>` : ''}
+          ${mine ? `<span class="dm-read-tick ${m.read?'read':'sent'}">${m.read?'✓✓':'✓'}</span>` : ''}
         </div>
       </div>
     </div>`;
@@ -4034,7 +4095,7 @@ const dmSend = async () => {
   });
 
   if (r.success) {
-    dm.msgs.push(r.message);
+    dm.msgs.push({ ...r.message, fromUserId: r.message.fromUserId || r.message.userId });
     if (inputEl) inputEl.innerText = '';
     $('dm-send-btn').disabled = true;
     dmClearReply();
