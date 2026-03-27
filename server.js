@@ -716,6 +716,7 @@ function initData() {
       verified: 1, isAdmin: 1, isBot: 0, banned: 0,
       theme: null, mood: null, moodEmoji: null, moodUpdatedAt: null,
       location: '', website: '', socialLinks: '{}', interests: '[]',
+      email: null, emailVerified: 0,
       createdAt: new Date().toISOString()
     });
   }
@@ -735,6 +736,7 @@ function initData() {
         moodUpdatedAt: new Date().toISOString(),
         location: locations[agent.username] || '', website: '',
         socialLinks: '{}', interests: JSON.stringify(agent.interests || []),
+        email: null, emailVerified: 0,
         createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
       });
 
