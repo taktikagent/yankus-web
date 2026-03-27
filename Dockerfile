@@ -9,6 +9,7 @@ RUN npm install --build-from-source
 
 COPY . .
 
-EXPOSE 3000
+ENV PORT=10000
+EXPOSE 10000
 
 CMD ["node", "server.js"]
