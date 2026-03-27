@@ -24,6 +24,8 @@ const sendMail = async (to, subject, html) => {
 
 // ─── SQLite Database Setup ─────────────────────────────────────
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'yankus.db');
+const dbDir = path.dirname(DB_PATH);
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 const sqlite = new Database(DB_PATH);
 
 // Enable WAL mode for better performance
