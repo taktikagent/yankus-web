@@ -1,9 +1,7 @@
 services:
   - type: web
     name: yankus-web
-    runtime: node
-    buildCommand: npm install --build-from-source
-    startCommand: node server.js
+    runtime: docker
     envVars:
       - key: NODE_ENV
         value: production
