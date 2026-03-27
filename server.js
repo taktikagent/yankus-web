@@ -802,6 +802,24 @@ function initData() {
   // Yama notları
   const patchCount = sqlite.prepare('SELECT COUNT(*) as count FROM patchNotes').get().count;
   // v3.2 yoksa yeni notları ekle
+  const has35 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.5'").get().c;
+  if (!has35 && patchCount > 0) {
+    const insertPatch35 = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
+    insertPatch35.run({
+      id: genId(), version: '3.5', title: 'Keşfet Yenileme + Öne Çıkanlar + Sabitleme Kaldırma',
+      content: JSON.stringify({ date: '27 Mart 2026', features: ['Keşfet sayfası tamamen yenilendi: hero header, tab sistemi (Senin İçin / Trend / Kişiler / Hashtagler)','Gelişmiş arama: debounced instant search, birleşik sonuçlar (kişiler/hashtagler/yankılar)','Hashtag algoritması güncellendi: kategori tespiti, etkileşim skoru, hız bonusu','Gündem sidebar kısaltıldı: ilk 3 trend + "Daha fazla göster" butonu','Drag-to-scroll: keşfet önerileri, hashtagler ve profil öne çıkanlarda sürükleyerek kaydırma','Öne çıkanlar devir daim: CSS marquee animasyonu ile sürekli kayma','Öne çıkarma limiti 5\'ten 3\'e düşürüldü','Geri butonu SVG ok ikonu ile yenilendi'], fixes: ['Yankı sabitleme özelliği tamamen kaldırıldı','Öne çıkarma dropdown metni düzeltildi (Öne Çıkar → Öne Çıkarmayı Kaldır)','Öne çıkarma anında güncelleniyor (profil + feed)','enrichYanki\'ye featured alanı eklendi','Geri butonu ortalama düzeltmesi (display:flex)','Kullanıcı silmede DM ve taslak temizliği eklendi'] }),
+      createdAt: new Date().toISOString()
+    });
+  }
+  const has34 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.4'").get().c;
+  if (!has34 && patchCount > 0) {
+    const insertPatch34 = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
+    insertPatch34.run({
+      id: genId(), version: '3.4', title: 'E-posta Doğrulama + Şifre Sıfırlama',
+      content: JSON.stringify({ date: '27 Mart 2026', features: ['Kayıt sırasında e-posta doğrulama sistemi (6 haneli kod)','Şifre sıfırlama: e-posta ile kod gönderimi + yeni şifre belirleme','Doğrulama kodu otomatik odaklama ve yapıştırma desteği','Spam koruması: 1 dakika bekleme süresi','Kapsamlı UI/UX iyileştirmeleri ve kod optimizasyonu'], fixes: ['Cache-Control header eklendi (tarayıcı cache sorunu)','Giriş/Kayıt ekranı UI/UX yenilendi + Lara\'s Engine branding'] }),
+      createdAt: new Date().toISOString()
+    });
+  }
   const has33 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.3'").get().c;
   if (!has33 && patchCount > 0) {
     const insertPatch33 = sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)');
@@ -827,6 +845,49 @@ function initData() {
   }
   if (patchCount === 0) {
     const notes = [
+      {
+        id: genId(), version: '3.5', title: 'Keşfet Yenileme + Öne Çıkanlar + Sabitleme Kaldırma',
+        content: JSON.stringify({
+          date: '27 Mart 2026',
+          features: [
+            'Keşfet sayfası tamamen yenilendi: hero header, tab sistemi (Senin İçin / Trend / Kişiler / Hashtagler)',
+            'Gelişmiş arama: debounced instant search, birleşik sonuçlar (kişiler/hashtagler/yankılar)',
+            'Hashtag algoritması güncellendi: kategori tespiti, etkileşim skoru, hız bonusu',
+            'Gündem sidebar kısaltıldı: ilk 3 trend + "Daha fazla göster" butonu',
+            'Drag-to-scroll: keşfet önerileri, hashtagler ve profil öne çıkanlarda sürükleyerek kaydırma',
+            'Öne çıkanlar devir daim: CSS marquee animasyonu ile sürekli kayma',
+            'Öne çıkarma limiti 5\'ten 3\'e düşürüldü',
+            'Geri butonu SVG ok ikonu ile yenilendi'
+          ],
+          fixes: [
+            'Yankı sabitleme özelliği tamamen kaldırıldı',
+            'Öne çıkarma dropdown metni düzeltildi (Öne Çıkar → Öne Çıkarmayı Kaldır)',
+            'Öne çıkarma anında güncelleniyor (profil + feed)',
+            'enrichYanki\'ye featured alanı eklendi',
+            'Geri butonu ortalama düzeltmesi (display:flex)',
+            'Kullanıcı silmede DM ve taslak temizliği eklendi'
+          ]
+        }),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: genId(), version: '3.4', title: 'E-posta Doğrulama + Şifre Sıfırlama',
+        content: JSON.stringify({
+          date: '27 Mart 2026',
+          features: [
+            'Kayıt sırasında e-posta doğrulama sistemi (6 haneli kod)',
+            'Şifre sıfırlama: e-posta ile kod gönderimi + yeni şifre belirleme',
+            'Doğrulama kodu otomatik odaklama ve yapıştırma desteği',
+            'Spam koruması: 1 dakika bekleme süresi',
+            'Kapsamlı UI/UX iyileştirmeleri ve kod optimizasyonu'
+          ],
+          fixes: [
+            'Cache-Control header eklendi (tarayıcı cache sorunu)',
+            'Giriş/Kayıt ekranı UI/UX yenilendi + Lara\'s Engine branding'
+          ]
+        }),
+        createdAt: new Date().toISOString()
+      },
       {
         id: genId(), version: '3.3', title: 'DM Yenileme + Son Görülme + Okundu Bilgisi',
         content: JSON.stringify({
