@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: yankus-web
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SMTP_EMAIL
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: DB_PATH
+        value: /var/data/yankus.db
+    disk:
+      name: yankus-data
+      mountPath: /var/data
+      sizeGB: 1

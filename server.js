@@ -9,8 +9,8 @@ const Database = require('better-sqlite3');
 const nodemailer = require('nodemailer');
 
 // ─── E-posta Ayarları ────────────────────────────────────────
-const SMTP_EMAIL = 'kurumsalibrahim@gmail.com';
-const SMTP_PASS = 'fxyf skum vlol rudd';
+const SMTP_EMAIL = process.env.SMTP_EMAIL || 'kurumsalibrahim@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'fxyf skum vlol rudd';
 const mailTransporter = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: SMTP_EMAIL, pass: SMTP_PASS }
@@ -23,7 +23,7 @@ const sendMail = async (to, subject, html) => {
 };
 
 // ─── SQLite Database Setup ─────────────────────────────────────
-const DB_PATH = path.join(__dirname, 'yankus.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'yankus.db');
 const sqlite = new Database(DB_PATH);
 
 // Enable WAL mode for better performance
