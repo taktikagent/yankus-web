@@ -1064,6 +1064,7 @@ const enrichYanki = (yanki, viewerId) => {
     poll: pollData,
     reyanki, replyTo, quote,
     pinned: yanki.pinned || false,
+    featured: yanki.featured || false,
     editedAt: yanki.editedAt || null,
     likes: likeCount, commentCount, reyankiCount: reyankis.length,
     reactions: reactionCounts, userReactions,
@@ -1454,10 +1455,10 @@ const routes = {
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
     const newFeatured = yanki.featured ? 0 : 1;
-    // Maksimum 5 öne çıkarılmış yankı
+    // Maksimum 3 öne çıkarılmış yankı
     if (newFeatured) {
       const count = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE userId = ? AND featured = 1').get(userId).c;
-      if (count >= 5) return { error: 'En fazla 5 yankı öne çıkarabilirsiniz' };
+      if (count >= 3) return { error: 'En fazla 3 yankı öne çıkarabilirsiniz' };
     }
     sqlite.prepare('UPDATE yankis SET featured = ? WHERE id = ?').run(newFeatured, yankiId);
     return { success: true, featured: !!newFeatured };
@@ -1597,49 +1598,96 @@ const routes = {
 
   // ═══ SEARCH ═══
   'search': (data) => {
-    const { query, userId } = data;
-    const q = query.toLowerCase();
+    const { query, userId, type } = data;
+    if (!query || !query.trim()) return { users: [], yankis: [], hashtags: [] };
+    const q = query.trim().toLowerCase();
 
-    if (q.startsWith('#')) {
-      const tag = q.slice(1);
-      const yankis = sqlite.prepare("SELECT * FROM yankis WHERE LOWER(text) LIKE ? ORDER BY createdAt DESC").all(`%#${tag}%`)
-        .map(y => enrichYanki(y, userId)).filter(Boolean);
-      return { yankis };
-    }
-    if (q.startsWith('@')) {
-      const username = q.slice(1);
-      const users = sqlite.prepare("SELECT * FROM users WHERE LOWER(username) LIKE ?").all(`%${username}%`)
-        .map(u => ({ ...parseUser(u), password: undefined }));
-      return { users, yankis: [] };
-    }
-    const yankis = sqlite.prepare("SELECT * FROM yankis WHERE LOWER(text) LIKE ? ORDER BY createdAt DESC").all(`%${q}%`)
+    // Kullanıcı arama
+    const users = sqlite.prepare("SELECT * FROM users WHERE LOWER(username) LIKE ? OR LOWER(displayName) LIKE ? LIMIT 15").all(`%${q.replace('@','')}%`, `%${q.replace('@','')}%`)
+      .map(u => ({ ...parseUser(u), password: undefined }));
+
+    // Hashtag arama
+    const dayAgo = new Date(Date.now() - 24 * 3600000).toISOString();
+    const allYankis = sqlite.prepare('SELECT text, createdAt FROM yankis WHERE createdAt > ?').all(dayAgo);
+    const tagCounts = {};
+    allYankis.forEach(y => {
+      (y.text.match(/#[\wğüşöçıİĞÜŞÖÇ]+/gi) || []).forEach(tag => {
+        if (tag.toLowerCase().includes(q.replace('#',''))) tagCounts[tag.toLowerCase()] = (tagCounts[tag.toLowerCase()] || 0) + 1;
+      });
+    });
+    const hashtags = Object.entries(tagCounts).sort((a,b) => b[1] - a[1]).slice(0, 10).map(([tag, count]) => ({ tag, count }));
+
+    // Yankı arama
+    const yankis = sqlite.prepare("SELECT * FROM yankis WHERE LOWER(text) LIKE ? ORDER BY createdAt DESC LIMIT 30").all(`%${q}%`)
       .map(y => enrichYanki(y, userId)).filter(Boolean);
-    return { yankis };
+
+    return { users, yankis, hashtags };
   },
 
   // ═══ TRENDING ═══
   'trending': () => {
-    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const recentYankis = sqlite.prepare('SELECT text, createdAt FROM yankis WHERE createdAt > ?').all(dayAgo);
+    const now = Date.now();
+    const dayAgo = new Date(now - 24 * 3600000).toISOString();
+    const hourAgo = new Date(now - 3600000).toISOString();
+    const sixHourAgo = new Date(now - 6 * 3600000).toISOString();
 
-    const tagCountsDay = {};
-    const tagCountsHour = {};
+    // Hashtag kategori eşleştirme
+    const catMap = {
+      spor: ['futbol','basketbol','voleybol','maç','gol','şampiyon','lig','derbi','transfer','stadyum','fenerbahçe','galatasaray','beşiktaş','trabzonspor','milli','olimpiyat','spor','fifa','nba'],
+      teknoloji: ['yazılım','kod','react','python','ai','yapay','zeka','tech','web','uygulama','startup','kripto','bitcoin','blockchain','robot','algorithm','api','developer','programlama','teknoloji','bilgisayar','telefon','iphone','android','linux'],
+      müzik: ['müzik','şarkı','albüm','konser','spotify','playlist','melodi','rap','pop','rock','jazz','piyano','gitar','sanatçı','feat','single','klip'],
+      sanat: ['sanat','resim','tablo','sergi','tasarım','fotoğraf','sinema','film','dizi','kitap','roman','yazar','edebiyat','şiir','tiyatro'],
+      yemek: ['yemek','tarif','mutfak','lezzet','restoran','kahve','çay','pizza','burger','tatlı','pasta','iftar','sahur','gurme','aşçı'],
+      seyahat: ['seyahat','gezi','tatil','otel','uçak','istanbul','ankara','izmir','antalya','plaj','deniz','doğa','kamp','tur','vize']
+    };
+    const detectCat = (tag) => {
+      const t = tag.replace('#','').toLowerCase();
+      for (const [cat, keys] of Object.entries(catMap)) {
+        if (keys.some(k => t.includes(k))) return cat;
+      }
+      return 'genel';
+    };
+
+    // Yankıları çek (hashtag + etkileşim bilgisiyle)
+    const recentYankis = sqlite.prepare('SELECT id, text, createdAt FROM yankis WHERE createdAt > ?').all(dayAgo);
+
+    const tagData = {};
     recentYankis.forEach(y => {
-      const matches = y.text.match(/#\w+/g) || [];
+      const matches = y.text.match(/#[\wğüşöçıİĞÜŞÖÇ]+/gi) || [];
+      const isHour = y.createdAt > hourAgo;
+      const isSixHour = y.createdAt > sixHourAgo;
+      // Etkileşim skoru
+      const likes = stmts.getLikeCount.get(y.id)?.count || 0;
+      const comments = stmts.getCommentCount.get(y.id)?.count || 0;
+      const engagement = likes + comments * 2;
+
       matches.forEach(tag => {
-        tagCountsDay[tag] = (tagCountsDay[tag] || 0) + 1;
-        if (y.createdAt > hourAgo) tagCountsHour[tag] = (tagCountsHour[tag] || 0) + 1;
+        const tagLower = tag.toLowerCase();
+        if (!tagData[tagLower]) tagData[tagLower] = { tag: tagLower, topic: tag, countDay: 0, countHour: 0, countSixHour: 0, engagement: 0, uniqueUsers: new Set(), bars: Array(8).fill(0) };
+        tagData[tagLower].countDay++;
+        tagData[tagLower].engagement += engagement;
+        if (isHour) tagData[tagLower].countHour++;
+        if (isSixHour) tagData[tagLower].countSixHour++;
+        // 3 saatlik dilimler (8 bar = 24 saat)
+        const hoursAgo = (now - new Date(y.createdAt).getTime()) / 3600000;
+        const barIdx = Math.min(7, Math.floor(hoursAgo / 3));
+        tagData[tagLower].bars[7 - barIdx]++;
       });
     });
 
-    const trends = Object.entries(tagCountsDay)
-      .sort((a, b) => b[1] - a[1]).slice(0, 10)
-      .map(([tag, count]) => ({
-        tag, count, category: 'Gündem',
-        countHour: tagCountsHour[tag] || 0, countDay: count,
-        rising: (tagCountsHour[tag] || 0) > count / 24
-      }));
+    const trends = Object.values(tagData)
+      .map(t => {
+        const category = detectCat(t.tag);
+        // Gelişmiş skor: kullanım + etkileşim + hız bonusu
+        const velocityBonus = t.countHour * 5; // Son 1 saat ağırlıklı
+        const engagementBonus = Math.min(t.engagement, 50); // Max 50 bonus
+        const score = t.countDay + velocityBonus + engagementBonus;
+        const rising = t.countHour > (t.countDay / 24) * 1.5; // Ortalamanın 1.5 katı
+        return { topic: t.topic, count: t.countDay, category, countHour: t.countHour, countDay: t.countDay, countSixHour: t.countSixHour, engagement: t.engagement, rising, score, bars: t.bars };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 15);
+
     return { trends };
   },
 
@@ -1819,13 +1867,42 @@ const routes = {
 
   'explore/trending-yankis': (data) => {
     const { viewerId, limit } = data;
-    const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL').all();
-    const yankis = all.map(y => ({
-      yanki: y,
-      score: stmts.getLikeCount.get(y.id).count + stmts.getCommentCount.get(y.id).count * 2 + stmts.getReyankis.all(y.id).length * 3
-    })).sort((a, b) => b.score - a.score).slice(0, limit || 20)
+    const dayAgo = new Date(Date.now() - 48 * 3600000).toISOString(); // Son 48 saat
+    const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL AND createdAt > ? ORDER BY createdAt DESC').all(dayAgo);
+    const yankis = all.map(y => {
+      const likes = stmts.getLikeCount.get(y.id)?.count || 0;
+      const comments = stmts.getCommentCount.get(y.id)?.count || 0;
+      const reyankis = stmts.getReyankis.all(y.id)?.length || 0;
+      // Zaman ağırlığı: yeni içerikler bonus alır
+      const ageHours = (Date.now() - new Date(y.createdAt).getTime()) / 3600000;
+      const timeDecay = Math.max(0.3, 1 - (ageHours / 48));
+      const score = (likes + comments * 2 + reyankis * 3) * timeDecay;
+      return { yanki: y, score };
+    }).sort((a, b) => b.score - a.score).slice(0, limit || 20)
       .map(item => enrichYanki(item.yanki, viewerId)).filter(Boolean);
     return { yankis };
+  },
+
+  'explore/categories': (data) => {
+    const { viewerId } = data;
+    const dayAgo = new Date(Date.now() - 24 * 3600000).toISOString();
+    const catMap = { spor: ['futbol','maç','gol','lig','spor'], teknoloji: ['yazılım','kod','ai','tech','teknoloji'], müzik: ['müzik','şarkı','konser','spotify'], sanat: ['sanat','resim','film','dizi','kitap','şiir'], yemek: ['yemek','tarif','lezzet','kahve'], seyahat: ['seyahat','gezi','tatil','istanbul'] };
+    const categories = {};
+    for (const [cat, keywords] of Object.entries(catMap)) {
+      const pattern = keywords.map(k => `%${k}%`);
+      let catYankis = [];
+      pattern.forEach(p => {
+        const rows = sqlite.prepare('SELECT * FROM yankis WHERE LOWER(text) LIKE ? AND replyToId IS NULL AND createdAt > ? ORDER BY createdAt DESC LIMIT 5').all(p, dayAgo);
+        catYankis.push(...rows);
+      });
+      // Tekrarları kaldır
+      const seen = new Set();
+      catYankis = catYankis.filter(y => { if (seen.has(y.id)) return false; seen.add(y.id); return true; });
+      if (catYankis.length > 0) {
+        categories[cat] = catYankis.slice(0, 5).map(y => enrichYanki(y, viewerId)).filter(Boolean);
+      }
+    }
+    return { categories };
   },
 
   // ═══ POLL ═══
@@ -2269,7 +2346,7 @@ const routes = {
   'profile/featured': (data) => {
     const { userId, viewerId } = data;
     // Önce kullanıcının elle seçtiği öne çıkan yankıları getir
-    let yankis = sqlite.prepare('SELECT * FROM yankis WHERE userId = ? AND featured = 1 AND replyToId IS NULL ORDER BY createdAt DESC LIMIT 5').all(userId);
+    let yankis = sqlite.prepare('SELECT * FROM yankis WHERE userId = ? AND featured = 1 AND replyToId IS NULL ORDER BY createdAt DESC LIMIT 3').all(userId);
     // Yoksa en çok beğenilenleri göster
     if (!yankis.length) {
       yankis = sqlite.prepare('SELECT y.*, COUNT(l.id) as likeCount FROM yankis y LEFT JOIN likes l ON l.yankiId = y.id WHERE y.userId = ? AND y.replyToId IS NULL AND y.reyankiOfId IS NULL GROUP BY y.id ORDER BY likeCount DESC LIMIT 3').all(userId);

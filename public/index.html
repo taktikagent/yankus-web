@@ -111,7 +111,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .main-col{border-right:1px solid var(--border);border-left:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;width:600px;max-width:600px;flex-shrink:0;background:var(--bg);margin:0 20px}
 .right-col{width:300px;flex-shrink:0;padding:14px;background:var(--sidebar-bg);overflow-y:auto;height:100vh}
 .top-bar{background:var(--bg);backdrop-filter:blur(28px);border-bottom:1px solid var(--border);padding:0 16px;height:48px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.top-back{width:32px;height:32px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;transition:all .2s;border:1px solid var(--border);color:var(--dim)}
+.top-back{width:32px;height:32px;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s;border:1px solid var(--border);color:var(--dim)}
 .top-back:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.08)}
 .top-title{font-size:calc(var(--font-size) + 1px);font-weight:700;flex:1;text-align:center;font-family:var(--font-display);letter-spacing:-.2px}
 .content{flex:1}
@@ -402,14 +402,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .profile-badge-item:hover::after{opacity:1}
 
 /* Öne çıkan yankılar — Yatay carousel */
-.profile-featured-wrap{position:relative;overflow:visible;padding:8px 0}
+.profile-featured-wrap{position:relative;overflow:hidden;padding:8px 0}
 .profile-featured-label{padding:6px 12px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(181,114,129,.06),transparent);border-radius:8px}
 .profile-featured-label::after{content:'';flex:1;height:1.5px;background:linear-gradient(90deg,var(--accent),transparent)}
-.profile-featured{display:flex;gap:12px;overflow-x:auto;overflow-y:visible;padding:12px 12px;scrollbar-width:none;animation:pfFadeUp .5s .4s both;scroll-behavior:smooth}
+.profile-featured{display:flex;gap:12px;padding:12px 12px;scrollbar-width:none;cursor:grab;overflow-x:auto}
 .profile-featured::-webkit-scrollbar{display:none}
-@keyframes featuredScroll{0%{transform:translateX(0)}100%{transform:translateX(calc(-50%))}}
-.profile-featured.auto-scroll{animation:featuredScroll 20s linear infinite}
-.profile-featured.auto-scroll:hover{animation-play-state:paused}
+.profile-featured.dragging{cursor:grabbing}
+.profile-featured.dragging *{pointer-events:none}
+.profile-featured-track{display:flex;gap:12px;animation:featuredMarquee var(--marquee-dur,24s) linear infinite}
+.profile-featured-track:hover{animation-play-state:paused}
+@keyframes featuredMarquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .profile-featured-card{min-width:220px;max-width:260px;background:linear-gradient(135deg,rgba(181,114,129,.08) 0%,rgba(169,17,1,.06) 100%);backdrop-filter:blur(12px);border:1.5px solid rgba(181,114,129,.25);border-radius:16px;padding:14px 16px;flex-shrink:0;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(181,114,129,.08)}
 .profile-featured-card::before{content:'⭐';position:absolute;top:8px;right:10px;font-size:12px;opacity:.7;filter:drop-shadow(0 0 4px rgba(255,215,0,.4))}
 .profile-featured-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient);border-radius:16px 16px 0 0}
@@ -912,14 +914,45 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .comment-composer-charcount{font-size:11px;color:var(--muted);margin-left:auto}
 .comment-composer-send{padding:6px 16px;border-radius:14px;background:var(--gradient);border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:6px;transition:all .2s;box-shadow:0 2px 8px var(--glow)}
 .comment-composer-send:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--glow)}
-.search-box{padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:49px;background:var(--bg);z-index:40}
-.search-input{width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:24px;padding:12px 18px;color:var(--text);font-size:14px}
-.search-input:focus{outline:none;border-color:var(--accent)}
+.explore-hero{padding:20px 18px 0;text-align:center}
+.explore-hero-text{font-size:24px;font-weight:800;font-family:var(--font-display);background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.explore-hero-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.search-box{padding:14px 18px;position:sticky;top:49px;background:var(--bg);z-index:40}
+.search-input-wrap{position:relative;display:flex;align-items:center}
+.search-icon{position:absolute;left:14px;font-size:14px;opacity:.5;pointer-events:none}
+.search-input{width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:24px;padding:12px 18px 12px 40px;color:var(--text);font-size:14px;transition:all .2s}
+.search-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus);background:var(--hover)}
+.search-clear{position:absolute;right:14px;font-size:14px;cursor:pointer;color:var(--muted);width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all .15s}
+.search-clear:hover{background:var(--accent-hover);color:var(--accent)}
 .search-tabs{display:flex;border-bottom:1px solid var(--border)}
-.search-tab{flex:1;padding:12px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.search-tab{flex:1;padding:12px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
 .search-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.user-item{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer}
+.search-tab:hover:not(.active){color:var(--text);background:var(--hover)}
+.explore-nav{display:flex;gap:6px;padding:8px 18px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.explore-nav::-webkit-scrollbar{display:none}
+.explore-nav-item{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .18s;border:1px solid transparent}
+.explore-nav-item.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px var(--glow)}
+.explore-nav-item:hover:not(.active){background:var(--hover);color:var(--text);border-color:var(--border)}
+.user-item{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;transition:background .15s}
 .user-item:hover{background:var(--hover)}
+/* Explore Hashtag Kartları */
+.explore-tags-grid{display:flex;gap:10px;padding:0 18px 14px;overflow-x:auto;scrollbar-width:none;cursor:grab;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+.explore-tags-grid::-webkit-scrollbar{display:none}
+.explore-tags-grid.dragging{cursor:grabbing;scroll-snap-type:none}
+.explore-tags-grid.dragging *{pointer-events:none}
+.explore-tag-card{flex-shrink:0;min-width:140px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .18s}
+.explore-tag-card:hover{border-color:var(--accent-focus);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.explore-tag-name{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.explore-tag-count{font-size:11px;color:var(--muted)}
+.explore-tag-cat{font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;display:inline-block;margin-top:6px;text-transform:uppercase;letter-spacing:.3px}
+.explore-tag-rising{color:#22c55e;font-size:11px;font-weight:700}
+/* Explore Kategori Bölümü */
+.explore-cat-section{padding:14px 18px}
+.explore-cat-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.explore-cat-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.explore-cat-chip{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--dim);transition:all .18s;background:var(--elevated)}
+.explore-cat-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.explore-cat-chip:hover:not(.active){background:var(--hover);border-color:var(--accent-focus)}
 .right-col{padding:14px;background:var(--sidebar-bg);overflow-y:auto}
 .side-box{background:var(--elevated);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
 .side-title{font-size:17px;font-weight:700;margin-bottom:12px}
@@ -945,6 +978,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .trend-cat-sağlık{background:rgba(16,185,129,.15);color:#0f6e56}
 .trend-cat-genel,.trend-cat-platform{background:var(--elevated);color:var(--muted)}
 .trend-rising{font-size:11px;color:#22c55e;font-weight:700;margin-left:auto;display:flex;align-items:center;gap:3px}
+.trend-show-more{text-align:center;padding:8px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;border-radius:8px;margin-top:4px;transition:background .15s}
+.trend-show-more:hover{background:var(--accent-hover)}
 .trend-mini-bars{display:flex;align-items:flex-end;gap:2px;height:20px;margin-top:5px}
 .trend-mini-bar{width:6px;background:var(--accent);opacity:.3;border-radius:2px 2px 0 0;min-height:2px;transition:opacity .2s}
 .trend-mini-bar.peak{opacity:.9}
@@ -952,8 +987,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 /* ── KİŞİ ÖNERİLERİ ── */
 .suggest-section{padding:14px 18px;border-bottom:1px solid var(--border)}
 .suggest-title{font-size:13px;font-weight:700;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.suggest-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.suggest-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;cursor:grab}
 .suggest-scroll::-webkit-scrollbar{display:none}
+.suggest-scroll.dragging{cursor:grabbing;scroll-snap-type:none}
+.suggest-scroll.dragging *{pointer-events:none}
 .suggest-card{flex-shrink:0;width:130px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 10px;text-align:center;transition:all .18s;cursor:pointer;scroll-snap-align:start}
 .suggest-card:hover{border-color:var(--accent-focus);transform:translateY(-2px);box-shadow:0 4px 18px rgba(0,0,0,.15)}
 .suggest-av{width:48px;height:48px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 8px;overflow:hidden}
@@ -1625,7 +1662,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="main-wrap">
 <div class="main-col">
 <div class="top-bar">
-<div class="top-back" id="top-back" style="display:none" onclick="goBack()">←</div>
+<div class="top-back" id="top-back" style="display:none" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></div>
 <div class="top-title" id="top-title">Ana Sayfa</div>
 <div id="admin-indicator" style="display:none"><span class="yanki-bot">ADMIN</span></div>
 </div>
@@ -1716,15 +1753,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 </div>
 
 <div class="panel" id="panel-explore">
-<div class="search-box"><input class="search-input" id="search-input" placeholder="@kullanıcı veya #hashtag ara..." oninput="onSearchInput()" onkeydown="if(event.key==='Enter')doSearch()"></div>
+<div class="explore-hero">
+  <div class="explore-hero-text">Keşfet</div>
+  <div class="explore-hero-sub">Yeni insanlar, trendler ve ilham kaynakları</div>
+</div>
+<div class="search-box">
+  <div class="search-input-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-input" placeholder="Kullanıcı, hashtag veya konu ara..." oninput="onSearchInput()" onkeydown="if(event.key==='Enter')doSearch()">
+    <span class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none">✕</span>
+  </div>
+</div>
 <div class="search-tabs" id="search-tabs" style="display:none">
 <div class="search-tab active" onclick="searchTab('all',this)">Tümü</div>
 <div class="search-tab" onclick="searchTab('users',this)">Kişiler</div>
 <div class="search-tab" onclick="searchTab('yankis',this)">Yankılar</div>
 <div class="search-tab" onclick="searchTab('hashtags',this)">Hashtagler</div>
 </div>
+<!-- Explore Tabs -->
+<div class="explore-nav" id="explore-nav">
+  <div class="explore-nav-item active" onclick="exploreTab('foryou',this)">Senin İçin</div>
+  <div class="explore-nav-item" onclick="exploreTab('trending',this)">Trend</div>
+  <div class="explore-nav-item" onclick="exploreTab('people',this)">Kişiler</div>
+  <div class="explore-nav-item" onclick="exploreTab('hashtags',this)">Hashtagler</div>
+</div>
 <!-- Kişi Önerileri -->
 <div id="explore-suggestions"></div>
+<!-- Trend Hashtagler (keşfet içi) -->
+<div id="explore-hashtags-section"></div>
+<!-- Kategoriler -->
+<div id="explore-categories"></div>
 <!-- Trend Yankılar -->
 <div id="explore-trending-section"></div>
 <!-- Genel içerik / arama sonuçları -->
@@ -2140,7 +2198,7 @@ let settings={theme:'dark',accent:'#A91101',accentLight:'#b57281',fontSize:'norm
 
 const $=id=>document.getElementById(id);
 const _noop=()=>{};
-const api=async(url,data)=>{const r=await fetch('http://localhost:3000'+url,{method:data?'POST':'GET',headers:{'Content-Type':'application/json'},body:data?JSON.stringify(data):null});return r.json()};
+const api=async(url,data)=>{const r=await fetch('http://localhost:3000'+url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data||{})});return r.json()};
 const timeAgo=d=>{const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return'şimdi';if(s<3600)return Math.floor(s/60)+'dk';if(s<86400)return Math.floor(s/3600)+'sa';return Math.floor(s/86400)+'g'};
 const toast=m=>{document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)};
 
@@ -2602,7 +2660,7 @@ const goPanel=(name,add=true)=>{
   const mi=document.querySelector('.menu-item[onclick*="\'' +name+ '\'"]');
   if(mi)mi.classList.add('active');
   $('top-title').textContent=titles[name]||'';
-  $('top-back').style.display=ROOT_PANELS.includes(name)?'none':'block';
+  $('top-back').style.display=ROOT_PANELS.includes(name)?'none':'flex';
   if(add&&navStack[navStack.length-1]!==name){navStack.push(name);if(navStack.length>30)navStack.shift();}
   if(name==='saved')loadSaved();
   if(name==='settings')loadBlocked();
@@ -2634,61 +2692,166 @@ const loadFeed=async(algo)=>{
   // Tab indicator'ı feed yüklendikten sonra güncelle
   if(typeof initTabIndicator==='function') initTabIndicator();
 };
+let _exploreTab='foryou';
+const exploreTab=(tab,el)=>{
+  _exploreTab=tab;
+  document.querySelectorAll('.explore-nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadExplore();
+};
+const clearSearch=()=>{
+  const inp=$('search-input');
+  if(inp){inp.value='';inp.focus();}
+  $('search-clear').style.display='none';
+  $('search-tabs').style.display='none';
+  $('explore-nav').style.display='flex';
+  loadExplore();
+};
+
 const loadExplore=async()=>{
   $('explore-content').innerHTML='';
-  $('explore-suggestions').innerHTML='<div class="loading" style="padding:14px 18px"><span class="spin">⟳</span></div>';
+  $('explore-suggestions').innerHTML='';
   $('explore-trending-section').innerHTML='';
+  $('explore-hashtags-section').innerHTML='';
+  $('explore-categories').innerHTML='';
 
-  // Paralel yükle
-  const [sugRes, trendRes] = await Promise.all([
-    api('/explore/suggested-users',{userId:user.id,limit:8}),
-    api('/explore/trending-yankis',{viewerId:user.id,limit:8})
-  ]);
+  if(_exploreTab==='foryou'){
+    // Senin İçin: Öneriler + Trend hashtagler + Trend yankılar
+    $('explore-suggestions').innerHTML='<div class="loading" style="padding:14px 18px"><span class="spin">⟳</span></div>';
+    const [sugRes, trendRes, tagRes] = await Promise.all([
+      api('/explore/suggested-users',{userId:user.id,limit:8}),
+      api('/explore/trending-yankis',{viewerId:user.id,limit:10}),
+      api('/trending')
+    ]);
 
-  // Kişi önerileri
-  const suggested=sugRes.users||[];
-  if(suggested.length){
-    $('explore-suggestions').innerHTML=`
-      <div class="suggest-section">
-        <div class="suggest-title">👥 Tanıyor Olabilirsin</div>
-        <div class="suggest-scroll">
-          ${suggested.map(u=>`
-            <div class="suggest-card" id="sug-${u.id}">
-              <div class="suggest-av" onclick="goUser('@${u.username}')">${u.profileImage?`<img src="${u.profileImage}">`:'👤'}</div>
-              <div class="suggest-name" onclick="goUser('@${u.username}')" title="${u.displayName}">${u.displayName}${u.verified?' ✓':''}</div>
-              <div class="suggest-handle">@${u.username}</div>
-              <div class="suggest-reason">${u.bio||u.reason||''}</div>
-              <button class="suggest-follow-btn follow" id="sfbtn-${u.id}" onclick="suggestFollow('${u.id}',this)">Takip Et</button>
-            </div>`).join('')}
+    // Kişi önerileri
+    const suggested=sugRes.users||[];
+    if(suggested.length){
+      $('explore-suggestions').innerHTML=`
+        <div class="suggest-section">
+          <div class="suggest-title">👥 Tanıyor Olabilirsin</div>
+          <div class="suggest-scroll">
+            ${suggested.map(u=>`
+              <div class="suggest-card" id="sug-${u.id}">
+                <div class="suggest-av" onclick="goUser('@${u.username}')">${u.profileImage?`<img src="${u.profileImage}">`:'👤'}</div>
+                <div class="suggest-name" onclick="goUser('@${u.username}')" title="${u.displayName}">${u.displayName}${u.verified?' ✓':''}</div>
+                <div class="suggest-handle">@${u.username}</div>
+                <div class="suggest-reason">${u.bio||u.reason||''}</div>
+                <button class="suggest-follow-btn follow" id="sfbtn-${u.id}" onclick="suggestFollow('${u.id}',this)">Takip Et</button>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    } else $('explore-suggestions').innerHTML='';
+
+    // Trend hashtagler kartları
+    const trends=tagRes.trends||[];
+    if(trends.length){
+      $('explore-hashtags-section').innerHTML=`
+        <div class="explore-section-head">
+          <span class="explore-section-label">🔥 Trend Hashtagler</span>
         </div>
-      </div>
-      <div class="explore-divider"></div>`;
-  } else {
-    $('explore-suggestions').innerHTML='';
-  }
+        <div class="explore-tags-grid">
+          ${trends.slice(0,8).map((t,i)=>`
+            <div class="explore-tag-card" onclick="goHashtag('${t.topic}')" style="animation:laSlideIn .3s ease-out ${i*50}ms both">
+              <div class="explore-tag-name">${t.topic}</div>
+              <div class="explore-tag-count">${t.countDay||t.count||0} yankı</div>
+              ${t.rising?'<span class="explore-tag-rising">▲ Yükseliyor</span>':''}
+              <div class="explore-tag-cat trend-cat-badge trend-cat-${t.category||'genel'}">${(t.category||'genel').charAt(0).toUpperCase()+(t.category||'genel').slice(1)}</div>
+            </div>`).join('')}
+        </div>`;
+    }
 
-  // Trend yankılar
-  const trendYankis=trendRes.yankis||[];
-  if(trendYankis.length){
+    // Trend yankılar
+    const trendYankis=trendRes.yankis||[];
+    if(trendYankis.length){
+      $('explore-trending-section').innerHTML=`
+        <div class="explore-section-head">
+          <span class="explore-section-label">✨ Popüler Yankılar</span>
+          <span class="explore-section-more" onclick="exploreTab('trending',document.querySelectorAll('.explore-nav-item')[1])">Tümü</span>
+        </div>`;
+      renderYankis(trendYankis,'explore-trending-section',null,true);
+    }
+    // Drag scroll başlat
+    setTimeout(initExploreDragScrolls, 100);
+
+  } else if(_exploreTab==='trending'){
+    // Trend: Tüm trend yankılar
+    $('explore-trending-section').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
+    const r=await api('/explore/trending-yankis',{viewerId:user.id,limit:30});
     $('explore-trending-section').innerHTML=`
       <div class="explore-section-head">
-        <span class="explore-section-label">🔥 Şu An Trend</span>
-        <span class="explore-section-more" onclick="loadExploreAll()">Tümünü gör</span>
+        <span class="explore-section-label">🔥 Trend Yankılar</span>
       </div>`;
-    renderYankis(trendYankis,'explore-trending-section',null,true);
-  } else {
-    $('explore-trending-section').innerHTML='';
-    loadExploreAll();
+    renderYankis(r.yankis||[],'explore-trending-section',null,true);
+
+  } else if(_exploreTab==='people'){
+    // Kişiler: Tüm öneriler
+    $('explore-suggestions').innerHTML='<div class="loading" style="padding:14px 18px"><span class="spin">⟳</span></div>';
+    const r=await api('/explore/suggested-users',{userId:user.id,limit:30});
+    const users=r.users||[];
+    $('explore-suggestions').innerHTML=users.length?users.map(u=>`
+      <div class="user-item" style="animation:laSlideIn .25s ease-out both">
+        <div class="avatar" style="width:48px;height:48px" onclick="goUser('@${u.username}')">${u.profileImage?`<img src="${u.profileImage}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`:'👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px" onclick="goUser('@${u.username}')">${u.displayName}${u.verified?' <span style="color:var(--accent)">✓</span>':''}</div>
+          <div style="font-size:12px;color:var(--muted)">@${u.username}</div>
+          ${u.bio?`<div style="font-size:12px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.bio}</div>`:''}
+        </div>
+        <button class="suggest-follow-btn follow" onclick="suggestFollow('${u.id}',this)" style="width:auto;padding:6px 16px">Takip Et</button>
+      </div>`).join(''):'<div style="padding:40px;text-align:center;color:var(--muted)">Yeni kişi önerisi yok</div>';
+
+  } else if(_exploreTab==='hashtags'){
+    // Hashtagler: Trend hashtag listesi
+    $('explore-hashtags-section').innerHTML='<div class="loading" style="padding:14px 18px"><span class="spin">⟳</span></div>';
+    const r=await api('/trending');
+    const trends=r.trends||[];
+    $('explore-hashtags-section').innerHTML=trends.length?`
+      <div style="padding:14px 18px">
+        ${trends.map((t,i)=>`
+          <div class="trend-item" onclick="goHashtag('${t.topic}')" style="padding:12px;animation:laSlideIn .3s ease-out ${i*40}ms both">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px;font-weight:800;color:var(--muted);min-width:28px">${i+1}</span>
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="trend-cat-badge trend-cat-${t.category||'genel'}">${(t.category||'genel').charAt(0).toUpperCase()+(t.category||'genel').slice(1)}</span>
+                  <span style="font-size:15px;font-weight:700;color:var(--accent)">${t.topic}</span>
+                  ${t.rising?'<span class="trend-rising">▲ Yükseliyor</span>':''}
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">${t.countDay||t.count||0} yankı &middot; Son 1 saatte ${t.countHour||0}</div>
+                ${t.engagement?`<div style="font-size:11px;color:var(--dim);margin-top:1px">${t.engagement} etkileşim</div>`:''}
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>`:'<div style="padding:40px;text-align:center;color:var(--muted)">Henüz trend hashtag yok</div>';
   }
 };
 
 const loadExploreAll=async()=>{
   $('explore-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
   const r=await api('/explore',{viewerId:user.id});
-  if($('explore-trending-section').innerHTML.includes('Tümünü gör')){
-    $('explore-trending-section').querySelector('.explore-section-more')?.remove();
-  }
   renderYankis(r.yankis||[],'explore-content');
+};
+
+// Drag-to-scroll for horizontal containers
+const initDragScroll=(el)=>{
+  if(!el||el._dragInit)return;
+  el._dragInit=true;
+  let isDown=false,startX,scrollLeft;
+  el.addEventListener('mousedown',(e)=>{
+    isDown=true;el.classList.add('dragging');
+    startX=e.pageX-el.offsetLeft;scrollLeft=el.scrollLeft;
+  });
+  el.addEventListener('mouseleave',()=>{isDown=false;el.classList.remove('dragging');});
+  el.addEventListener('mouseup',()=>{isDown=false;el.classList.remove('dragging');});
+  el.addEventListener('mousemove',(e)=>{
+    if(!isDown)return;e.preventDefault();
+    const x=e.pageX-el.offsetLeft;
+    el.scrollLeft=scrollLeft-(x-startX)*1.5;
+  });
+};
+// Auto-init drag scroll on explore load
+const initExploreDragScrolls=()=>{
+  document.querySelectorAll('.suggest-scroll,.explore-tags-grid').forEach(initDragScroll);
 };
 
 const suggestFollow=async(uid,btn)=>{
@@ -2970,7 +3133,6 @@ const yankiCard=y=>{
   const reactionsHtml=(y.reactions||[]).map(r=>`<span class="yanki-reaction-btn ${(y.userReactions||[]).includes(r.emoji)?'active':''}" onclick="event.stopPropagation();toggleReaction('${y.id}','${r.emoji}',this)">${r.emoji} <span class="r-count">${r.count}</span></span>`).join('');
   return `
 <div class="yanki" onclick="openYanki('${y.id}')" ondblclick="event.stopPropagation();doubleTapLike('${y.id}',this)" style="position:relative">
-  ${y.pinned?'<div class="yanki-pinned">📌 Sabitlenmiş</div>':''}
   <div class="yanki-row">
     <div class="yanki-avatar-col">
       <div class="avatar" onclick="event.stopPropagation();goUser('@${y.username}')">${avatar(y.profileImage)}</div>
@@ -2992,7 +3154,6 @@ const yankiCard=y=>{
             <div class="yanki-dropdown" id="menu-${y.id}">
               ${y.userId===user.id
                 ?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>
-                  <div class="yanki-dropdown-item" onclick="pinYanki('${y.id}')">${y.pinned?'📌 Sabiti Kaldır':'📌 Sabitle'}</div>
                   <div class="yanki-dropdown-item" onclick="toggleFeatured('${y.id}')">${y.featured?'⭐ Öne Çıkarmayı Kaldır':'⭐ Öne Çıkar'}</div>
                   <div class="yanki-dropdown-item danger" onclick="deleteYanki('${y.id}')">🗑 Sil</div>`
                 :`<div class="yanki-dropdown-item" onclick="openChat('${y.userId}')">💬 Mesaj</div>
@@ -3169,7 +3330,7 @@ const likeYanki=async(id,el)=>{
 const saveYanki=async(id,el)=>{const r=await api('/yanki/save',{userId:user.id,yankiId:id});if(r.success){el.classList.toggle('saved',r.saved);toast(r.saved?'Kaydedildi':'Kaldırıldı')}};
 const deleteYanki=async id=>askConfirm('Bu yankıyı silmek istiyor musunuz?',async()=>{await api('/yanki/delete',{userId:user.id,yankiId:id});toast('Silindi');loadFeed()});
 const pinYanki=async id=>{const r=await api('/yanki/pin',{userId:user.id,yankiId:id});if(r.success){toast(r.pinned?'Sabitlendi':'Kaldırıldı');loadFeed()}};
-const toggleFeatured=async id=>{const r=await api('/yanki/feature',{userId:user.id,yankiId:id});if(r.success){toast(r.featured?'⭐ Öne çıkarıldı':'Öne çıkarmadan kaldırıldı');loadFeed()}else{toast(r.error||'Hata oluştu','error')}};
+const toggleFeatured=async id=>{const r=await api('/yanki/feature',{userId:user.id,yankiId:id});if(r.success){toast(r.featured?'⭐ Öne çıkarıldı':'Öne çıkarmadan kaldırıldı');loadFeatured(user.id);/* Dropdown metnini güncelle */document.querySelectorAll('[onclick*="toggleFeatured(\''+id+'\')"]').forEach(el=>{el.innerHTML=r.featured?'⭐ Öne Çıkarmayı Kaldır':'⭐ Öne Çıkar';});/* Profildeyse yankıları yenile */if(document.getElementById('panel-profile')?.style.display!=='none'){loadMyProfile();}else{loadFeed();}}else{toast(r.error||'Hata oluştu','error')}};
 let _reyankiTargetId = null;
 
 const reyanki = async id => {
@@ -3501,8 +3662,7 @@ const loadProfile=async(uid,cid)=>{$(cid).innerHTML='<div class="loading"><span 
 const renderProfile=(p,yankis,cid)=>{
   const isMe=p.id===user.id;
   const mediaYankis=yankis.filter(y=>y.image);
-  const pinnedYanki=yankis.find(y=>y.pinned);
-  const regularYankis=yankis.filter(y=>!y.pinned);
+  const regularYankis=yankis;
   const joined=p.createdAt?new Date(p.createdAt).toLocaleDateString('tr-TR',{month:'long',year:'numeric'}):'';
 
   const _socialLinks = p.socialLinks || {};
@@ -3612,7 +3772,6 @@ const renderProfile=(p,yankis,cid)=>{
     <div class="profile-featured-label">⭐ Öne Çıkanlar</div>
     <div class="profile-featured" id="featured-${p.id}"></div>
   </div>
-  ${pinnedYanki?`<div class="profile-pinned-label">📌 Sabitlenmiş Yankı</div>${yankiCard(pinnedYanki)}<hr style="border:none;border-top:1px solid var(--border);margin:0">`:'' }
   ${regularYankis.length?regularYankis.map(yankiCard).join(''):'<div class="empty"><div class="empty-icon">🐦</div><p>Henüz yankı yok</p></div>'}
 </div>
 
@@ -3685,14 +3844,13 @@ const loadFeatured=async(uid)=>{
       <div class="profile-featured-text">${y.text||''}</div>
       <div class="profile-featured-stats"><span>❤️ ${y.likesCount||0}</span><span>💬 ${y.commentsCount||0}</span><span>🔁 ${y.reyankisCount||0}</span></div>
     </div>`).join('');
-    // 3+ kart varsa oto-kayma aktif, kartları çoğalt
-    if(r.featured.length>=3){
-      el.innerHTML=cardsHTML+cardsHTML;
-      el.classList.add('auto-scroll');
-    } else {
-      el.innerHTML=cardsHTML;
-      el.classList.remove('auto-scroll');
-    }
+    // Track div ile CSS marquee — kartları çoğalt, translateX(-50%) ile sorunsuz döngü
+    const dur = Math.max(12, r.featured.length * 8);
+    el.style.overflow='hidden';
+    el.innerHTML=`<div class="profile-featured-track" style="--marquee-dur:${dur}s">${cardsHTML}${cardsHTML}</div>`;
+    // Drag scroll + hover pause
+    const track=el.querySelector('.profile-featured-track');
+    setTimeout(()=>initDragScroll(el), 100);
   }catch(e){console.log('featured err',e)}
 };
 
@@ -3918,11 +4076,69 @@ const toggleFollowInModal=async(id,el)=>{const r=await api('/follow',{followerId
 const loadBlocked=async()=>{const r=await api('/blocked',{userId:user.id});$('blocked-list').innerHTML=(r.users||[]).length?r.users.map(u=>`<div class="user-item"><div class="avatar">${avatar(u.profileImage)}</div><div style="flex:1"><div class="yanki-name">${u.displayName}</div></div><button class="btn btn-sm btn-ghost" onclick="blockUser('${u.id}')">Kaldır</button></div>`).join(''):'<div class="empty">Yok</div>'};
 
 // Search
-const onSearchInput=()=>{$('search-tabs').style.display=$('search-input').value.trim()?'flex':'none'};
-const doSearch=async()=>{const q=$('search-input').value.trim();if(!q)return;$('explore-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';searchRes=await api('/search',{query:q,type:searchType,userId:user.id});renderSearch()};
+let _searchDebounce=null;
+const onSearchInput=()=>{
+  const q=$('search-input').value.trim();
+  $('search-clear').style.display=q?'flex':'none';
+  if(q){
+    $('search-tabs').style.display='flex';
+    $('explore-nav').style.display='none';
+    // Debounced instant search
+    clearTimeout(_searchDebounce);
+    _searchDebounce=setTimeout(()=>doSearch(),300);
+  } else {
+    $('search-tabs').style.display='none';
+    $('explore-nav').style.display='flex';
+    $('explore-content').innerHTML='';
+    loadExplore();
+  }
+};
+const doSearch=async()=>{
+  const q=$('search-input').value.trim();
+  if(!q)return;
+  // Tüm sonuçları gizle, arama sonuçlarını göster
+  ['explore-suggestions','explore-hashtags-section','explore-trending-section','explore-categories'].forEach(id=>{const el=$(id);if(el)el.innerHTML='';});
+  $('explore-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
+  searchRes=await api('/search',{query:q,type:searchType,userId:user.id});
+  renderSearch();
+};
 const searchTab=(t,el)=>{searchType=t;document.querySelectorAll('.search-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(searchRes)renderSearch();else doSearch()};
-const renderSearch=()=>{if(!searchRes)return;let h='';if(searchType==='all'||searchType==='users')h+=searchRes.users?.map(u=>`<div class="user-item" onclick="goUser('@${u.username}')"><div class="avatar">${avatar(u.profileImage)}</div><div><div class="yanki-name">${u.displayName}${u.isBot?' <span class="yanki-bot">BOT</span>':''}</div><div class="yanki-handle">@${u.username}</div></div></div>`).join('')||'';if(searchType==='all'||searchType==='hashtags')h+=searchRes.hashtags?.map(t=>`<div class="user-item" onclick="goHashtag('${t.tag}')"><div class="trend-topic">${t.tag}</div><div class="trend-count">${t.count} yankı</div></div>`).join('')||'';if(searchType==='all'||searchType==='yankis')h+=searchRes.yankis?.map(yankiCard).join('')||'';$('explore-content').innerHTML=h||'<div class="empty">Sonuç yok</div>'};
-const goHashtag=async tag=>{goPanel('hashtag');$('top-title').textContent=tag;$('hashtag-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';const r=await api('/hashtag',{hashtag:tag,viewerId:user.id});renderYankis(r.yankis||[],'hashtag-content')};
+const renderSearch=()=>{
+  if(!searchRes)return;
+  let h='';
+  const users=searchRes.users||[];
+  const hashtags=searchRes.hashtags||[];
+  const yankis=searchRes.yankis||[];
+
+  if(searchType==='all'||searchType==='users'){
+    if(users.length) h+=`<div class="explore-section-head"><span class="explore-section-label">👥 Kişiler</span></div>`;
+    h+=users.slice(0,searchType==='users'?30:5).map(u=>`
+      <div class="user-item" onclick="goUser('@${u.username}')">
+        <div class="avatar" style="width:44px;height:44px">${avatar(u.profileImage)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px">${u.displayName}${u.verified?' <span style="color:var(--accent)">✓</span>':''}${u.isBot?' <span class="yanki-bot">BOT</span>':''}</div>
+          <div style="font-size:12px;color:var(--muted)">@${u.username}</div>
+        </div>
+      </div>`).join('');
+  }
+  if(searchType==='all'||searchType==='hashtags'){
+    if(hashtags.length) h+=`<div class="explore-section-head"><span class="explore-section-label"># Hashtagler</span></div>`;
+    h+=hashtags.slice(0,searchType==='hashtags'?20:5).map(t=>`
+      <div class="user-item" onclick="goHashtag('${t.tag}')" style="gap:10px">
+        <div style="width:44px;height:44px;border-radius:14px;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--accent)">#</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--accent);font-size:14px">${t.tag}</div>
+          <div style="font-size:12px;color:var(--muted)">${t.count} yankı</div>
+        </div>
+      </div>`).join('');
+  }
+  if(searchType==='all'||searchType==='yankis'){
+    if(yankis.length) h+=`<div class="explore-section-head"><span class="explore-section-label">📝 Yankılar</span></div>`;
+    h+=yankis.slice(0,searchType==='yankis'?30:8).map(yankiCard).join('');
+  }
+  $('explore-content').innerHTML=h||'<div style="padding:40px;text-align:center;color:var(--muted)">Sonuç bulunamadı</div>';
+};
+const goHashtag=async tag=>{goPanel('hashtag');$('top-title').textContent=tag;$('hashtag-content').innerHTML='<div class="loading"><span class="spin">⟳</span></div>';const r=await api('/hashtag',{hashtag:tag,viewerId:user.id});$('hashtag-content').innerHTML=`<div style="padding:14px 18px;border-bottom:1px solid var(--border)"><div style="font-size:22px;font-weight:800;color:var(--accent)">${tag}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">${r.totalYankis||0} toplam yankı &middot; Son 24 saatte ${r.last24h||0}</div></div>`;renderYankis(r.yankis||[],'hashtag-content')};
 
 // Notifications
 // ═══════════════════════════════════════════════════════
@@ -4574,15 +4790,15 @@ const renderTrendingList=()=>{
   if(!el)return;
   let trends=_trendData;
   if(_trendCat!=='all') trends=trends.filter(t=>t.category===_trendCat);
-  // Trend skoru: son 1 saatteki artış hızı + toplam etkileşim
+  // Skoru kullan (server'dan geliyor)
   trends=trends.map(t=>{
-    const dayC=t.countDay||0,hourC=t.countHour||0;
-    const velocity=hourC*3;// son 1 saat ağırlıklı
-    const score=(_trendTime==='hour'?hourC:dayC)+velocity;
-    return {...t,_score:score};
+    const score=t.score||((t.countDay||0)+((t.countHour||0)*3));
+    return {...t,_score:_trendTime==='hour'?(t.countHour||0)*4+score:score};
   }).sort((a,b)=>b._score-a._score);
   if(!trends.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Bu kategoride trend yok</div>';return;}
-  el.innerHTML=trends.slice(0,10).map((t,idx)=>{
+  const showAll=el.dataset.expanded==='true';
+  const visibleTrends=showAll?trends.slice(0,10):trends.slice(0,3);
+  el.innerHTML=visibleTrends.map((t,idx)=>{
     const countKey=_trendTime==='hour'?t.countHour:t.countDay;
     const maxBar=Math.max(...(t.bars||[1]),1);
     const bars=(t.bars||Array(8).fill(0)).map((v,i)=>{
@@ -4592,6 +4808,7 @@ const renderTrendingList=()=>{
     }).join('');
     const catLabel=t.category?t.category.charAt(0).toUpperCase()+t.category.slice(1):'Genel';
     const rankIcon=idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':'';
+    const engText=t.engagement?` &middot; ${t.engagement} etk.`:'';
     return `<div class="trend-item" onclick="goHashtag('${t.topic}')" style="animation:laSlideIn .3s ease-out ${idx*40}ms both">
       <div class="trend-header">
         ${rankIcon?`<span style="font-size:13px">${rankIcon}</span>`:''}
@@ -4599,10 +4816,18 @@ const renderTrendingList=()=>{
         <span class="trend-topic" style="flex:1;margin:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.topic}</span>
         ${t.rising?'<span class="trend-rising">▲</span>':''}
       </div>
-      <div class="trend-count">${countKey||0} yankı${typeof miniSparkline==='function'?miniSparkline(countKey||0):''}</div>
+      <div class="trend-count">${countKey||0} yankı${engText}</div>
       <div class="trend-mini-bars">${bars}</div>
     </div>`;
   }).join('');
+  // Daha fazla göster / gizle butonu
+  if(trends.length>3){
+    if(!showAll){
+      el.innerHTML+=`<div class="trend-show-more" onclick="this.parentElement.dataset.expanded='true';renderTrendingList()">Daha fazla göster (${trends.length-3})</div>`;
+    } else {
+      el.innerHTML+=`<div class="trend-show-more" onclick="this.parentElement.dataset.expanded='false';renderTrendingList()">Daha az göster</div>`;
+    }
+  }
 };
 
 const loadTrending=async()=>{
