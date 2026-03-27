@@ -6,6 +6,21 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
+const nodemailer = require('nodemailer');
+
+// ─── E-posta Ayarları ────────────────────────────────────────
+const SMTP_EMAIL = 'kurumsalibrahim@gmail.com';
+const SMTP_PASS = 'fxyf skum vlol rudd';
+const mailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: { user: SMTP_EMAIL, pass: SMTP_PASS }
+});
+const sendMail = async (to, subject, html) => {
+  try {
+    await mailTransporter.sendMail({ from: `"Yankuş" <${SMTP_EMAIL}>`, to, subject, html });
+    return true;
+  } catch(e) { console.error('E-posta gönderilemedi:', e.message); return false; }
+};
 
 // ─── SQLite Database Setup ─────────────────────────────────────
 const DB_PATH = path.join(__dirname, 'yankus.db');
@@ -230,13 +245,29 @@ sqlite.exec(`
 // Migration: featured sütunu ekle
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN featured INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN lastSeen TEXT').run(); } catch(e) { /* zaten var */ }
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN email TEXT').run(); } catch(e) { /* zaten var */ }
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN emailVerified INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
+
+// Doğrulama & sıfırlama kodları tablosu
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS verification_codes (
+    id TEXT PRIMARY KEY,
+    userId TEXT,
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    type TEXT NOT NULL,
+    expiresAt TEXT NOT NULL,
+    used INTEGER DEFAULT 0,
+    createdAt TEXT NOT NULL
+  )
+`);
 
 // ─── Prepared Statements ───────────────────────────────────────
 const stmts = {
   // Users
   getUserById: sqlite.prepare('SELECT * FROM users WHERE id = ?'),
   getUserByUsername: sqlite.prepare('SELECT * FROM users WHERE username = ?'),
-  insertUser: sqlite.prepare(`INSERT INTO users (id, username, password, displayName, bio, profileImage, bannerImage, verified, isAdmin, isBot, banned, theme, mood, moodEmoji, moodUpdatedAt, location, website, socialLinks, interests, createdAt) VALUES (@id, @username, @password, @displayName, @bio, @profileImage, @bannerImage, @verified, @isAdmin, @isBot, @banned, @theme, @mood, @moodEmoji, @moodUpdatedAt, @location, @website, @socialLinks, @interests, @createdAt)`),
+  insertUser: sqlite.prepare(`INSERT INTO users (id, username, password, displayName, bio, profileImage, bannerImage, verified, isAdmin, isBot, banned, theme, mood, moodEmoji, moodUpdatedAt, location, website, socialLinks, interests, email, emailVerified, createdAt) VALUES (@id, @username, @password, @displayName, @bio, @profileImage, @bannerImage, @verified, @isAdmin, @isBot, @banned, @theme, @mood, @moodEmoji, @moodUpdatedAt, @location, @website, @socialLinks, @interests, @email, @emailVerified, @createdAt)`),
   getAllUsers: sqlite.prepare('SELECT * FROM users'),
   getBotUsers: sqlite.prepare('SELECT * FROM users WHERE isBot = 1'),
   getUserCount: sqlite.prepare('SELECT COUNT(*) as count FROM users'),
@@ -1066,11 +1097,15 @@ const buildProfileResponse = (user, viewerId) => {
 // ─── API Routes ────────────────────────────────────────────────
 const routes = {
   // ═══ AUTH ═══
-  'register': (data) => {
+  'register': async (data) => {
     const { username, password, displayName, email } = data;
     if (!username || !password || !displayName) return { error: 'Tüm alanları doldurun' };
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Geçerli bir e-posta adresi girin' };
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Geçerli bir e-posta adresi girin' };
+    if (password.length < 6) return { error: 'Şifre en az 6 karakter olmalı' };
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) return { error: 'Kullanıcı adı sadece harf, rakam ve _ içerebilir' };
     if (stmts.getUserByUsername.get(username)) return { error: 'Bu kullanıcı adı zaten alınmış' };
+    const existingEmail = sqlite.prepare('SELECT id FROM users WHERE email = ? AND emailVerified = 1').get(email);
+    if (existingEmail) return { error: 'Bu e-posta adresi zaten kullanılıyor' };
 
     const user = {
       id: genId(), username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
@@ -1078,17 +1113,109 @@ const routes = {
       verified: 0, isAdmin: 0, isBot: 0, banned: 0, theme: null,
       mood: null, moodEmoji: null, moodUpdatedAt: null,
       location: '', website: '', socialLinks: '{}', interests: '[]',
+      email, emailVerified: 0,
       createdAt: new Date().toISOString()
     };
     stmts.insertUser.run(user);
-    const parsed = parseUser(stmts.getUserById.get(user.id));
-    return { user: { ...parsed, password: undefined } };
+
+    // Doğrulama kodu gönder
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    sqlite.prepare('INSERT INTO verification_codes (id, userId, email, code, type, expiresAt, used, createdAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?)').run(
+      genId(), user.id, email, code, 'email_verify',
+      new Date(Date.now() + 10 * 60000).toISOString(), new Date().toISOString()
+    );
+    await sendMail(email, 'Yankuş - E-posta Doğrulama', `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#1a1a2e;color:#fff;border-radius:16px">
+        <h2 style="text-align:center;color:#e74c3c;margin-bottom:8px">🐦 Yankuş</h2>
+        <p style="text-align:center;color:#ccc;margin-bottom:24px">Hesabını doğrulamak için aşağıdaki kodu gir</p>
+        <div style="text-align:center;font-size:36px;font-weight:bold;letter-spacing:8px;color:#fff;background:#2a2a4a;padding:20px;border-radius:12px;margin-bottom:24px">${code}</div>
+        <p style="text-align:center;color:#888;font-size:13px">Bu kod 10 dakika içinde geçerliliğini yitirecektir.</p>
+      </div>
+    `);
+
+    return { needsVerification: true, userId: user.id, email };
+  },
+
+  'verify-email': (data) => {
+    const { userId, code } = data;
+    if (!userId || !code) return { error: 'Kod gerekli' };
+    const vc = sqlite.prepare('SELECT * FROM verification_codes WHERE userId = ? AND type = ? AND used = 0 ORDER BY createdAt DESC LIMIT 1').get(userId, 'email_verify');
+    if (!vc) return { error: 'Doğrulama kodu bulunamadı' };
+    if (new Date(vc.expiresAt) < new Date()) return { error: 'Kodun süresi dolmuş. Yeni kod isteyin.' };
+    if (vc.code !== code) return { error: 'Kod hatalı' };
+    sqlite.prepare('UPDATE verification_codes SET used = 1 WHERE id = ?').run(vc.id);
+    sqlite.prepare('UPDATE users SET emailVerified = 1 WHERE id = ?').run(userId);
+    const user = parseUser(stmts.getUserById.get(userId));
+    return { success: true, user: { ...user, password: undefined } };
+  },
+
+  'resend-verification': async (data) => {
+    const { userId } = data;
+    if (!userId) return { error: 'userId gerekli' };
+    const user = stmts.getUserById.get(userId);
+    if (!user || !user.email) return { error: 'Kullanıcı bulunamadı' };
+    if (user.emailVerified) return { error: 'E-posta zaten doğrulanmış' };
+    // Son 60sn içinde kod gönderilmiş mi
+    const recent = sqlite.prepare('SELECT * FROM verification_codes WHERE userId = ? AND type = ? AND createdAt > ? ORDER BY createdAt DESC LIMIT 1').get(userId, 'email_verify', new Date(Date.now() - 60000).toISOString());
+    if (recent) return { error: 'Lütfen 1 dakika bekleyin' };
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    sqlite.prepare('INSERT INTO verification_codes (id, userId, email, code, type, expiresAt, used, createdAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?)').run(
+      genId(), userId, user.email, code, 'email_verify',
+      new Date(Date.now() + 10 * 60000).toISOString(), new Date().toISOString()
+    );
+    await sendMail(user.email, 'Yankuş - E-posta Doğrulama', `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#1a1a2e;color:#fff;border-radius:16px">
+        <h2 style="text-align:center;color:#e74c3c;margin-bottom:8px">🐦 Yankuş</h2>
+        <p style="text-align:center;color:#ccc;margin-bottom:24px">Yeni doğrulama kodun</p>
+        <div style="text-align:center;font-size:36px;font-weight:bold;letter-spacing:8px;color:#fff;background:#2a2a4a;padding:20px;border-radius:12px;margin-bottom:24px">${code}</div>
+        <p style="text-align:center;color:#888;font-size:13px">Bu kod 10 dakika içinde geçerliliğini yitirecektir.</p>
+      </div>
+    `);
+    return { success: true };
+  },
+
+  'forgot-password': async (data) => {
+    const { email } = data;
+    if (!email) return { error: 'E-posta adresi gerekli' };
+    const user = sqlite.prepare('SELECT * FROM users WHERE email = ? AND emailVerified = 1').get(email);
+    if (!user) return { success: true }; // Güvenlik: kullanıcı var mı yok mu belli etme
+    // Son 60sn içinde kod gönderilmiş mi
+    const recent = sqlite.prepare('SELECT * FROM verification_codes WHERE email = ? AND type = ? AND createdAt > ? ORDER BY createdAt DESC LIMIT 1').get(email, 'password_reset', new Date(Date.now() - 60000).toISOString());
+    if (recent) return { error: 'Lütfen 1 dakika bekleyin' };
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    sqlite.prepare('INSERT INTO verification_codes (id, userId, email, code, type, expiresAt, used, createdAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?)').run(
+      genId(), user.id, email, code, 'password_reset',
+      new Date(Date.now() + 10 * 60000).toISOString(), new Date().toISOString()
+    );
+    await sendMail(email, 'Yankuş - Şifre Sıfırlama', `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#1a1a2e;color:#fff;border-radius:16px">
+        <h2 style="text-align:center;color:#e74c3c;margin-bottom:8px">🐦 Yankuş</h2>
+        <p style="text-align:center;color:#ccc;margin-bottom:24px">Şifreni sıfırlamak için aşağıdaki kodu gir</p>
+        <div style="text-align:center;font-size:36px;font-weight:bold;letter-spacing:8px;color:#fff;background:#2a2a4a;padding:20px;border-radius:12px;margin-bottom:24px">${code}</div>
+        <p style="text-align:center;color:#888;font-size:13px">Bu kod 10 dakika içinde geçerliliğini yitirecektir.</p>
+      </div>
+    `);
+    return { success: true };
+  },
+
+  'reset-password': (data) => {
+    const { email, code, newPassword } = data;
+    if (!email || !code || !newPassword) return { error: 'Tüm alanları doldurun' };
+    if (newPassword.length < 6) return { error: 'Şifre en az 6 karakter olmalı' };
+    const vc = sqlite.prepare('SELECT * FROM verification_codes WHERE email = ? AND type = ? AND used = 0 ORDER BY createdAt DESC LIMIT 1').get(email, 'password_reset');
+    if (!vc) return { error: 'Sıfırlama kodu bulunamadı' };
+    if (new Date(vc.expiresAt) < new Date()) return { error: 'Kodun süresi dolmuş' };
+    if (vc.code !== code) return { error: 'Kod hatalı' };
+    sqlite.prepare('UPDATE verification_codes SET used = 1 WHERE id = ?').run(vc.id);
+    sqlite.prepare('UPDATE users SET password = ? WHERE id = ?').run(newPassword, vc.userId);
+    return { success: true };
   },
 
   'login': (data) => {
     const { username, password } = data;
     const row = stmts.getUserByUsername.get(username);
     if (!row || row.password !== password) return { error: 'Kullanıcı adı veya şifre hatalı' };
+    if (row.email && !row.emailVerified) return { needsVerification: true, userId: row.id, email: row.email };
     sqlite.prepare('UPDATE users SET lastSeen = ? WHERE id = ?').run(new Date().toISOString(), row.id);
     const user = parseUser(stmts.getUserById.get(row.id));
     return { user: { ...user, password: undefined } };
@@ -1762,7 +1889,9 @@ const routes = {
     stmts.deleteNotificationsByUser.run(userId, userId);
     stmts.deleteCommentsByUser.run(userId);
     stmts.deleteSavesByUser.run(userId);
+    sqlite.prepare('DELETE FROM messages WHERE userId = ?').run(userId);
     sqlite.prepare('DELETE FROM blocks WHERE userId = ? OR blockedId = ?').run(userId, userId);
+    try { sqlite.prepare('DELETE FROM drafts WHERE userId = ?').run(userId); } catch(e) {}
     return { success: true };
   },
 
@@ -2200,8 +2329,19 @@ const server = http.createServer((req, res) => {
       if (handler) {
         try {
           const result = handler(data);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(result));
+          if (result && typeof result.then === 'function') {
+            result.then(r => {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(r));
+            }).catch(err => {
+              console.error(`Error in ${endpoint}:`, err.message);
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Sunucu hatası' }));
+            });
+          } else {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+          }
         } catch (err) {
           console.error(`Error in ${endpoint}:`, err.message);
           res.writeHead(500, { 'Content-Type': 'application/json' });

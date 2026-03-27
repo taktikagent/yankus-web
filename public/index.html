@@ -80,6 +80,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .btn-warning{background:var(--warning);color:#000}
 .auth-switch{text-align:center;margin-top:16px;color:var(--dim);font-size:calc(var(--font-size) - 2px)}
 .auth-switch a{color:var(--accent);cursor:pointer;font-weight:600}
+.forgot-link{display:block;text-align:right;color:var(--accent);font-size:12px;cursor:pointer;margin-top:6px;font-weight:500;transition:opacity .2s}
+.forgot-link:hover{opacity:.8;text-decoration:underline}
+.verify-code-inputs{display:flex;gap:10px;justify-content:center;margin:24px 0}
+.verify-digit{width:48px;height:56px;text-align:center;font-size:24px;font-weight:700;font-family:var(--font-display);background:var(--elevated);border:2px solid var(--border);border-radius:14px;color:var(--text);transition:all .2s;caret-color:var(--accent)}
+.verify-digit:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-focus);background:var(--hover);transform:translateY(-2px)}
+.verify-digit.filled{border-color:var(--accent);background:var(--hover)}
 .error-msg{background:var(--accent-hover);border:1px solid var(--error);color:var(--accent2);padding:10px;border-radius:8px;margin-bottom:14px;font-size:calc(var(--font-size) - 2px);display:none}
 /* ══════════════════════════════════════════════════════════════
    ORTALANMIŞ LAYOUT — Sidebar + İçerik ortada
@@ -1493,9 +1499,70 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="auth-card-sub">Hesabına giriş yaparak devam et</div>
 <div class="error-msg" id="login-error"></div>
 <div class="form-group"><label class="form-label">Kullanıcı Adı</label><input class="form-input" id="login-username" placeholder="@kullaniciadi" autocomplete="username"></div>
-<div class="form-group"><label class="form-label">Şifre</label><input class="form-input" type="password" id="login-password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+<div class="form-group"><label class="form-label">Şifre</label><input class="form-input" type="password" id="login-password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"><a class="forgot-link" onclick="showScreen('forgot-password')">Şifremi unuttum</a></div>
 <button class="btn btn-main" onclick="doLogin()">Giriş Yap</button>
 <p class="auth-switch">Hesabın yok mu? <a onclick="showScreen('register')">Kayıt Ol</a></p>
+</div>
+<div class="auth-footer">Powered by <span>Lara's Engine</span></div>
+</div></div>
+
+<!-- E-posta Doğrulama Ekranı -->
+<div id="screen-verify-email" class="screen auth-screen">
+<div class="auth-box">
+<div class="auth-header"><div class="logo">🐦</div><h1>Yankuş</h1><p>Sesin Yankılansın</p></div>
+<div class="auth-card">
+<h2>E-posta Doğrulama</h2>
+<div class="auth-card-sub" id="verify-email-sub">E-postana gönderilen 6 haneli kodu gir</div>
+<div class="error-msg" id="verify-error"></div>
+<div class="verify-code-inputs" id="verify-code-inputs">
+<input type="text" maxlength="1" class="verify-digit" data-idx="0" inputmode="numeric" autocomplete="one-time-code">
+<input type="text" maxlength="1" class="verify-digit" data-idx="1" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="2" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="3" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="4" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="5" inputmode="numeric">
+</div>
+<button class="btn btn-main" onclick="doVerifyEmail()">Doğrula</button>
+<p class="auth-switch"><a id="resend-link" onclick="doResendCode()">Kodu tekrar gönder</a></p>
+<p class="auth-switch"><a onclick="showScreen('login')">Giriş ekranına dön</a></p>
+</div>
+<div class="auth-footer">Powered by <span>Lara's Engine</span></div>
+</div></div>
+
+<!-- Şifremi Unuttum Ekranı -->
+<div id="screen-forgot-password" class="screen auth-screen">
+<div class="auth-box">
+<div class="auth-header"><div class="logo">🐦</div><h1>Yankuş</h1><p>Sesin Yankılansın</p></div>
+<div class="auth-card">
+<h2>Şifre Sıfırlama</h2>
+<div class="auth-card-sub">Kayıtlı e-posta adresini gir</div>
+<div class="error-msg" id="forgot-error"></div>
+<div class="form-group"><label class="form-label">E-posta</label><input class="form-input" type="email" id="forgot-email" placeholder="ornek@mail.com" onkeydown="if(event.key==='Enter')doForgotPassword()"></div>
+<button class="btn btn-main" onclick="doForgotPassword()">Kod Gönder</button>
+<p class="auth-switch"><a onclick="showScreen('login')">Giriş ekranına dön</a></p>
+</div>
+<div class="auth-footer">Powered by <span>Lara's Engine</span></div>
+</div></div>
+
+<!-- Şifre Sıfırlama Kodu Ekranı -->
+<div id="screen-reset-password" class="screen auth-screen">
+<div class="auth-box">
+<div class="auth-header"><div class="logo">🐦</div><h1>Yankuş</h1><p>Sesin Yankılansın</p></div>
+<div class="auth-card">
+<h2>Yeni Şifre Belirle</h2>
+<div class="auth-card-sub" id="reset-email-sub">E-postana gönderilen kodu gir</div>
+<div class="error-msg" id="reset-error"></div>
+<div class="verify-code-inputs" id="reset-code-inputs">
+<input type="text" maxlength="1" class="verify-digit" data-idx="0" inputmode="numeric" autocomplete="one-time-code">
+<input type="text" maxlength="1" class="verify-digit" data-idx="1" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="2" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="3" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="4" inputmode="numeric">
+<input type="text" maxlength="1" class="verify-digit" data-idx="5" inputmode="numeric">
+</div>
+<div class="form-group"><label class="form-label">Yeni Şifre</label><input class="form-input" type="password" id="reset-new-password" placeholder="En az 6 karakter"></div>
+<button class="btn btn-main" onclick="doResetPassword()">Şifreyi Sıfırla</button>
+<p class="auth-switch"><a onclick="showScreen('login')">Giriş ekranına dön</a></p>
 </div>
 <div class="auth-footer">Powered by <span>Lara's Engine</span></div>
 </div></div>
@@ -2303,6 +2370,41 @@ const avatar=(img,frame)=>{
 };
 
 // Auth
+// ═══ Doğrulama kodu input yönetimi ═══
+const initVerifyInputs=(containerId)=>{
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  const digits=container.querySelectorAll('.verify-digit');
+  digits.forEach((d,i)=>{
+    d.addEventListener('input',(e)=>{
+      d.value=d.value.replace(/[^0-9]/g,'');
+      if(d.value&&i<5)digits[i+1].focus();
+      d.classList.toggle('filled',!!d.value);
+    });
+    d.addEventListener('keydown',(e)=>{
+      if(e.key==='Backspace'&&!d.value&&i>0){digits[i-1].focus();digits[i-1].value='';digits[i-1].classList.remove('filled');}
+    });
+    d.addEventListener('paste',(e)=>{
+      e.preventDefault();
+      const text=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      text.split('').forEach((c,j)=>{if(digits[j]){digits[j].value=c;digits[j].classList.add('filled');}});
+      if(digits[Math.min(text.length,5)])digits[Math.min(text.length,5)].focus();
+    });
+  });
+};
+const getVerifyCode=(containerId)=>{
+  const digits=document.getElementById(containerId).querySelectorAll('.verify-digit');
+  return Array.from(digits).map(d=>d.value).join('');
+};
+const clearVerifyInputs=(containerId)=>{
+  const digits=document.getElementById(containerId)?.querySelectorAll('.verify-digit');
+  if(digits)digits.forEach(d=>{d.value='';d.classList.remove('filled');});
+};
+
+// ═══ Doğrulama geçici state ═══
+let pendingVerify={userId:null,email:null};
+let pendingResetEmail=null;
+
 const doLogin=async()=>{
   const u=$('login-username').value.trim(),p=$('login-password').value;
   if(!u||!p)return showError('login','Kullanıcı adı ve şifre gerekli');
@@ -2311,6 +2413,15 @@ const doLogin=async()=>{
   try{
     const r=await api('/login',{username:u,password:p});
     if(r.error){showError('login',r.error);if(btn){btn.disabled=false;btn.textContent='Giriş Yap';}return;}
+    if(r.needsVerification){
+      pendingVerify={userId:r.userId,email:r.email};
+      showScreen('verify-email');
+      $('verify-email-sub').textContent=r.email+' adresine gönderilen 6 haneli kodu gir';
+      clearVerifyInputs('verify-code-inputs');
+      initVerifyInputs('verify-code-inputs');
+      if(btn){btn.disabled=false;btn.textContent='Giriş Yap';}
+      return;
+    }
     user=r.user;
     localStorage.setItem('yankus-user',JSON.stringify(user));
     showScreen('dashboard');
@@ -2322,7 +2433,84 @@ const doLogin=async()=>{
     if(btn){btn.disabled=false;btn.textContent='Giriş Yap';}
   }
 };
-const doRegister=async()=>{const n=$('register-name').value.trim(),u=$('register-username').value.trim(),p=$('register-password').value,e=$('register-email')?.value?.trim()||'';if(!n||!u||!p)return showError('register','Tüm alanları doldurun');if(e&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))return showError('register','Geçerli bir e-posta adresi girin');if(p.length<6)return showError('register','Şifre en az 6 karakter');if(!/^[a-zA-Z0-9_]+$/.test(u))return showError('register','Kullanıcı adı sadece harf, rakam ve _ içerebilir');const r=await api('/register',{username:u,password:p,displayName:n,email:e});if(r.error)return showError('register',r.error);user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('Hoş geldin!')};
+const doRegister=async()=>{
+  const n=$('register-name').value.trim(),u=$('register-username').value.trim(),p=$('register-password').value,e=$('register-email')?.value?.trim()||'';
+  if(!n||!u||!p||!e)return showError('register','Tüm alanları doldurun');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))return showError('register','Geçerli bir e-posta adresi girin');
+  if(p.length<6)return showError('register','Şifre en az 6 karakter');
+  if(!/^[a-zA-Z0-9_]+$/.test(u))return showError('register','Kullanıcı adı sadece harf, rakam ve _ içerebilir');
+  const btn=document.querySelector('#screen-register .btn-main');
+  if(btn){btn.disabled=true;btn.textContent='Kayıt yapılıyor...';}
+  try{
+    const r=await api('/register',{username:u,password:p,displayName:n,email:e});
+    if(r.error){showError('register',r.error);if(btn){btn.disabled=false;btn.textContent='Hesap Oluştur';}return;}
+    if(r.needsVerification){
+      pendingVerify={userId:r.userId,email:r.email};
+      showScreen('verify-email');
+      $('verify-email-sub').textContent=r.email+' adresine gönderilen 6 haneli kodu gir';
+      clearVerifyInputs('verify-code-inputs');
+      initVerifyInputs('verify-code-inputs');
+      toast('Doğrulama kodu e-postana gönderildi!');
+      return;
+    }
+    user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('Hoş geldin!');
+  }catch(e2){showError('register','Sunucuya bağlanılamadı');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Hesap Oluştur';}}
+};
+const doVerifyEmail=async()=>{
+  const code=getVerifyCode('verify-code-inputs');
+  if(code.length!==6)return showError('verify','6 haneli kodu girin');
+  const btn=document.querySelector('#screen-verify-email .btn-main');
+  if(btn){btn.disabled=true;btn.textContent='Doğrulanıyor...';}
+  try{
+    const r=await api('/verify-email',{userId:pendingVerify.userId,code});
+    if(r.error){showError('verify',r.error);if(btn){btn.disabled=false;btn.textContent='Doğrula';}return;}
+    user=r.user;localStorage.setItem('yankus-user',JSON.stringify(user));showScreen('dashboard');init();toast('E-posta doğrulandı! Hoş geldin!');
+  }catch(e){showError('verify','Sunucuya bağlanılamadı');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Doğrula';}}
+};
+const doResendCode=async()=>{
+  const link=$('resend-link');
+  if(link)link.textContent='Gönderiliyor...';
+  try{
+    const r=await api('/resend-verification',{userId:pendingVerify.userId});
+    if(r.error){showError('verify',r.error);}else{toast('Yeni doğrulama kodu gönderildi!');clearVerifyInputs('verify-code-inputs');}
+  }catch(e){}
+  finally{if(link)link.textContent='Kodu tekrar gönder';}
+};
+const doForgotPassword=async()=>{
+  const email=$('forgot-email').value.trim();
+  if(!email)return showError('forgot','E-posta adresi girin');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return showError('forgot','Geçerli bir e-posta adresi girin');
+  const btn=document.querySelector('#screen-forgot-password .btn-main');
+  if(btn){btn.disabled=true;btn.textContent='Gönderiliyor...';}
+  try{
+    const r=await api('/forgot-password',{email});
+    if(r.error){showError('forgot',r.error);if(btn){btn.disabled=false;btn.textContent='Kod Gönder';}return;}
+    pendingResetEmail=email;
+    showScreen('reset-password');
+    $('reset-email-sub').textContent=email+' adresine gönderilen kodu gir';
+    clearVerifyInputs('reset-code-inputs');
+    initVerifyInputs('reset-code-inputs');
+    toast('Sıfırlama kodu e-postana gönderildi!');
+  }catch(e){showError('forgot','Sunucuya bağlanılamadı');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Kod Gönder';}}
+};
+const doResetPassword=async()=>{
+  const code=getVerifyCode('reset-code-inputs');
+  const newPass=$('reset-new-password').value;
+  if(code.length!==6)return showError('reset','6 haneli kodu girin');
+  if(!newPass||newPass.length<6)return showError('reset','Şifre en az 6 karakter olmalı');
+  const btn=document.querySelector('#screen-reset-password .btn-main');
+  if(btn){btn.disabled=true;btn.textContent='Sıfırlanıyor...';}
+  try{
+    const r=await api('/reset-password',{email:pendingResetEmail,code,newPassword:newPass});
+    if(r.error){showError('reset',r.error);if(btn){btn.disabled=false;btn.textContent='Şifreyi Sıfırla';}return;}
+    toast('Şifren başarıyla sıfırlandı! Giriş yapabilirsin.');
+    showScreen('login');
+  }catch(e){showError('reset','Sunucuya bağlanılamadı');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Şifreyi Sıfırla';}}
+};
 const doLogout=()=>{user=null;localStorage.removeItem('yankus-user');showScreen('login')};
 
 // Init
