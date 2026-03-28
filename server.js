@@ -2065,6 +2065,26 @@ const routes = {
     return { success: true, isAdmin: !!newAdmin };
   },
 
+  // Kullanıcının kendi hesabını silmesi
+  'account/delete': (data) => {
+    const { userId, password } = data;
+    const user = getUser(userId);
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+    if (user.password !== password) return { error: 'Şifre yanlış' };
+    if (user.role === 'admin') return { error: 'Admin hesabı silinemez' };
+    sqlite.prepare('DELETE FROM users WHERE id = ?').run(userId);
+    sqlite.prepare('DELETE FROM yankis WHERE userId = ?').run(userId);
+    stmts.deleteLikesByUser.run(userId);
+    stmts.deleteFollowsByUser.run(userId, userId);
+    stmts.deleteNotificationsByUser.run(userId, userId);
+    stmts.deleteCommentsByUser.run(userId);
+    stmts.deleteSavesByUser.run(userId);
+    sqlite.prepare('DELETE FROM messages WHERE userId = ?').run(userId);
+    sqlite.prepare('DELETE FROM blocks WHERE userId = ? OR blockedId = ?').run(userId, userId);
+    try { sqlite.prepare('DELETE FROM drafts WHERE userId = ?').run(userId); } catch(e) {}
+    return { success: true };
+  },
+
   'admin/user/delete': (data) => {
     const { userId } = data;
     const user = getUser(userId);
