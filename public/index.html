@@ -107,7 +107,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .menu-item .badge{min-width:18px;height:18px;background:var(--accent2);border-radius:9px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#fff;padding:0 5px;margin-left:auto}
 .menu-item::after{display:none}.nav-section-label{font-size:calc(var(--font-size) - 5px);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 12px 4px;opacity:.7}
 .sidebar-end{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--border)}
-.main-wrap{flex:1;display:flex;justify-content:flex-start;min-height:100vh;background:var(--bg);gap:0}
+.main-wrap{flex:1;display:flex;justify-content:center;min-height:100vh;background:var(--bg);gap:0}
 .main-col{border-right:1px solid var(--border);border-left:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;width:600px;max-width:600px;flex-shrink:0;background:var(--bg);margin:0 20px}
 .right-col{width:300px;flex-shrink:0;padding:14px;background:var(--sidebar-bg);overflow-y:auto;height:100vh}
 .top-bar{background:var(--bg);backdrop-filter:blur(28px);border-bottom:1px solid var(--border);padding:0 16px;height:48px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -1443,7 +1443,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 /* ── Scroll Progress Bar ── */
 .scroll-progress{position:fixed;top:0;left:0;height:2px;background:var(--gradient);z-index:99998;transition:width .1s linear;width:0;pointer-events:none}
 /* ── Back to Top ── */
-.back-to-top{position:fixed;bottom:24px;right:24px;width:42px;height:42px;border-radius:50%;background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:9998;opacity:0;transform:translateY(20px);transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none}
+.back-to-top{position:fixed;bottom:90px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:899;opacity:0;transform:translateY(20px);transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none}
 .back-to-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
 .back-to-top:hover{background:var(--accent-active);border-color:var(--accent);transform:translateY(-2px)}
 /* ── Skeleton Loading ── */
@@ -2926,12 +2926,12 @@ const loadExplore=async()=>{
           <div class="suggest-title">👥 Tanıyor Olabilirsin</div>
           <div class="suggest-scroll">
             ${suggested.map(u=>`
-              <div class="suggest-card" id="sug-${u.id}">
-                <div class="suggest-av" onclick="goUser('@${u.username}')">${u.profileImage?`<img src="${u.profileImage}">`:'👤'}</div>
-                <div class="suggest-name" onclick="goUser('@${u.username}')" title="${u.displayName}">${u.displayName}${u.verified?' ✓':''}</div>
+              <div class="suggest-card" id="sug-${u.id}" onclick="goUser('@${u.username}')" style="cursor:pointer">
+                <div class="suggest-av">${u.profileImage?`<img src="${u.profileImage}">`:'👤'}</div>
+                <div class="suggest-name" title="${u.displayName}">${u.displayName}${u.verified?' ✓':''}</div>
                 <div class="suggest-handle">@${u.username}</div>
                 <div class="suggest-reason">${u.bio||u.reason||''}</div>
-                <button class="suggest-follow-btn follow" id="sfbtn-${u.id}" onclick="suggestFollow('${u.id}',this)">Takip Et</button>
+                <button class="suggest-follow-btn follow" id="sfbtn-${u.id}" onclick="event.stopPropagation();suggestFollow('${u.id}',this)">Takip Et</button>
               </div>`).join('')}
           </div>
         </div>`;
