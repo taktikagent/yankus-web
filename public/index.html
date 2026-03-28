@@ -646,6 +646,29 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .dm-msg-row.mine .dm-bubble{background:linear-gradient(135deg,#a13547 0%,#8b1a10 40%,#6b1520 100%);color:#fff;border-bottom-right-radius:6px;box-shadow:0 2px 12px rgba(139,26,16,.25)}
 .dm-msg-row.mine .dm-bubble:hover{box-shadow:0 6px 24px rgba(139,26,16,.35)}
 .dm-bubble.deleted{opacity:.45;font-style:italic;font-size:13px}
+.dm-bubble .dm-edited-tag{font-size:10px;opacity:.55;margin-left:6px;font-style:italic}
+/* Silme modu seçici */
+.dm-delete-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease}
+.dm-delete-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:320px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.dm-delete-box h3{margin:0 0 8px;font-size:16px;color:var(--text)}
+.dm-delete-box p{margin:0 0 18px;font-size:13px;color:var(--muted)}
+.dm-delete-box .dm-del-opts{display:flex;flex-direction:column;gap:8px}
+.dm-delete-box .dm-del-btn{padding:11px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;border:1px solid var(--border);transition:all .15s}
+.dm-delete-box .dm-del-btn:hover{transform:scale(1.02)}
+.dm-del-btn.everyone{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.dm-del-btn.forme{background:var(--elevated);color:var(--text)}
+.dm-del-btn.cancel{background:transparent;color:var(--muted);border-color:transparent}
+/* Sohbet silme butonu konuşma listesinde */
+.dm-conv{position:relative}
+.dm-conv-delete{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--accent2);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:12px;z-index:5;transition:all .15s}
+.dm-conv:hover .dm-conv-delete{display:flex}
+.dm-conv-delete:hover{transform:translateY(-50%) scale(1.1)}
+/* Mesaj düzenleme */
+.dm-edit-wrap{display:flex;gap:6px;align-items:center;padding:8px 12px;background:var(--elevated);border-top:1px solid var(--border)}
+.dm-edit-wrap input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:14px;outline:none}
+.dm-edit-wrap button{padding:8px 14px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.dm-edit-save{background:var(--accent);color:#fff}
+.dm-edit-cancel{background:var(--elevated);color:var(--muted);border:1px solid var(--border)!important}
 .dm-bubble.highlighted{outline:2px solid var(--accent2);outline-offset:3px;animation:dmBubbleIn .25s cubic-bezier(.175,.885,.32,1.1)}
 
 /* Resim mesajı */
@@ -4432,6 +4455,7 @@ const dmRenderConvList = () => {
           ${c.lastMessage?.deleted?'<i>Mesaj silindi</i>':((c.lastMessage?.fromUserId||c.lastMessage?.userId)===user.id?'Sen: ':'')+( c.lastMessage?.image&&!c.lastMessage?.text?'📷 Görsel':c.lastMessage?.text||'')}
         </div>
       </div>
+      <div class="dm-conv-delete" onclick="event.stopPropagation();dmDeleteConv('${c.userId}','${c.displayName}')" title="Sohbeti sil">🗑</div>
     </div>`}).join('');
 };
 
@@ -4616,17 +4640,19 @@ const dmRenderMsgRow = (m, firstInGroup) => {
     <div class="dm-bubble-ctx">
       <div class="dm-ctx-btn" onclick="dmShowReactPicker('${m.id}',this)" title="Tepki ver">😊</div>
       <div class="dm-ctx-btn" onclick="dmSetReply('${m.id}')" title="Yanıtla">↩</div>
-      ${mine && !m.deleted ? `<div class="dm-ctx-btn" onclick="dmDeleteMsg('${m.id}')" title="Sil" style="color:var(--accent2)">🗑</div>` : ''}
+      ${mine && !m.deleted ? `<div class="dm-ctx-btn" onclick="dmEditMsg('${m.id}')" title="Düzenle">✏️</div>` : ''}
+      ${!m.deleted ? `<div class="dm-ctx-btn" onclick="dmDeleteMsg('${m.id}',${mine})" title="Sil" style="color:var(--accent2)">🗑</div>` : ''}
     </div>
     <div class="dm-react-picker" id="rp-${m.id}">
       ${DM_REACTIONS.map(e=>`<div class="dm-react-opt" onclick="dmReact('${m.id}','${e}')">${e}</div>`).join('')}
     </div>`;
 
+  const editedTag = m.edited ? '<span class="dm-edited-tag">düzenlendi</span>' : '';
   const bubbleContent = m.deleted
     ? `<div class="dm-bubble deleted">${ctxHtml}🚫 Mesaj silindi</div>`
     : m.image && !m.text
       ? `<div class="dm-bubble img-only">${ctxHtml}<img class="dm-bubble-img" src="${m.image}" onclick="window.open('${m.image}')"></div>`
-      : `<div class="dm-bubble" id="dmb-${m.id}">${ctxHtml}${replyHtml}${m.image?`<img class="dm-bubble-img" src="${m.image}" style="margin-bottom:6px" onclick="window.open('${m.image}')"><br>`:''}${m.text}</div>`;
+      : `<div class="dm-bubble" id="dmb-${m.id}">${ctxHtml}${replyHtml}${m.image?`<img class="dm-bubble-img" src="${m.image}" style="margin-bottom:6px" onclick="window.open('${m.image}')"><br>`:''}${m.text}${editedTag}</div>`;
 
   return `
     <div class="dm-msg-row ${mine?'mine':''} ${firstInGroup?'first-in-group':''}" id="dmr-${m.id}">
@@ -4696,11 +4722,84 @@ const dmSetReply = (msgId) => {
 const dmClearReply = () => { dm.replyTo = null; $('dm-reply-bar')?.classList.remove('show'); };
 
 // ── Silme ─────────────────────────────────────────────────────
-const dmDeleteMsg = (msgId) => {
-  askConfirm('Bu mesaj silinsin mi?', async () => {
-    const r = await api('/messages/delete', { userId: user.id, msgId });
-    if (r.success) { const m = dm.msgs.find(x => x.id === msgId); if (m) { m.deleted = true; m.text = ''; m.image = null; } dmRenderMessages(); }
-    else toast(r.error);
+const dmDeleteMsg = (msgId, isMine) => {
+  // Modal göster: Herkesten sil / Benden sil / İptal
+  const modal = document.createElement('div');
+  modal.className = 'dm-delete-modal';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = `
+    <div class="dm-delete-box">
+      <h3>Mesajı Sil</h3>
+      <p>Bu mesajı nasıl silmek istiyorsun?</p>
+      <div class="dm-del-opts">
+        ${isMine ? `<div class="dm-del-btn everyone" onclick="dmDoDelete('${msgId}','forEveryone')">Herkesten Sil</div>` : ''}
+        <div class="dm-del-btn forme" onclick="dmDoDelete('${msgId}','forMe')">Benden Sil</div>
+        <div class="dm-del-btn cancel" onclick="this.closest('.dm-delete-modal').remove()">İptal</div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+};
+
+const dmDoDelete = async (msgId, mode) => {
+  document.querySelector('.dm-delete-modal')?.remove();
+  const r = await api('/messages/delete', { userId: user.id, msgId, mode });
+  if (r.success) {
+    if (mode === 'forEveryone') {
+      const m = dm.msgs.find(x => x.id === msgId);
+      if (m) { m.deleted = true; m.text = ''; m.image = null; }
+    } else {
+      dm.msgs = dm.msgs.filter(x => x.id !== msgId);
+    }
+    dmRenderMessages();
+    toast('Mesaj silindi');
+  } else toast(r.error);
+};
+
+// ── Mesaj Düzenleme ──────────────────────────────────────────
+const dmEditMsg = (msgId) => {
+  const m = dm.msgs.find(x => x.id === msgId);
+  if (!m) return;
+  dm.editingMsgId = msgId;
+  const bubble = document.getElementById('dmb-' + msgId);
+  if (!bubble) return;
+  const origText = m.text;
+  bubble.innerHTML = `
+    <div class="dm-edit-wrap">
+      <input type="text" id="dm-edit-input" value="${origText.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')dmSaveEdit();if(event.key==='Escape')dmCancelEdit();">
+      <button class="dm-edit-save" onclick="dmSaveEdit()">Kaydet</button>
+      <button class="dm-edit-cancel" onclick="dmCancelEdit()">İptal</button>
+    </div>`;
+  document.getElementById('dm-edit-input')?.focus();
+};
+
+const dmSaveEdit = async () => {
+  const input = document.getElementById('dm-edit-input');
+  if (!input || !dm.editingMsgId) return;
+  const text = input.value.trim();
+  if (!text) return toast('Mesaj boş olamaz');
+  const r = await api('/messages/edit', { userId: user.id, msgId: dm.editingMsgId, text });
+  if (r.success) {
+    const m = dm.msgs.find(x => x.id === dm.editingMsgId);
+    if (m) { m.text = r.text; m.edited = true; }
+    dm.editingMsgId = null;
+    dmRenderMessages();
+    toast('Mesaj düzenlendi');
+  } else toast(r.error);
+};
+
+const dmCancelEdit = () => { dm.editingMsgId = null; dmRenderMessages(); };
+
+// ── Sohbet Silme ─────────────────────────────────────────────
+const dmDeleteConv = (otherId, name) => {
+  askConfirm(`"${name}" ile tüm sohbet silinsin mi? Bu işlem geri alınamaz.`, async () => {
+    const r = await api('/messages/delete-conversation', { userId: user.id, otherId });
+    if (r.success) {
+      dm.convs = dm.convs.filter(c => c.userId !== otherId);
+      if (dm.activeChatId === otherId) { dm.activeChatId = null; dm.msgs = []; }
+      dmRenderConvList();
+      dmRenderMessages();
+      toast('Sohbet silindi');
+    } else toast(r.error);
   });
 };
 

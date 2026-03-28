@@ -249,6 +249,9 @@ try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN featured INTEGER DEFAULT 0')
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN lastSeen TEXT').run(); } catch(e) { /* zaten var */ }
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN email TEXT').run(); } catch(e) { /* zaten var */ }
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN emailVerified INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
+try { sqlite.prepare('ALTER TABLE messages ADD COLUMN deleted INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
+try { sqlite.prepare('ALTER TABLE messages ADD COLUMN edited INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
+try { sqlite.prepare('ALTER TABLE messages ADD COLUMN deletedFor TEXT DEFAULT \'[]\'').run(); } catch(e) { /* zaten var */ }
 
 // Doğrulama & sıfırlama kodları tablosu
 sqlite.exec(`
@@ -357,7 +360,11 @@ const stmts = {
   getMessagesByConv: sqlite.prepare('SELECT * FROM messages WHERE conversationId = ? ORDER BY createdAt ASC'),
   insertMessage: sqlite.prepare('INSERT INTO messages (id, conversationId, userId, text, image, read, reactions, createdAt) VALUES (@id, @conversationId, @userId, @text, @image, @read, @reactions, @createdAt)'),
   deleteMessage: sqlite.prepare('DELETE FROM messages WHERE id = ? AND userId = ?'),
+  softDeleteMessage: sqlite.prepare('UPDATE messages SET text = \'\', image = NULL, deleted = 1 WHERE id = ? AND userId = ?'),
+  editMessage: sqlite.prepare('UPDATE messages SET text = ?, edited = 1 WHERE id = ? AND userId = ?'),
   markMessagesRead: sqlite.prepare('UPDATE messages SET read = 1 WHERE conversationId = ? AND userId = ? AND read = 0'),
+  deleteConversation: sqlite.prepare('DELETE FROM conversations WHERE id = ?'),
+  deleteConversationMessages: sqlite.prepare('DELETE FROM messages WHERE conversationId = ?'),
 
   // Conversations
   getAllConversations: sqlite.prepare('SELECT * FROM conversations'),
@@ -426,7 +433,10 @@ function parseMessage(row) {
   return {
     ...row,
     read: !!row.read,
-    reactions: JSON.parse(row.reactions || '[]')
+    deleted: !!row.deleted,
+    edited: !!row.edited,
+    reactions: JSON.parse(row.reactions || '[]'),
+    deletedFor: JSON.parse(row.deletedFor || '[]')
   };
 }
 
@@ -1862,9 +1872,11 @@ const routes = {
     if (!conv) return { messages: [], conversationId: null };
     const messages = stmts.getMessagesByConv.all(conv.id).map(m => {
       const pm = parseMessage(m);
+      // "Benden sil" ile silinen mesajları gösterme
+      if (pm.deletedFor.includes(userId)) return null;
       const sender = getUser(pm.userId);
       return { ...pm, username: sender?.username, displayName: sender?.displayName, profileImage: sender?.profileImage };
-    });
+    }).filter(Boolean);
     return { messages, conversationId: conv.id };
   },
 
@@ -1897,9 +1909,42 @@ const routes = {
     return { success: true };
   },
 
+  // Herkesten sil (soft delete — mesaj "silindi" olarak görünür)
   'messages/delete': (data) => {
-    const result = stmts.deleteMessage.run(data.msgId, data.userId);
+    const { msgId, userId, mode } = data;
+    if (mode === 'forMe') {
+      // Benden sil — sadece bu kullanıcı görmez
+      const row = sqlite.prepare('SELECT * FROM messages WHERE id = ?').get(msgId);
+      if (!row) return { error: 'Mesaj bulunamadı' };
+      const msg = parseMessage(row);
+      const deletedFor = msg.deletedFor || [];
+      if (!deletedFor.includes(userId)) deletedFor.push(userId);
+      sqlite.prepare('UPDATE messages SET deletedFor = ? WHERE id = ?').run(JSON.stringify(deletedFor), msgId);
+      return { success: true, mode: 'forMe' };
+    }
+    // Herkesten sil (sadece kendi mesajını)
+    const result = stmts.softDeleteMessage.run(msgId, userId);
     if (result.changes === 0) return { error: 'Mesaj bulunamadı' };
+    return { success: true, mode: 'forEveryone' };
+  },
+
+  // Mesaj düzenleme
+  'messages/edit': (data) => {
+    const { msgId, userId, text } = data;
+    if (!text?.trim()) return { error: 'Mesaj boş olamaz' };
+    const result = stmts.editMessage.run(text.trim(), msgId, userId);
+    if (result.changes === 0) return { error: 'Mesaj bulunamadı' };
+    return { success: true, text: text.trim() };
+  },
+
+  // Tüm sohbeti sil
+  'messages/delete-conversation': (data) => {
+    const { userId, otherId } = data;
+    const allConvs = stmts.getAllConversations.all().map(parseConversation);
+    const conv = allConvs.find(c => c.participants.includes(userId) && c.participants.includes(otherId));
+    if (!conv) return { error: 'Sohbet bulunamadı' };
+    stmts.deleteConversationMessages.run(conv.id);
+    stmts.deleteConversation.run(conv.id);
     return { success: true };
   },
 
