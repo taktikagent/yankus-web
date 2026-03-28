@@ -754,15 +754,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 /* Admin Panel - Düzeltilmiş */
 .admin-panel{padding:20px;max-width:100%;overflow-x:hidden}
-.admin-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--border)}
-.admin-header h2{font-size:26px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.admin-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--border)}
+.admin-header h2{font-size:26px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0}
+.admin-header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.admin-server-status{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted)}
+.admin-server-status .status-dot{width:8px;height:8px}
+.admin-refresh-btn{width:32px;height:32px;border-radius:10px;background:var(--elevated);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:14px}
+.admin-refresh-btn:hover{border-color:var(--accent);color:var(--accent);transform:rotate(90deg)}
 .admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px}
-.admin-stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 16px;text-align:center;transition:all .2s}
+.admin-stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;text-align:center;transition:all .2s;position:relative;overflow:hidden}
 .admin-stat:hover{border-color:var(--accent);transform:translateY(-2px)}
-.admin-stat-value{font-size:32px;font-weight:700;color:var(--accent2);line-height:1}
-.admin-stat-label{font-size:12px;color:var(--muted);margin-top:8px;text-transform:uppercase;letter-spacing:0.5px}
-.admin-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
-.admin-section-title{font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.admin-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient);opacity:0;transition:opacity .2s}
+.admin-stat:hover::before{opacity:1}
+.admin-stat-icon{font-size:20px;margin-bottom:6px}
+.admin-stat-value{font-size:28px;font-weight:700;color:var(--accent2);line-height:1}
+.admin-stat-label{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:0.5px}
+.admin-stat-change{font-size:10px;margin-top:4px;font-weight:600}
+.admin-stat-change.up{color:#22c55e}
+.admin-stat-change.down{color:#ef4444}
+.admin-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;transition:border-color .2s}
+.admin-section:hover{border-color:color-mix(in srgb,var(--accent) 30%,var(--border))}
+.admin-section-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.admin-section-desc{font-size:12px;color:var(--muted);margin:-10px 0 16px;padding-left:28px}
 .admin-bot-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .admin-bot-status{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;background:var(--elevated);border-radius:12px;border:1px solid var(--border);margin-right:8px}
 .status-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
@@ -800,6 +813,27 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .admin-badge-bot{background:var(--accent-active);color:var(--accent);font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:.3px}
 .admin-badge-banned{background:rgba(239,68,68,.15);color:#991f1f;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px}
 .admin-badge-admin{background:rgba(245,158,11,.15);color:#854f0b;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px}
+/* ── ADMIN QUICK ACTIONS ── */
+.admin-quick-action{display:flex;align-items:center;gap:12px;padding:14px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all .18s}
+.admin-quick-action:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.admin-qa-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.admin-qa-text{flex:1;min-width:0}
+.admin-qa-title{font-size:13px;font-weight:700;color:var(--text)}
+.admin-qa-desc{font-size:11px;color:var(--muted);margin-top:2px}
+/* ── ADMIN SYSTEM PANEL ── */
+.admin-sys-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.admin-sys-item{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px}
+.admin-sys-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.admin-sys-info{flex:1;min-width:0}
+.admin-sys-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.admin-sys-val{font-size:15px;font-weight:700;color:var(--text);margin-top:2px}
+.admin-db-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-db-table th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.admin-db-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.admin-db-table tr:hover td{background:var(--hover)}
+.admin-env-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--elevated);border-radius:10px;margin-bottom:6px;font-size:13px}
+.admin-env-key{font-weight:700;color:var(--accent);min-width:100px}
+.admin-env-val{color:var(--text);font-family:monospace}
 /* ── KULLANICI DETAY MODAL ── */
 .admin-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
 .admin-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;position:relative}
@@ -2177,7 +2211,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 <div class="panel" id="panel-admin">
 <div class="admin-panel">
-<div class="admin-header"><h2>🔧 Admin Paneli</h2><span id="admin-indicator-inner" style="font-size:12px;color:var(--muted);margin-left:auto"></span></div>
+<div class="admin-header">
+  <h2>🔧 Admin Paneli</h2>
+  <div class="admin-header-right">
+    <div class="admin-server-status">
+      <div class="status-dot active"></div>
+      <span>Sunucu Aktif</span>
+    </div>
+    <button class="admin-refresh-btn" onclick="loadAdminPanel()" title="Yenile">🔄</button>
+  </div>
+</div>
 <div class="admin-stats" id="admin-stats"></div>
 
 <!-- TAB NAVİGASYON -->
@@ -2187,12 +2230,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <span class="admin-tab" onclick="adminTab('content',this)">📝 İçerik</span>
   <span class="admin-tab" onclick="adminTab('analytics',this)">📈 Analitik</span>
   <span class="admin-tab" onclick="adminTab('bots',this)">🤖 Botlar</span>
+  <span class="admin-tab" onclick="adminTab('system',this)">🖥️ Sistem</span>
 </div>
 
 <!-- GENEL BAKIŞ -->
 <div class="admin-tab-pane active" id="admin-pane-overview">
   <div class="admin-section">
     <div class="admin-section-title">🤖 Bot Simülasyonu</div>
+    <div class="admin-section-desc">Otomatik bot etkileşimlerini yönetin</div>
     <div class="admin-bot-controls">
       <div class="admin-bot-status">
         <div class="status-dot" id="bot-status-dot"></div>
@@ -2212,6 +2257,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="admin-section">
     <div class="admin-section-title">📋 Bot Geri Bildirimleri <span id="feedback-count" style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-size:12px;margin-left:8px"></span></div>
     <div class="feedback-list" id="feedback-list"></div>
+  </div>
+  <div class="admin-section">
+    <div class="admin-section-title">⚡ Hızlı İşlemler</div>
+    <div class="admin-section-desc">Sık kullanılan yönetim araçları</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+      <div class="admin-quick-action" onclick="adminTab('users',document.querySelectorAll('.admin-tab')[1])">
+        <div class="admin-qa-icon" style="background:rgba(59,130,246,.15);color:#3b82f6">👥</div>
+        <div class="admin-qa-text"><div class="admin-qa-title">Kullanıcılar</div><div class="admin-qa-desc">Yönet ve filtrele</div></div>
+      </div>
+      <div class="admin-quick-action" onclick="adminTab('content',document.querySelectorAll('.admin-tab')[2])">
+        <div class="admin-qa-icon" style="background:rgba(239,68,68,.15);color:#ef4444">🚨</div>
+        <div class="admin-qa-text"><div class="admin-qa-title">Şikayetler</div><div class="admin-qa-desc">İncele ve işlem yap</div></div>
+      </div>
+      <div class="admin-quick-action" onclick="adminTab('analytics',document.querySelectorAll('.admin-tab')[3])">
+        <div class="admin-qa-icon" style="background:rgba(34,197,94,.15);color:#22c55e">📈</div>
+        <div class="admin-qa-text"><div class="admin-qa-title">Analitik</div><div class="admin-qa-desc">Platform sağlığı</div></div>
+      </div>
+      <div class="admin-quick-action" onclick="adminExportData()">
+        <div class="admin-qa-icon" style="background:rgba(168,85,247,.15);color:#a855f7">📥</div>
+        <div class="admin-qa-text"><div class="admin-qa-title">Veri Dışa Aktar</div><div class="admin-qa-desc">JSON formatında</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2263,6 +2330,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="admin-section">
     <div class="admin-section-title">🤖 Bot Listesi</div>
     <div class="bot-list" id="bot-list"></div>
+  </div>
+</div>
+
+<!-- SİSTEM -->
+<div class="admin-tab-pane" id="admin-pane-system">
+  <div class="admin-section">
+    <div class="admin-section-title">🖥️ Sunucu Bilgileri</div>
+    <div class="admin-section-desc">Çalışma ortamı ve kaynak kullanımı</div>
+    <div class="admin-sys-grid" id="admin-sys-info"></div>
+  </div>
+  <div class="admin-section">
+    <div class="admin-section-title">🗄️ Veritabanı Tabloları</div>
+    <div class="admin-section-desc">Tablo bazlı kayıt sayıları</div>
+    <div id="admin-db-stats"></div>
+  </div>
+  <div class="admin-section">
+    <div class="admin-section-title">⚙️ Ortam Değişkenleri</div>
+    <div class="admin-section-desc">Sunucu yapılandırması</div>
+    <div id="admin-env-vars"></div>
   </div>
 </div>
 
@@ -5312,18 +5398,32 @@ const adminTab=(tab,el)=>{
   if(tab==='content'){adminLoadContent();adminLoadReports();}
   if(tab==='analytics')adminLoadAnalytics();
   if(tab==='bots')loadBotList();
+  if(tab==='system')adminLoadSystem();
 };
 
 const loadAdminPanel=async()=>{
+  // Reset tabs to overview
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-pane').forEach(p=>p.classList.remove('active'));
+  const firstTab=document.querySelector('.admin-tab');if(firstTab)firstTab.classList.add('active');
+  const overviewPane=document.getElementById('admin-pane-overview');if(overviewPane)overviewPane.classList.add('active');
   const r=await api('/admin/stats');
-  document.getElementById('admin-stats').innerHTML=`
-    <div class="admin-stat"><div class="admin-stat-value">${r.totalUsers}</div><div class="admin-stat-label">Kullanıcı</div></div>
-    <div class="admin-stat"><div class="admin-stat-value">${r.totalBots}</div><div class="admin-stat-label">Bot</div></div>
-    <div class="admin-stat"><div class="admin-stat-value">${r.totalYankis}</div><div class="admin-stat-label">Yankı</div></div>
-    <div class="admin-stat"><div class="admin-stat-value">${r.yankisToday||0}</div><div class="admin-stat-label">Bugün</div></div>
-    <div class="admin-stat"><div class="admin-stat-value">${r.totalComments||0}</div><div class="admin-stat-label">Yorum</div></div>
-    <div class="admin-stat"><div class="admin-stat-value">${r.totalMessages}</div><div class="admin-stat-label">Mesaj</div></div>
-  `;
+  const stats=[
+    {icon:'👥',value:r.totalUsers,label:'Kullanıcı',color:'#3b82f6'},
+    {icon:'🤖',value:r.totalBots,label:'Bot',color:'#8b5cf6'},
+    {icon:'📝',value:r.totalYankis,label:'Yankı',color:'#22c55e'},
+    {icon:'📅',value:r.yankisToday||0,label:'Bugün',color:'#f59e0b'},
+    {icon:'💬',value:r.totalComments||0,label:'Yorum',color:'#06b6d4'},
+    {icon:'✉️',value:r.totalMessages,label:'Mesaj',color:'#ec4899'},
+    {icon:'🚨',value:r.reportCount||0,label:'Şikayet',color:'#ef4444'},
+    {icon:'🚫',value:r.bannedCount||0,label:'Banlı',color:'#f97316'}
+  ];
+  document.getElementById('admin-stats').innerHTML=stats.map(s=>`
+    <div class="admin-stat">
+      <div class="admin-stat-icon">${s.icon}</div>
+      <div class="admin-stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="admin-stat-label">${s.label}</div>
+    </div>`).join('');
   const bsd=document.getElementById('bot-status-dot');
   const bst=document.getElementById('bot-status-text');
   const btb=document.getElementById('bot-toggle-btn');
@@ -5545,6 +5645,36 @@ const triggerBot=async(action,botId)=>{
   if(action==='feedback')loadFeedback();
 };
 
+
+// ── Sistem & Export ──────────────────────────────────────────
+const adminLoadSystem=async()=>{
+  const r=await api('/admin/system');
+  if(r.error)return;
+  const uptimeStr=(s)=>{const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);return (d?d+'g ':'')+(h?h+'s ':'')+(m+'dk');};
+  document.getElementById('admin-sys-info').innerHTML=[
+    {icon:'💻',label:'Platform',val:r.platform,bg:'rgba(59,130,246,.15)',clr:'#3b82f6'},
+    {icon:'🟢',label:'Node.js',val:r.nodeVersion,bg:'rgba(34,197,94,.15)',clr:'#22c55e'},
+    {icon:'⏱️',label:'Uptime',val:uptimeStr(r.uptime),bg:'rgba(245,158,11,.15)',clr:'#f59e0b'},
+    {icon:'🧠',label:'Bellek',val:r.memoryUsage+' / '+r.memoryTotal+' MB',bg:'rgba(139,92,246,.15)',clr:'#8b5cf6'},
+    {icon:'🗄️',label:'DB Boyutu',val:r.dbSize,bg:'rgba(236,72,153,.15)',clr:'#ec4899'},
+  ].map(s=>`<div class="admin-sys-item"><div class="admin-sys-icon" style="background:${s.bg};color:${s.clr}">${s.icon}</div><div class="admin-sys-info"><div class="admin-sys-label">${s.label}</div><div class="admin-sys-val">${s.val}</div></div></div>`).join('');
+  const tableNames={users:'Kullanıcılar',yankis:'Yankılar',messages:'Mesajlar',conversations:'Sohbetler',likes:'Beğeniler',follows:'Takipler',notifications:'Bildirimler',reports:'Şikayetler',feedback:'Geri Bildirimler',bookmarks:'Kaydedilenler'};
+  const tableIcons={users:'👥',yankis:'📝',messages:'✉️',conversations:'💬',likes:'❤️',follows:'👤',notifications:'🔔',reports:'🚨',feedback:'📋',bookmarks:'🔖'};
+  document.getElementById('admin-db-stats').innerHTML='<table class="admin-db-table"><thead><tr><th>Tablo</th><th>Kayıt</th></tr></thead><tbody>'
+    +Object.entries(r.tableStats).map(([k,v])=>`<tr><td>${tableIcons[k]||''} ${tableNames[k]||k}</td><td style="font-weight:700">${v.toLocaleString('tr-TR')}</td></tr>`).join('')
+    +'</tbody></table>';
+  document.getElementById('admin-env-vars').innerHTML=Object.entries(r.env).map(([k,v])=>`<div class="admin-env-row"><span class="admin-env-key">${k}</span><span class="admin-env-val">${v}</span></div>`).join('');
+};
+const adminExportData=async()=>{
+  toast('📥 Veriler hazırlanıyor...');
+  const [stats,users,content]=await Promise.all([api('/admin/stats'),api('/admin/users',{}),api('/admin/yankis/recent',{limit:1000})]);
+  const data={exportDate:new Date().toISOString(),stats,users:users.users||[],yankis:content.yankis||[]};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='yankus-export-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('✅ Veriler dışa aktarıldı');
+};
 
 // Start — sunucudan doğrula (localStorage'a güvenme, db restart'ta sıfırlanır)
 (async()=>{

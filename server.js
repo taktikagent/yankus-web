@@ -2028,11 +2028,37 @@ const routes = {
   // ═══ ADMIN ═══
   'admin/stats': () => {
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const totalUsers = sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE isBot = 0').get().count;
+    const totalBots = sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE isBot = 1').get().count;
+    const totalYankis = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE replyToId IS NULL').get().count;
+    const yankisToday = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE replyToId IS NULL AND createdAt > ?').get(dayAgo).count;
+    const totalComments = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE replyToId IS NOT NULL').get().count;
+    const totalMessages = sqlite.prepare('SELECT COUNT(*) as count FROM messages').get().count;
+    const reportCount = sqlite.prepare('SELECT COUNT(*) as count FROM reports').get().count;
+    const bannedCount = sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE banned = 1').get().count;
+    const feedbackCount = sqlite.prepare('SELECT COUNT(*) as count FROM feedback').get().count;
     return {
-      userCount: sqlite.prepare('SELECT COUNT(*) as count FROM users').get().count,
-      yankiCount: sqlite.prepare('SELECT COUNT(*) as count FROM yankis').get().count,
-      reportCount: sqlite.prepare('SELECT COUNT(*) as count FROM reports').get().count,
-      activeCount: sqlite.prepare('SELECT COUNT(DISTINCT userId) as count FROM yankis WHERE createdAt > ?').get(dayAgo).count
+      totalUsers, totalBots, totalYankis, yankisToday, totalComments, totalMessages,
+      reportCount, bannedCount, feedbackCount,
+      botSimulationRunning
+    };
+  },
+
+  'admin/system': () => {
+    const dbSize = (() => { try { const fs = require('fs'); const s = fs.statSync(DB_PATH); return (s.size / 1024 / 1024).toFixed(2) + ' MB'; } catch(e) { return 'Bilinmiyor'; } })();
+    const tableStats = {};
+    ['users','yankis','messages','conversations','likes','follows','notifications','reports','feedback','bookmarks'].forEach(t => {
+      try { tableStats[t] = sqlite.prepare('SELECT COUNT(*) as count FROM ' + t).get().count; } catch(e) { tableStats[t] = 0; }
+    });
+    return {
+      platform: process.platform,
+      nodeVersion: process.version,
+      uptime: Math.floor(process.uptime()),
+      memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      memoryTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      dbSize,
+      tableStats,
+      env: { PORT: process.env.PORT || 3000, NODE_ENV: process.env.NODE_ENV || 'development', DB_PATH: process.env.DB_PATH || 'yankus.db' }
     };
   },
 
