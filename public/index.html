@@ -1143,11 +1143,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .contact-fab-btn.open{transform:rotate(45deg);border-radius:16px}
 .contact-fab-badge{position:absolute;top:-2px;right:-2px;width:12px;height:12px;background:#22c55e;border-radius:50%;border:2px solid var(--bg);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.contact-popup{display:none;width:380px;max-height:520px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,.45);overflow:hidden;animation:contactSlideUp .3s cubic-bezier(.175,.885,.32,1.1)}
+.contact-popup{display:none;width:400px;max-height:580px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,.45);overflow:hidden;animation:contactSlideUp .3s cubic-bezier(.175,.885,.32,1.1)}
 .contact-popup.show{display:flex;flex-direction:column}
 @keyframes contactSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.contact-popup-header{padding:18px 20px;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:space-between}
-.contact-popup-header h3{margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.contact-popup-header{padding:10px 14px;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fab-main-tabs{display:flex;gap:4px;flex:1}
+.fab-main-tab{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.fab-main-tab:hover{background:rgba(255,255,255,.2)}
+.fab-main-tab.active{background:rgba(255,255,255,.25);color:#fff}
+.fab-settings-group{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+.fab-settings-group:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.fab-settings-label{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)}
+.fab-account-actions{display:flex;flex-direction:column;gap:6px}
+.fab-account-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--text);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+.fab-account-btn:hover{border-color:var(--accent);background:var(--accent-hover);transform:translateX(4px)}
+.fab-account-btn.danger{color:var(--accent2);border-color:rgba(139,26,16,.3)}
+.fab-account-btn.danger:hover{background:rgba(139,26,16,.1);border-color:var(--accent2)}
 .contact-popup-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .contact-popup-close:hover{background:rgba(255,255,255,.35)}
 .contact-popup-body{padding:16px 20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
@@ -1708,7 +1719,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="nav-section-label" style="margin-top:8px">Profil</div>
 <div class="menu-item" onclick="goPanel('profile');loadMyProfile()"><span class="mi-icon">👤</span><span class="mi-label">Profilim</span></div>
 <div class="menu-item" onclick="goPanel('drafts')"><span class="mi-icon">✏️</span><span class="mi-label">Taslaklar</span></div>
-<div class="menu-item" onclick="goPanel('settings')"><span class="mi-icon">⚙️</span><span class="mi-label">Ayarlar</span></div>
 </nav>
 <div class="sidebar-end">
 <button class="sidebar-yanki-btn" onclick="openYankiPopup()">🐦 <span class="mi-label">Yankıla</span></button>
@@ -1964,158 +1974,200 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div id="scheduled-list" style="display:none"></div>
 </div>
 
-<div class="panel" id="panel-settings">
-<div class="settings-section">
-<div class="settings-title">🎨 Tema</div>
-<div class="theme-options">
-  <div class="theme-option active" id="theme-dark" onclick="setTheme('dark')">🌙 Koyu</div>
-  <div class="theme-option" id="theme-light" onclick="setTheme('light')">☀️ Açık</div>
-  <div class="theme-option" id="theme-amoled" onclick="setTheme('amoled')">⚫ AMOLED</div>
-</div>
-<div class="settings-subtitle">Vurgu Rengi</div>
-<div class="color-options" id="color-options">
-  <div class="color-option active" style="background:#A91101" onclick="setAccentColor('#A91101','#b57281',this)" title="Turkish Rose"></div>
-  <div class="color-option" style="background:#8b5cf6" onclick="setAccentColor('#8b5cf6','#a78bfa',this)" title="Mor"></div>
-  <div class="color-option" style="background:#3b82f6" onclick="setAccentColor('#3b82f6','#60a5fa',this)" title="Mavi"></div>
-  <div class="color-option" style="background:#10b981" onclick="setAccentColor('#10b981','#34d399',this)" title="Yeşil"></div>
-  <div class="color-option" style="background:#f59e0b" onclick="setAccentColor('#f59e0b','#fbbf24',this)" title="Turuncu"></div>
-  <div class="color-option" style="background:#ec4899" onclick="setAccentColor('#ec4899','#f472b6',this)" title="Pembe"></div>
-</div>
-<div class="settings-subtitle">Yazı Boyutu</div>
-<div class="font-options">
-  <div class="font-option" style="font-size:12px" onclick="setFontSize('small',this)">Aa</div>
-  <div class="font-option active" style="font-size:14px" onclick="setFontSize('normal',this)">Aa</div>
-  <div class="font-option" style="font-size:16px" onclick="setFontSize('large',this)">Aa</div>
-</div>
-</div>
-<div class="settings-section">
-<div class="settings-title">⚙️ Tercihler</div>
-<div class="settings-item"><span class="settings-item-label">Bildirimler</span><div class="toggle on" id="toggle-notif" onclick="toggleSetting('notif',this)"></div></div>
-<div class="settings-item"><span class="settings-item-label">Ses Efektleri</span><div class="toggle" id="toggle-sound" onclick="toggleSetting('sound',this)"></div></div>
-<div class="settings-item"><span class="settings-item-label">Animasyonlar</span><div class="toggle on" id="toggle-anim" onclick="toggleSetting('anim',this)"></div></div>
-<div class="settings-item"><span class="settings-item-label">Kompakt Mod</span><div class="toggle" id="toggle-compact" onclick="toggleSetting('compact',this)"></div></div>
-</div>
-<div class="settings-section">
-<div class="settings-title">🎭 Profil Çerçevesi</div>
-<div class="color-options" id="frame-options" style="gap:12px">
-  <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('none')">
-    <div class="avatar" style="width:48px;height:48px;font-size:20px">👤</div>
-    <div style="font-size:10px;color:var(--muted);margin-top:4px">Normal</div>
-  </div>
-  <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('gold')">
-    <div class="avatar avatar-frame-gold" style="width:48px;height:48px;font-size:20px">👤</div>
-    <div style="font-size:10px;color:#ffd700;margin-top:4px">Altın</div>
-  </div>
-  <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('fire')">
-    <div class="avatar avatar-frame-fire" style="width:48px;height:48px;font-size:20px">👤</div>
-    <div style="font-size:10px;color:#ff6b35;margin-top:4px">Ateş</div>
-  </div>
-  <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('ice')">
-    <div class="avatar avatar-frame-ice" style="width:48px;height:48px;font-size:20px">👤</div>
-    <div style="font-size:10px;color:#00d4ff;margin-top:4px">Buz</div>
-  </div>
-  <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('purple')">
-    <div class="avatar avatar-frame-purple" style="width:48px;height:48px;font-size:20px">👤</div>
-    <div style="font-size:10px;color:#8b5cf6;margin-top:4px">Mor</div>
-  </div>
-</div>
-</div>
-<div class="settings-section">
-<div class="settings-title">🚫 Engellenenler</div>
-<div id="blocked-list"></div>
-</div>
-</div>
 
-<!-- İletişim Floating Popup -->
+<!-- Floating Popup — Ayarlar + İletişim -->
 <div class="contact-fab" id="contact-fab">
   <div class="contact-popup" id="contact-popup">
+    <!-- Üst Ana Sekmeler -->
     <div class="contact-popup-header">
-      <h3>💬 Bize Ulaşın</h3>
+      <div class="fab-main-tabs">
+        <div class="fab-main-tab active" onclick="switchFabSection('settings',this)">⚙️ Ayarlar</div>
+        <div class="fab-main-tab" onclick="switchFabSection('contact',this)">💬 İletişim</div>
+      </div>
       <button class="contact-popup-close" onclick="toggleContactPopup()">✕</button>
     </div>
     <div class="contact-popup-body">
-      <div class="contact-tabs">
-        <div class="contact-tab active" onclick="switchContactTab('form',this)"><span class="contact-tab-icon">✉️</span>Mesaj Gönder</div>
-        <div class="contact-tab" onclick="switchContactTab('faq',this)"><span class="contact-tab-icon">❓</span>SSS</div>
-        <div class="contact-tab" onclick="switchContactTab('links',this)"><span class="contact-tab-icon">🔗</span>Bağlantılar</div>
-      </div>
-      <!-- Form Tab -->
-      <div id="contact-tab-form">
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div class="contact-form-group">
-            <label>Konu</label>
-            <select id="contact-subject">
-              <option value="general">💬 Genel Soru</option>
-              <option value="suggestion">💡 Öneri</option>
-              <option value="bug">🐛 Hata Bildirimi</option>
-              <option value="account">👤 Hesap Sorunu</option>
-              <option value="other">📋 Diğer</option>
-            </select>
-          </div>
-          <div class="contact-form-group">
-            <label>E-posta</label>
-            <input id="contact-email" placeholder="ornek@email.com" type="email">
-          </div>
-          <div class="contact-form-group">
-            <label>Mesajınız</label>
-            <textarea id="contact-message" placeholder="Mesajınızı buraya yazın..." rows="4"></textarea>
-          </div>
-          <button class="contact-submit" id="contact-submit-btn" onclick="submitContact()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
-            Gönder
-          </button>
-        </div>
-      </div>
-      <!-- FAQ Tab -->
-      <div id="contact-tab-faq" style="display:none">
-        <div class="contact-quick-links">
-          <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
-            <div class="contact-quick-link-icon" style="background:rgba(59,130,246,.15)">🔑</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">Şifremi unuttum</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Giriş ekranındaki "Şifremi unuttum" bağlantısını kullanarak e-posta ile şifrenizi sıfırlayabilirsiniz.</div></div>
-          </div>
-          <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
-            <div class="contact-quick-link-icon" style="background:rgba(34,197,94,.15)">✅</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">Hesabımı nasıl doğrularım?</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Kayıt sırasında e-posta adresinize gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.</div></div>
-          </div>
-          <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
-            <div class="contact-quick-link-icon" style="background:rgba(234,179,8,.15)">⭐</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">Yankıyı nasıl öne çıkarırım?</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Yankınızın sağ üst köşesindeki "..." menüsünden "Öne Çıkar" seçeneğini kullanın. En fazla 3 yankı öne çıkarılabilir.</div></div>
-          </div>
-          <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
-            <div class="contact-quick-link-icon" style="background:rgba(168,85,247,.15)">🔔</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">Bildirimleri nasıl kapatırım?</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Ayarlar sayfasından bildirim tercihlerinizi düzenleyebilirsiniz.</div></div>
+
+      <!-- ═══ AYARLAR SEKSİYONU ═══ -->
+      <div id="fab-section-settings">
+        <!-- Tema -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">🎨 Tema</div>
+          <div class="theme-options">
+            <div class="theme-option active" id="theme-dark" onclick="setTheme('dark')">🌙 Koyu</div>
+            <div class="theme-option" id="theme-light" onclick="setTheme('light')">☀️ Açık</div>
+            <div class="theme-option" id="theme-amoled" onclick="setTheme('amoled')">⚫ AMOLED</div>
           </div>
         </div>
-      </div>
-      <!-- Links Tab -->
-      <div id="contact-tab-links" style="display:none">
-        <div class="contact-quick-links">
-          <a class="contact-quick-link" href="https://github.com/taktikagent/yankus-web" target="_blank">
-            <div class="contact-quick-link-icon" style="background:rgba(255,255,255,.1)">🐙</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">GitHub</span><span class="contact-quick-link-desc">Kaynak kodu ve katkıda bulunma</span></div>
-          </a>
-          <div class="contact-quick-link" onclick="goPanel('patchnotes');toggleContactPopup()">
-            <div class="contact-quick-link-icon" style="background:rgba(139,26,16,.15)">📋</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">Yama Notları</span><span class="contact-quick-link-desc">Son güncellemeler ve değişiklikler</span></div>
+        <!-- Vurgu Rengi -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">🎯 Vurgu Rengi</div>
+          <div class="color-options" id="color-options">
+            <div class="color-option active" style="background:#A91101" onclick="setAccentColor('#A91101','#b57281',this)" title="Turkish Rose"></div>
+            <div class="color-option" style="background:#8b5cf6" onclick="setAccentColor('#8b5cf6','#a78bfa',this)" title="Mor"></div>
+            <div class="color-option" style="background:#3b82f6" onclick="setAccentColor('#3b82f6','#60a5fa',this)" title="Mavi"></div>
+            <div class="color-option" style="background:#10b981" onclick="setAccentColor('#10b981','#34d399',this)" title="Yeşil"></div>
+            <div class="color-option" style="background:#f59e0b" onclick="setAccentColor('#f59e0b','#fbbf24',this)" title="Turuncu"></div>
+            <div class="color-option" style="background:#ec4899" onclick="setAccentColor('#ec4899','#f472b6',this)" title="Pembe"></div>
           </div>
-          <div class="contact-quick-link" onclick="goPanel('settings');toggleContactPopup()">
-            <div class="contact-quick-link-icon" style="background:rgba(59,130,246,.15)">⚙️</div>
-            <div class="contact-quick-link-info"><span class="contact-quick-link-title">Ayarlar</span><span class="contact-quick-link-desc">Hesap ve tercih ayarları</span></div>
+        </div>
+        <!-- Yazı Boyutu -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">🔤 Yazı Boyutu</div>
+          <div class="font-options">
+            <div class="font-option" style="font-size:12px" onclick="setFontSize('small',this)">Aa</div>
+            <div class="font-option active" style="font-size:14px" onclick="setFontSize('normal',this)">Aa</div>
+            <div class="font-option" style="font-size:16px" onclick="setFontSize('large',this)">Aa</div>
+          </div>
+        </div>
+        <!-- Tercihler -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">⚙️ Tercihler</div>
+          <div class="settings-item"><span class="settings-item-label">Bildirimler</span><div class="toggle on" id="toggle-notif" onclick="toggleSetting('notif',this)"></div></div>
+          <div class="settings-item"><span class="settings-item-label">Ses Efektleri</span><div class="toggle" id="toggle-sound" onclick="toggleSetting('sound',this)"></div></div>
+          <div class="settings-item"><span class="settings-item-label">Animasyonlar</span><div class="toggle on" id="toggle-anim" onclick="toggleSetting('anim',this)"></div></div>
+          <div class="settings-item"><span class="settings-item-label">Kompakt Mod</span><div class="toggle" id="toggle-compact" onclick="toggleSetting('compact',this)"></div></div>
+        </div>
+        <!-- Profil Çerçevesi -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">🎭 Profil Çerçevesi</div>
+          <div class="color-options" id="frame-options" style="gap:12px">
+            <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('none')">
+              <div class="avatar" style="width:42px;height:42px;font-size:18px">👤</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:3px">Normal</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('gold')">
+              <div class="avatar avatar-frame-gold" style="width:42px;height:42px;font-size:18px">👤</div>
+              <div style="font-size:10px;color:#ffd700;margin-top:3px">Altın</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('fire')">
+              <div class="avatar avatar-frame-fire" style="width:42px;height:42px;font-size:18px">👤</div>
+              <div style="font-size:10px;color:#ff6b35;margin-top:3px">Ateş</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('ice')">
+              <div class="avatar avatar-frame-ice" style="width:42px;height:42px;font-size:18px">👤</div>
+              <div style="font-size:10px;color:#00d4ff;margin-top:3px">Buz</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="setProfileFrame('purple')">
+              <div class="avatar avatar-frame-purple" style="width:42px;height:42px;font-size:18px">👤</div>
+              <div style="font-size:10px;color:#8b5cf6;margin-top:3px">Mor</div>
+            </div>
+          </div>
+        </div>
+        <!-- Engellenenler -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">🚫 Engellenenler</div>
+          <div id="blocked-list"></div>
+        </div>
+        <!-- Gizlilik -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">🔒 Gizlilik</div>
+          <div class="settings-item"><span class="settings-item-label">Çevrimiçi durumumu göster</span><div class="toggle on" id="toggle-online" onclick="toggleSetting('online',this)"></div></div>
+          <div class="settings-item"><span class="settings-item-label">Okundu bilgisi gönder</span><div class="toggle on" id="toggle-readreceipt" onclick="toggleSetting('readreceipt',this)"></div></div>
+          <div class="settings-item"><span class="settings-item-label">Profilimi herkese aç</span><div class="toggle on" id="toggle-publicprofile" onclick="toggleSetting('publicprofile',this)"></div></div>
+        </div>
+        <!-- Hesap İşlemleri -->
+        <div class="fab-settings-group">
+          <div class="fab-settings-label">👤 Hesap</div>
+          <div class="fab-account-actions">
+            <button class="fab-account-btn" onclick="goPanel('profile');toggleContactPopup()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Profili Düzenle
+            </button>
+            <button class="fab-account-btn" onclick="goPanel('patchnotes');toggleContactPopup()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Yama Notları
+            </button>
+            <button class="fab-account-btn danger" onclick="toggleContactPopup();doLogout()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Çıkış Yap
+            </button>
           </div>
         </div>
       </div>
-      <!-- Success State -->
-      <div class="contact-success" id="contact-success">
-        <div class="contact-success-icon">✅</div>
-        <h4 style="margin:0;color:var(--text)">Mesajınız Gönderildi!</h4>
-        <p style="margin:0;font-size:13px;color:var(--muted)">En kısa sürede dönüş yapacağız.</p>
-        <button class="contact-submit" onclick="resetContactForm()" style="margin-top:8px;width:auto;padding:10px 24px">Yeni Mesaj</button>
+
+      <!-- ═══ İLETİŞİM SEKSİYONU ═══ -->
+      <div id="fab-section-contact" style="display:none">
+        <div class="contact-tabs">
+          <div class="contact-tab active" onclick="switchContactTab('form',this)"><span class="contact-tab-icon">✉️</span>Mesaj</div>
+          <div class="contact-tab" onclick="switchContactTab('faq',this)"><span class="contact-tab-icon">❓</span>SSS</div>
+          <div class="contact-tab" onclick="switchContactTab('links',this)"><span class="contact-tab-icon">🔗</span>Linkler</div>
+        </div>
+        <!-- Form -->
+        <div id="contact-tab-form">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="contact-form-group">
+              <label>Konu</label>
+              <select id="contact-subject">
+                <option value="general">💬 Genel Soru</option>
+                <option value="suggestion">💡 Öneri</option>
+                <option value="bug">🐛 Hata Bildirimi</option>
+                <option value="account">👤 Hesap Sorunu</option>
+                <option value="other">📋 Diğer</option>
+              </select>
+            </div>
+            <div class="contact-form-group">
+              <label>E-posta</label>
+              <input id="contact-email" placeholder="ornek@email.com" type="email">
+            </div>
+            <div class="contact-form-group">
+              <label>Mesajınız</label>
+              <textarea id="contact-message" placeholder="Mesajınızı buraya yazın..." rows="4"></textarea>
+            </div>
+            <button class="contact-submit" id="contact-submit-btn" onclick="submitContact()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+              Gönder
+            </button>
+          </div>
+        </div>
+        <!-- FAQ -->
+        <div id="contact-tab-faq" style="display:none">
+          <div class="contact-quick-links">
+            <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
+              <div class="contact-quick-link-icon" style="background:rgba(59,130,246,.15)">🔑</div>
+              <div class="contact-quick-link-info"><span class="contact-quick-link-title">Şifremi unuttum</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Giriş ekranındaki "Şifremi unuttum" bağlantısını kullanarak e-posta ile şifrenizi sıfırlayabilirsiniz.</div></div>
+            </div>
+            <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
+              <div class="contact-quick-link-icon" style="background:rgba(34,197,94,.15)">✅</div>
+              <div class="contact-quick-link-info"><span class="contact-quick-link-title">Hesabımı nasıl doğrularım?</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Kayıt sırasında e-posta adresinize gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.</div></div>
+            </div>
+            <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
+              <div class="contact-quick-link-icon" style="background:rgba(234,179,8,.15)">⭐</div>
+              <div class="contact-quick-link-info"><span class="contact-quick-link-title">Yankıyı nasıl öne çıkarırım?</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Yankınızın "..." menüsünden "Öne Çıkar" seçeneğini kullanın. En fazla 3 yankı öne çıkarılabilir.</div></div>
+            </div>
+            <div class="contact-quick-link" onclick="this.querySelector('.contact-faq-answer').style.display=this.querySelector('.contact-faq-answer').style.display==='block'?'none':'block'">
+              <div class="contact-quick-link-icon" style="background:rgba(168,85,247,.15)">🔔</div>
+              <div class="contact-quick-link-info"><span class="contact-quick-link-title">Bildirimleri nasıl kapatırım?</span><div class="contact-faq-answer" style="display:none;font-size:12px;color:var(--muted);margin-top:6px">Ayarlar sekmesinden bildirim tercihlerinizi düzenleyebilirsiniz.</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Links -->
+        <div id="contact-tab-links" style="display:none">
+          <div class="contact-quick-links">
+            <a class="contact-quick-link" href="https://github.com/taktikagent/yankus-web" target="_blank">
+              <div class="contact-quick-link-icon" style="background:rgba(255,255,255,.1)">🐙</div>
+              <div class="contact-quick-link-info"><span class="contact-quick-link-title">GitHub</span><span class="contact-quick-link-desc">Kaynak kodu ve katkıda bulunma</span></div>
+            </a>
+            <div class="contact-quick-link" onclick="goPanel('patchnotes');toggleContactPopup()">
+              <div class="contact-quick-link-icon" style="background:rgba(139,26,16,.15)">📋</div>
+              <div class="contact-quick-link-info"><span class="contact-quick-link-title">Yama Notları</span><span class="contact-quick-link-desc">Son güncellemeler ve değişiklikler</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Success -->
+        <div class="contact-success" id="contact-success">
+          <div class="contact-success-icon">✅</div>
+          <h4 style="margin:0;color:var(--text)">Mesajınız Gönderildi!</h4>
+          <p style="margin:0;font-size:13px;color:var(--muted)">En kısa sürede dönüş yapacağız.</p>
+          <button class="contact-submit" onclick="resetContactForm()" style="margin-top:8px;width:auto;padding:10px 24px">Yeni Mesaj</button>
+        </div>
       </div>
+
     </div>
   </div>
-  <button class="contact-fab-btn" id="contact-fab-btn" onclick="toggleContactPopup()" title="Bize Ulaşın">
+  <button class="contact-fab-btn" id="contact-fab-btn" onclick="toggleContactPopup()" title="Ayarlar & İletişim">
     <span class="contact-fab-badge"></span>
-    💬
+    ⚙️
   </button>
 </div>
 
@@ -2792,7 +2844,7 @@ const insertEmoji=e=>{$('yanki-input').value+=e;updateChar();$('emoji-picker').c
 
 // Panels
 const titles={home:'Ana Sayfa',explore:'Keşfet',notifications:'Bildirimler',messages:'Mesajlar',saved:'Kaydedilenler',profile:'Profil',drafts:'Taslaklar & Zamanlanmış',settings:'Ayarlar',contact:'İletişim',patchnotes:'Yama Notları',admin:'Admin Panel'};
-const ROOT_PANELS=['home','explore','notifications','messages','saved','profile','drafts','settings','patchnotes','admin'];
+const ROOT_PANELS=['home','explore','notifications','messages','saved','profile','drafts','patchnotes','admin'];
 const goPanel=(name,add=true)=>{
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
@@ -5071,7 +5123,13 @@ const loadFeaturedMarquee=async()=>{
   }catch(e){}
 };
 
-// Contact Popup
+// Floating Popup — Ayarlar + İletişim
+const switchFabSection=(section,el)=>{
+  document.querySelectorAll('.fab-main-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  $('fab-section-settings').style.display=section==='settings'?'block':'none';
+  $('fab-section-contact').style.display=section==='contact'?'block':'none';
+};
 const toggleContactPopup=()=>{
   const popup=$('contact-popup');
   const btn=$('contact-fab-btn');
