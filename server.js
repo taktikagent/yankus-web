@@ -1438,10 +1438,16 @@ const routes = {
     const { yankiId, userId } = data;
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
-    stmts.deleteYanki.run(yankiId);
     stmts.deleteLikesByYanki.run(yankiId);
     stmts.deleteCommentsByYanki.run(yankiId);
     stmts.deleteSavesByYanki.run(yankiId);
+    sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(yankiId);
+    sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(yankiId);
+    sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(yankiId);
+    sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(yankiId);
+    try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(yankiId); } catch(e) {}
+    sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(yankiId);
+    stmts.deleteYanki.run(yankiId);
     return { success: true };
   },
 
@@ -2146,10 +2152,24 @@ const routes = {
 
   'admin/yanki/delete': (data) => {
     const { yankiId } = data;
-    stmts.deleteYanki.run(yankiId);
+    // Bağlı kayıtları önce sil (FK constraint)
     stmts.deleteLikesByYanki.run(yankiId);
     stmts.deleteCommentsByYanki.run(yankiId);
     stmts.deleteSavesByYanki.run(yankiId);
+    sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(yankiId);
+    sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(yankiId);
+    sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(yankiId);
+    sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(yankiId);
+    try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(yankiId); } catch(e) {}
+    // Yorumları (reply yankılar) da sil
+    const replies = sqlite.prepare('SELECT id FROM yankis WHERE replyToId = ?').all(yankiId);
+    replies.forEach(r => {
+      stmts.deleteLikesByYanki.run(r.id);
+      sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(r.id);
+      sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(r.id);
+    });
+    sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(yankiId);
+    stmts.deleteYanki.run(yankiId);
     return { success: true };
   },
 
@@ -2182,10 +2202,22 @@ const routes = {
     if (!Array.isArray(yankiIds)) return { error: 'yankiIds gerekli' };
     const del = sqlite.transaction(() => {
       yankiIds.forEach(id => {
-        stmts.deleteYanki.run(id);
         stmts.deleteLikesByYanki.run(id);
         stmts.deleteCommentsByYanki.run(id);
         stmts.deleteSavesByYanki.run(id);
+        sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(id);
+        sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(id);
+        sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(id);
+        sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(id);
+        try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(id); } catch(e) {}
+        const replies = sqlite.prepare('SELECT id FROM yankis WHERE replyToId = ?').all(id);
+        replies.forEach(r => {
+          stmts.deleteLikesByYanki.run(r.id);
+          sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(r.id);
+          sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(r.id);
+        });
+        sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(id);
+        stmts.deleteYanki.run(id);
       });
     });
     del();
