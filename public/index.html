@@ -6912,15 +6912,15 @@ const renderPremiumPopup=()=>{
 
   let actions='';
   if(tier==='free'){
-    actions=`<button class="premium-action-btn primary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">⭐ Pro'ya Yükselt</button>
-    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">📰 Gazetecilik Başvurusu</button>`;
+    actions=`<button class="premium-action-btn primary" onclick="togglePremiumPopup();window.open('?panel=subscription','_blank')">⭐ Pro'ya Yükselt</button>
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();window.open('?panel=subscription','_blank')">📰 Gazetecilik Başvurusu</button>`;
   } else if(tier==='pro'){
     actions=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px">Pro avantajlarının keyfini çıkarıyorsun ⭐</div>
-    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">📰 Gazetecilik Başvurusu</button>
-    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">Plan Detayları</button>`;
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();window.open('?panel=subscription','_blank')">📰 Gazetecilik Başvurusu</button>
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();window.open('?panel=subscription','_blank')">Plan Detayları</button>`;
   } else {
     actions=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px">Tüm özelliklere erişimin var 📰</div>
-    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">Plan Detayları</button>`;
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();window.open('?panel=subscription','_blank')">Plan Detayları</button>`;
   }
   $('premium-popup-actions').innerHTML=actions;
 };
