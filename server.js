@@ -1844,6 +1844,7 @@ const routes = {
     if (replyToId) {
       const parent = parseYanki(stmts.getYankiById.get(replyToId));
       if (parent && parent.userId !== userId) {
+        sqlite.prepare('DELETE FROM notifications WHERE userId = ? AND fromId = ? AND type = ? AND yankiId = ?').run(parent.userId, userId, 'comment', yanki.id);
         stmts.insertNotification.run({ id: genId(), userId: parent.userId, fromId: userId, type: 'comment', yankiId: yanki.id, read: 0, createdAt: new Date().toISOString() });
       }
     }
@@ -1887,6 +1888,7 @@ const routes = {
     stmts.insertYanki.run(reyanki);
 
     if (original.userId !== userId) {
+      sqlite.prepare('DELETE FROM notifications WHERE userId = ? AND fromId = ? AND type = ? AND yankiId = ?').run(original.userId, userId, 'reyanki', reyanki.id);
       stmts.insertNotification.run({ id: genId(), userId: original.userId, fromId: userId, type: 'reyanki', yankiId: reyanki.id, read: 0, createdAt: new Date().toISOString() });
     }
     return { yanki: enrichYanki(reyanki, userId) };
@@ -1903,6 +1905,7 @@ const routes = {
     stmts.insertLike.run({ id: genId(), yankiId, userId, createdAt: new Date().toISOString() });
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (yanki && yanki.userId !== userId) {
+      sqlite.prepare('DELETE FROM notifications WHERE userId = ? AND fromId = ? AND type = ? AND yankiId = ?').run(yanki.userId, userId, 'like', yankiId);
       stmts.insertNotification.run({ id: genId(), userId: yanki.userId, fromId: userId, type: 'like', yankiId, read: 0, createdAt: new Date().toISOString() });
     }
     return { success: true, liked: true, count: stmts.getLikeCount.get(yankiId).count };
@@ -1979,6 +1982,7 @@ const routes = {
 
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (yanki && yanki.userId !== userId) {
+      sqlite.prepare('DELETE FROM notifications WHERE userId = ? AND fromId = ? AND type = ? AND yankiId = ?').run(yanki.userId, userId, 'comment', reply.id);
       stmts.insertNotification.run({ id: genId(), userId: yanki.userId, fromId: userId, type: 'comment', yankiId: reply.id, read: 0, createdAt: new Date().toISOString() });
     }
     return { success: true, comment: enrichYanki(reply, userId) };
@@ -1997,6 +2001,7 @@ const routes = {
       return { following: false };
     }
     stmts.insertFollow.run({ id: genId(), followerId, followingId, createdAt: new Date().toISOString() });
+    sqlite.prepare('DELETE FROM notifications WHERE userId = ? AND fromId = ? AND type = ?').run(followingId, followerId, 'follow');
     stmts.insertNotification.run({ id: genId(), userId: followingId, fromId: followerId, type: 'follow', read: 0, yankiId: null, createdAt: new Date().toISOString() });
     return { following: true };
   },

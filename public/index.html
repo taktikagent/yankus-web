@@ -3337,6 +3337,10 @@ const init=()=>{
   if(userXP===0)addXP(50,'Hoş geldin bonusu!');
   // Pull-to-refresh
   initPullToRefresh();
+  // URL deep linking (?panel=subscription vb.)
+  const urlParams=new URLSearchParams(window.location.search);
+  const deepPanel=urlParams.get('panel');
+  if(deepPanel){goPanel(deepPanel);if(deepPanel==='subscription')loadSubscriptionPanel();}
 };
 
 // Pull-to-refresh
@@ -6946,7 +6950,7 @@ const injectFeedAds=(container)=>{
 const adClick=(adId, linkUrl)=>{
   api('/ads/click',{adId});
   if(linkUrl){window.open(linkUrl,'_blank');}
-  else{togglePremiumPopup();}
+  else{window.open('?panel=subscription','_blank');}
 };
 
 // ── Sidebar Banner Reklam ──
