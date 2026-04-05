@@ -1171,6 +1171,35 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .font-option:hover{border-color:var(--accent)}
 .font-option.active{border-color:var(--accent2);background:var(--accent-hover)}
 /* ── İletişim Popup ── */
+/* ── Premium FAB (sol alt) ── */
+.premium-fab{position:fixed;bottom:24px;left:24px;z-index:900;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.premium-fab-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(245,158,11,.35);transition:all .25s;position:relative}
+.premium-fab-btn:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(245,158,11,.5)}
+.premium-fab-btn.journalist{background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 24px rgba(59,130,246,.35)}
+.premium-fab-btn.journalist:hover{box-shadow:0 8px 32px rgba(59,130,246,.5)}
+.premium-popup{display:none;width:340px;max-height:480px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,.45);overflow:hidden;animation:contactSlideUp .3s cubic-bezier(.175,.885,.32,1.1)}
+.premium-popup.show{display:flex;flex-direction:column}
+.premium-popup-header{padding:14px 18px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;display:flex;align-items:center;justify-content:space-between}
+.premium-popup-header h3{font-size:15px;font-weight:800;margin:0}
+.premium-popup-body{padding:16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.premium-tier-badge{display:flex;align-items:center;gap:10px;padding:12px;background:var(--elevated);border-radius:12px}
+.premium-tier-icon{font-size:28px}
+.premium-tier-info{flex:1}
+.premium-tier-name{font-weight:700;font-size:14px;color:var(--text)}
+.premium-tier-sub{font-size:11px;color:var(--muted)}
+.premium-feature-list{display:flex;flex-direction:column;gap:6px}
+.premium-feature{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);padding:6px 10px;background:var(--elevated);border-radius:8px}
+.premium-feature-icon{font-size:14px;width:20px;text-align:center}
+.premium-feature-lock{opacity:.45}
+.premium-popup-actions{display:flex;flex-direction:column;gap:6px;padding-top:8px;border-top:1px solid var(--border)}
+.premium-action-btn{padding:10px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s}
+.premium-action-btn.primary{background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff}
+.premium-action-btn.primary:hover{opacity:.9}
+.premium-action-btn.secondary{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
+.premium-action-btn.secondary:hover{border-color:var(--accent)}
+@media(max-width:768px){.premium-fab{bottom:16px;left:16px}.premium-popup{width:calc(100vw - 32px)}}
+@media(max-width:1024px){.premium-fab{left:16px}}
+
 .contact-fab{position:fixed;bottom:24px;right:24px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
 .contact-fab-btn{width:56px;height:56px;border-radius:50%;background:var(--gradient);color:#fff;border:none;cursor:pointer;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(139,26,16,.4);transition:all .25s;position:relative}
 .contact-fab-btn:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(139,26,16,.55)}
@@ -1628,6 +1657,208 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 /* ── Rich comment form ── */
 .comment-form-rich{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;background:var(--bg)}
+
+/* ── Premium Badges ── */
+.pro-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.5px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;margin-left:4px;vertical-align:middle}
+.press-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.5px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;margin-left:4px;vertical-align:middle}
+.press-org{font-size:11px;color:var(--muted);margin-left:4px;font-style:italic}
+.boost-badge{display:inline-flex;align-items:center;padding:1px 5px;border-radius:6px;font-size:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;margin-left:4px;animation:boostGlow 2s infinite}
+@keyframes boostGlow{0%,100%{box-shadow:0 0 4px rgba(139,92,246,.3)}50%{box-shadow:0 0 10px rgba(139,92,246,.6)}}
+
+/* ── Boost Popup Modal ── */
+.boost-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.boost-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:420px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:modalSlideUp .3s cubic-bezier(.175,.885,.32,1.1)}
+@keyframes modalSlideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.boost-modal-header{padding:18px 20px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between}
+.boost-modal-header h3{font-size:16px;font-weight:800;margin:0}
+.boost-modal-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.boost-info-bar{display:flex;gap:12px;padding:12px;background:var(--elevated);border-radius:12px}
+.boost-info-item{flex:1;text-align:center}
+.boost-info-val{font-size:20px;font-weight:800;color:var(--text)}
+.boost-info-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.boost-section{display:flex;flex-direction:column;gap:8px}
+.boost-section-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.boost-option-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.boost-option{padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--elevated);text-align:center;cursor:pointer;transition:all .15s;font-size:12px;color:var(--text)}
+.boost-option:hover{border-color:var(--accent)}
+.boost-option.selected{border-color:#8b5cf6;background:rgba(139,92,246,.1)}
+.boost-option-icon{font-size:18px;margin-bottom:4px}
+.boost-option-label{font-weight:600;font-size:11px}
+.boost-option-sub{font-size:10px;color:var(--muted)}
+.boost-cost-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(99,102,241,.1));border-radius:12px;border:1px solid rgba(139,92,246,.2)}
+.boost-cost-left{display:flex;flex-direction:column;gap:2px}
+.boost-cost-total{font-size:18px;font-weight:800;color:#8b5cf6}
+.boost-cost-detail{font-size:10px;color:var(--muted)}
+.boost-coin-bal{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.boost-submit-btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:14px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.boost-submit-btn:hover{opacity:.9;transform:translateY(-1px)}
+.boost-submit-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.boost-warning{font-size:11px;color:#f59e0b;background:rgba(245,158,11,.08);padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:6px}
+.boost-slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:4px;background:var(--elevated);outline:none;cursor:pointer;border:1px solid var(--border)}
+.boost-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);cursor:grab;box-shadow:0 2px 8px rgba(139,92,246,.4);border:2px solid #fff;transition:transform .15s}
+.boost-slider::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.boost-slider::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.2)}
+.boost-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);cursor:grab;box-shadow:0 2px 8px rgba(139,92,246,.4);border:2px solid #fff}
+
+/* ── Analytics Popup ── */
+.analytics-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.analytics-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:520px;max-width:94vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:modalSlideUp .3s cubic-bezier(.175,.885,.32,1.1)}
+.analytics-modal-header{padding:18px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between}
+.analytics-modal-header h3{font-size:16px;font-weight:800;margin:0}
+.analytics-modal-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.analytics-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.analytics-stat{background:var(--elevated);border-radius:12px;padding:14px 10px;text-align:center;border:1px solid var(--border)}
+.analytics-stat-val{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.analytics-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.analytics-chart{background:var(--elevated);border-radius:12px;padding:16px;border:1px solid var(--border)}
+.analytics-chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px}
+.analytics-bars{display:flex;align-items:flex-end;gap:6px;height:100px}
+.analytics-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.analytics-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--accent),var(--accent2));min-height:4px;transition:height .3s}
+.analytics-bar-lbl{font-size:9px;color:var(--muted)}
+.analytics-top-yanki{background:var(--elevated);border-radius:12px;padding:14px;border:1px solid var(--border)}
+.analytics-engagement{display:flex;align-items:center;gap:12px;padding:12px;background:var(--elevated);border-radius:12px;border:1px solid var(--border)}
+.analytics-eng-ring{width:56px;height:56px;border-radius:50%;border:4px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--accent)}
+
+/* ── Premium Detail Page ── */
+.premium-page{padding:20px}
+.premium-hero{text-align:center;padding:40px 20px;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(249,115,22,.08));border-radius:24px;margin-bottom:24px;border:1px solid rgba(245,158,11,.15)}
+.premium-hero-icon{font-size:56px;margin-bottom:12px}
+.premium-hero-title{font-size:28px;font-weight:900;background:linear-gradient(135deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.premium-hero-sub{font-size:14px;color:var(--muted);max-width:400px;margin:0 auto}
+.premium-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:24px}
+.premium-plan{background:var(--card);border:2px solid var(--border);border-radius:20px;padding:28px 24px;text-align:center;transition:all .25s;position:relative;overflow:hidden}
+.premium-plan:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.premium-plan.popular{border-color:#f59e0b}
+.premium-plan.popular::before{content:'EN POPÜLER';position:absolute;top:14px;right:-28px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-size:9px;font-weight:800;padding:4px 32px;transform:rotate(45deg);letter-spacing:.5px}
+.premium-plan-icon{font-size:44px;margin-bottom:10px}
+.premium-plan-name{font-size:22px;font-weight:900;color:var(--text);margin-bottom:4px}
+.premium-plan-price{font-size:14px;color:var(--muted);margin-bottom:20px}
+.premium-plan-features{text-align:left;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.premium-plan-feat{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:8px}
+.premium-plan-feat::before{content:'✓';color:var(--accent);font-weight:700;font-size:14px;min-width:16px}
+.premium-plan-feat.locked{opacity:.4}
+.premium-plan-feat.locked::before{content:'✕';color:var(--muted)}
+.premium-plan-btn{width:100%;padding:12px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s}
+.premium-plan-btn.gold{background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff}
+.premium-plan-btn.blue{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff}
+.premium-plan-btn.gray{background:var(--elevated);color:var(--text)}
+.premium-plan-btn:hover{opacity:.9;transform:translateY(-1px)}
+.premium-plan-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.premium-coin-section{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:24px}
+.premium-coin-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.premium-coin-icon{font-size:36px}
+.premium-coin-info h4{font-size:16px;font-weight:800;margin:0;color:var(--text)}
+.premium-coin-info p{font-size:12px;color:var(--muted);margin:2px 0 0}
+.premium-coin-balance{font-size:32px;font-weight:900;color:#f59e0b;text-align:center;padding:16px;background:var(--elevated);border-radius:14px;margin-bottom:12px}
+.premium-coin-uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.premium-coin-use{display:flex;align-items:center;gap:8px;padding:10px;background:var(--elevated);border-radius:10px;font-size:12px;color:var(--text)}
+.premium-compare{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:24px}
+.premium-compare table{width:100%;border-collapse:collapse;font-size:13px}
+.premium-compare th{text-align:left;padding:10px 8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
+.premium-compare td{padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text)}
+.premium-compare td:not(:first-child){text-align:center}
+.premium-check{color:#22c55e;font-weight:700}
+.premium-cross{color:var(--muted);opacity:.4}
+
+/* ── Sponsored Yanki (Feed Ad) ── */
+.ad-card{background:var(--card);border:1px solid color-mix(in srgb,var(--accent) 20%,var(--border));border-radius:16px;padding:16px;margin-bottom:12px;position:relative}
+.ad-card-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.ad-card-label::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.ad-card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+.ad-card-text{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.ad-card-btn{display:inline-block;padding:6px 16px;border-radius:20px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s}
+.ad-card-btn:hover{opacity:.85}
+.ad-card-close{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:var(--elevated);border:none;cursor:pointer;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+
+/* ── Sidebar Banner Ad ── */
+.sidebar-ad{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--card)),var(--card));border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s}
+.sidebar-ad:hover{border-color:var(--accent)}
+.sidebar-ad-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sidebar-ad-text{font-size:11px;color:var(--muted);margin-bottom:10px}
+.sidebar-ad-btn{padding:6px 18px;border-radius:20px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;border:none;cursor:pointer}
+.sidebar-ad-label{font-size:9px;color:var(--muted);margin-top:8px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Article Mode ── */
+.article-preview{border-left:3px solid var(--accent);padding-left:12px;margin-top:8px}
+.article-preview-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3}
+.article-preview-body{font-size:13px;color:var(--muted);line-height:1.6;max-height:120px;overflow:hidden;position:relative}
+.article-preview-body::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--card))}
+.article-read-more{font-size:12px;color:var(--accent);font-weight:700;cursor:pointer;margin-top:6px;display:inline-block}
+.article-full{padding:20px;line-height:1.8;font-size:15px;color:var(--text)}
+.article-full h1,.article-full h2,.article-full h3{margin:16px 0 8px;color:var(--text)}
+.article-sources{margin-top:12px;padding:10px;background:var(--elevated);border-radius:10px}
+.article-sources-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.article-source-link{font-size:12px;color:var(--accent);display:block;margin:3px 0;word-break:break-all}
+
+/* ── Breaking News ── */
+.breaking-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:#dc2626;color:#fff;animation:breakingPulse 2s infinite;letter-spacing:.3px}
+@keyframes breakingPulse{0%,100%{opacity:1}50%{opacity:.7}}
+.live-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:#dc2626;color:#fff}
+.live-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;animation:liveDot 1.5s infinite}
+@keyframes liveDot{0%,100%{opacity:1}50%{opacity:.3}}
+.news-cat-tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--elevated);color:var(--accent);margin-left:4px}
+
+/* ── Correction Note ── */
+.correction-note{background:color-mix(in srgb,#f59e0b 10%,var(--card));border:1px solid color-mix(in srgb,#f59e0b 30%,var(--border));border-radius:10px;padding:8px 12px;margin-top:8px;font-size:12px}
+.correction-note-title{font-weight:700;color:#f59e0b;font-size:11px;margin-bottom:3px}
+.correction-note-text{color:var(--text);line-height:1.4}
+
+/* ── Community Notes ── */
+.community-note{background:color-mix(in srgb,#3b82f6 8%,var(--card));border:1px solid color-mix(in srgb,#3b82f6 20%,var(--border));border-radius:10px;padding:8px 12px;margin-top:6px;font-size:12px}
+.community-note-header{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.community-note-icon{font-size:13px}
+.community-note-author{font-size:11px;color:var(--muted)}
+.community-note-text{color:var(--text);line-height:1.4}
+.community-note-votes{display:flex;gap:8px;margin-top:4px;font-size:11px;color:var(--muted)}
+.community-note-vote-btn{cursor:pointer;padding:1px 4px;border-radius:4px}
+.community-note-vote-btn:hover{background:var(--hover)}
+
+/* ── Subscription Panel ── */
+.tier-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:16px 0}
+.tier-card{background:var(--card);border:2px solid var(--border);border-radius:20px;padding:24px;text-align:center;transition:border-color .2s,transform .2s}
+.tier-card:hover{transform:translateY(-2px)}
+.tier-card.current{border-color:var(--accent)}
+.tier-card-icon{font-size:40px;margin-bottom:12px}
+.tier-card-name{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px}
+.tier-card-price{font-size:14px;color:var(--muted);margin-bottom:16px}
+.tier-card-features{text-align:left;margin-bottom:20px}
+.tier-card-feature{font-size:13px;color:var(--text);padding:4px 0;display:flex;align-items:center;gap:6px}
+.tier-card-feature::before{content:'✓';color:var(--accent);font-weight:700;font-size:12px}
+.tier-card-btn{width:100%;padding:10px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.tier-card-btn.primary{background:var(--accent);color:#fff}
+.tier-card-btn.secondary{background:var(--elevated);color:var(--text)}
+.tier-card-btn:hover{opacity:.85}
+.tier-card-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Journalist Apply Modal ── */
+.journalist-apply-form{display:flex;flex-direction:column;gap:12px}
+.journalist-apply-form input,.journalist-apply-form textarea{background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--font)}
+.journalist-apply-form textarea{min-height:80px;resize:vertical}
+.journalist-apply-form label{font-size:12px;font-weight:600;color:var(--muted)}
+
+/* ── News Explore Tab ── */
+.news-categories{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.news-cat-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--elevated);color:var(--text);border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.news-cat-btn.active,.news-cat-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Admin Ad Section ── */
+.ad-list-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--elevated);border-radius:10px;margin-bottom:8px}
+.ad-list-item-info{flex:1}
+.ad-list-item-title{font-size:13px;font-weight:700;color:var(--text)}
+.ad-list-item-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.ad-list-item-stats{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-right:12px}
+.ad-list-item-actions{display:flex;gap:6px}
+.ad-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.ad-status-dot.active{background:#22c55e}
+.ad-status-dot.inactive{background:#ef4444}
+
+/* ── Journalist Composer Extras ── */
+.composer-journalist-tools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0;border-top:1px solid var(--border);margin-top:8px}
+.composer-journalist-btn{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;background:var(--elevated);color:var(--text);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.composer-journalist-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.composer-article-fields{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.composer-article-fields input,.composer-article-fields textarea,.composer-article-fields select{background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;font-family:var(--font)}
 </style>
 </head>
 <body>
@@ -1780,7 +2011,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="feed-tab-item on" id="ftab-following" onclick="setFeedTab('following',this)">Takipler</div>
   <div class="feed-tab-item" id="ftab-smart" onclick="setFeedTab('smart',this)">✦ Gündem</div>
   <div class="feed-tab-item" id="ftab-explore" onclick="setFeedTab('explore',this)">Keşfet</div>
-  <div class="feed-tab-item" id="ftab-media" onclick="setFeedTab('media',this)">Medya</div>
   <div class="feed-tab-indicator" id="feed-tab-indicator"></div>
 </div>
 
@@ -1811,6 +2041,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="composer-live-preview" id="composer-preview"></div>
 <div id="image-preview"></div>
 <div id="poll-creator"></div>
+<!-- Gazetecilik Araçları (journalist için) -->
+<div id="journalist-composer-tools" style="display:none">
+  <div class="composer-journalist-tools">
+    <button class="composer-journalist-btn" id="jt-article" onclick="toggleJournalistMode('article',this)">📄 Makale</button>
+    <button class="composer-journalist-btn" id="jt-breaking" onclick="toggleJournalistMode('breaking',this)">🔴 Son Dakika</button>
+    <button class="composer-journalist-btn" id="jt-live" onclick="toggleJournalistMode('live',this)">📡 Canlı</button>
+    <select id="jt-category" onchange="window._jCategory=this.value" style="padding:4px 8px;border-radius:8px;font-size:11px;background:var(--elevated);border:1px solid var(--border);color:var(--text)">
+      <option value="">Kategori seç</option>
+      <option value="gündem">🔴 Gündem</option>
+      <option value="ekonomi">💰 Ekonomi</option>
+      <option value="spor">⚽ Spor</option>
+      <option value="teknoloji">💻 Teknoloji</option>
+      <option value="dünya">🌍 Dünya</option>
+      <option value="kültür">🎭 Kültür</option>
+    </select>
+  </div>
+  <div class="composer-article-fields" id="jt-article-fields" style="display:none">
+    <input id="jt-article-title" placeholder="Makale başlığı">
+    <textarea id="jt-article-body" placeholder="Makale içeriği (detaylı haber metni)..." style="min-height:100px"></textarea>
+    <input id="jt-sources" placeholder="Kaynaklar (virgülle ayırın)">
+  </div>
+</div>
 <!-- Zamanlama -->
 <div id="schedule-wrap" style="display:none">
   <div class="schedule-wrap">
@@ -1874,8 +2126,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 <div class="explore-nav" id="explore-nav">
   <div class="explore-nav-item active" onclick="exploreTab('foryou',this)">Senin İçin</div>
   <div class="explore-nav-item" onclick="exploreTab('trending',this)">Trend</div>
+  <div class="explore-nav-item" onclick="exploreTab('news',this)">📰 Haberler</div>
   <div class="explore-nav-item" onclick="exploreTab('people',this)">Kişiler</div>
   <div class="explore-nav-item" onclick="exploreTab('hashtags',this)">Hashtagler</div>
+</div>
+<!-- Haberler Sekmesi -->
+<div id="explore-news-section" style="display:none">
+  <div class="news-categories" id="news-cat-filters">
+    <button class="news-cat-btn active" onclick="loadNewsTab('all',this)">Tümü</button>
+    <button class="news-cat-btn" onclick="loadNewsTab('gündem',this)">🔴 Gündem</button>
+    <button class="news-cat-btn" onclick="loadNewsTab('ekonomi',this)">💰 Ekonomi</button>
+    <button class="news-cat-btn" onclick="loadNewsTab('spor',this)">⚽ Spor</button>
+    <button class="news-cat-btn" onclick="loadNewsTab('teknoloji',this)">💻 Teknoloji</button>
+    <button class="news-cat-btn" onclick="loadNewsTab('dünya',this)">🌍 Dünya</button>
+    <button class="news-cat-btn" onclick="loadNewsTab('kültür',this)">🎭 Kültür</button>
+  </div>
+  <div id="news-breaking-bar"></div>
+  <div id="news-feed-list"></div>
 </div>
 <!-- Kişi Önerileri -->
 <div id="explore-suggestions"></div>
@@ -2209,6 +2476,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 
 <div class="panel" id="panel-patchnotes"><div class="patch-notes" id="patch-notes-content"></div></div>
 
+<!-- PREMIUM / ABONELİK -->
+<div class="panel" id="panel-subscription">
+<div class="premium-page" id="premium-page-content">
+  <!-- Dinamik olarak JS ile doldurulacak -->
+</div>
+</div>
+
 <div class="panel" id="panel-admin">
 <div class="admin-panel">
 <div class="admin-header">
@@ -2230,6 +2504,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <span class="admin-tab" onclick="adminTab('content',this)">📝 İçerik</span>
   <span class="admin-tab" onclick="adminTab('analytics',this)">📈 Analitik</span>
   <span class="admin-tab" onclick="adminTab('bots',this)">🤖 Botlar</span>
+  <span class="admin-tab" onclick="adminTab('ads',this)">📢 Reklamlar</span>
+  <span class="admin-tab" onclick="adminTab('journalism',this)">📰 Gazetecilik</span>
   <span class="admin-tab" onclick="adminTab('system',this)">🖥️ Sistem</span>
 </div>
 
@@ -2333,6 +2609,35 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   </div>
 </div>
 
+<!-- REKLAMLAR -->
+<div class="admin-tab-pane" id="admin-pane-ads">
+  <div class="admin-section">
+    <div class="admin-section-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>📢 Reklam Yönetimi</span>
+      <button class="admin-action-btn" onclick="openAdCreateForm()" style="padding:4px 12px;border-radius:8px;font-size:12px">+ Yeni Reklam</button>
+    </div>
+    <div id="admin-ad-stats" style="margin-bottom:12px"></div>
+    <div id="admin-ad-create-form" style="display:none;margin-bottom:16px"></div>
+    <div id="admin-ad-list"></div>
+  </div>
+</div>
+
+<!-- GAZETECİLİK -->
+<div class="admin-tab-pane" id="admin-pane-journalism">
+  <div class="admin-section">
+    <div class="admin-section-title">📰 Tier Dağılımı</div>
+    <div id="admin-tier-stats" style="margin-bottom:16px"></div>
+  </div>
+  <div class="admin-section">
+    <div class="admin-section-title">📋 Gazetecilik Başvuruları</div>
+    <div id="admin-journalist-apps"></div>
+  </div>
+  <div class="admin-section">
+    <div class="admin-section-title">📝 Topluluk Notları</div>
+    <div id="admin-community-notes"></div>
+  </div>
+</div>
+
 <!-- SİSTEM -->
 <div class="admin-tab-pane" id="admin-pane-system">
   <div class="admin-section">
@@ -2390,6 +2695,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
   <div class="side-title">👤 Sana Özel</div>
   <div id="sidebar-suggest-list" style="display:flex;flex-direction:column;gap:8px"></div>
 </div>
+<!-- Sidebar Reklam -->
+<div class="side-box" id="sidebar-ad-box" style="display:none">
+  <div id="sidebar-ad-content"></div>
+</div>
 <!-- Canlı Aktivite -->
 <div class="side-box" id="sidebar-activity-box">
   <div class="side-title">⚡ Canlı Aktivite</div>
@@ -2404,6 +2713,86 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 </div>
 </div>
 </div></div><!-- dashboard-container -->
+
+<!-- PREMIUM FAB (sol alt) -->
+<div class="premium-fab" id="premium-fab">
+  <div class="premium-popup" id="premium-popup">
+    <div class="premium-popup-header">
+      <h3>⭐ Yankuş Premium</h3>
+      <button class="contact-popup-close" onclick="togglePremiumPopup()">✕</button>
+    </div>
+    <div class="premium-popup-body">
+      <div class="premium-tier-badge" id="premium-tier-badge"></div>
+      <div class="premium-feature-list" id="premium-feature-list"></div>
+      <div class="premium-popup-actions" id="premium-popup-actions"></div>
+    </div>
+  </div>
+  <button class="premium-fab-btn" id="premium-fab-btn" onclick="togglePremiumPopup()" title="Premium">⭐</button>
+</div>
+
+<!-- BOOST MODAL -->
+<div class="boost-modal-overlay" id="boost-modal" style="display:none" onclick="if(event.target===this)closeBoostModal()">
+  <div class="boost-modal">
+    <div class="boost-modal-header">
+      <h3>🚀 Yankı Boost</h3>
+      <button class="contact-popup-close" onclick="closeBoostModal()">✕</button>
+    </div>
+    <div class="boost-modal-body">
+      <div class="boost-info-bar">
+        <div class="boost-info-item"><div class="boost-info-val" id="boost-remaining">-</div><div class="boost-info-lbl">Kalan Hak</div></div>
+        <div class="boost-info-item"><div class="boost-info-val" id="boost-coins">-</div><div class="boost-info-lbl">🪙 Yankı Coin</div></div>
+        <div class="boost-info-item"><div class="boost-info-val" id="boost-used">-</div><div class="boost-info-lbl">Kullanılan</div></div>
+      </div>
+      <div class="boost-warning">⚠️ Temel boost (48 saat) ücretsizdir. Süreyi uzatmak ve hedefleme seçmek Yankı Coin harcar.</div>
+
+      <div class="boost-section">
+        <div class="boost-section-title">⏱️ Süre: <span id="boost-dur-label" style="color:#8b5cf6">48 Saat (Ücretsiz)</span></div>
+        <input type="range" id="boost-dur-slider" min="0" max="2" value="0" class="boost-slider" oninput="onBoostSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px"><span>48 Saat</span><span>3 Gün (+5🪙)</span><span>7 Gün (+25🪙)</span></div>
+      </div>
+
+      <div class="boost-section">
+        <div class="boost-section-title">🎯 Yaş Grubu: <span id="boost-age-label" style="color:#8b5cf6">Herkese (Ücretsiz)</span></div>
+        <input type="range" id="boost-age-slider" min="0" max="3" value="0" class="boost-slider" oninput="onBoostSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px"><span>Herkese</span><span>18-25</span><span>25-35</span><span>35+</span></div>
+      </div>
+
+      <div class="boost-section">
+        <div class="boost-section-title">📍 Bölge: <span id="boost-region-label" style="color:#8b5cf6">Tüm Bölge (Ücretsiz)</span></div>
+        <input type="range" id="boost-region-slider" min="0" max="3" value="0" class="boost-slider" oninput="onBoostSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px"><span>🌍 Tümü</span><span>🇹🇷 TR</span><span>🇪🇺 Avrupa</span><span>🌐 Global</span></div>
+      </div>
+
+      <div class="boost-section">
+        <div class="boost-section-title">📂 Kategori: <span id="boost-cat-label" style="color:#8b5cf6">Genel (Ücretsiz)</span></div>
+        <input type="range" id="boost-cat-slider" min="0" max="5" value="0" class="boost-slider" oninput="onBoostSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px"><span>Genel</span><span>💻</span><span>⚽</span><span>🎨</span><span>🎵</span><span>🔬</span></div>
+      </div>
+
+      <div class="boost-cost-bar">
+        <div class="boost-cost-left">
+          <div class="boost-cost-total" id="boost-cost-total">Ücretsiz ✨</div>
+          <div class="boost-cost-detail" id="boost-cost-detail">Temel boost ücretsiz</div>
+        </div>
+        <div class="boost-coin-bal">Bakiye: <b id="boost-coin-balance">0</b> 🪙</div>
+      </div>
+      <button class="boost-submit-btn" id="boost-submit-btn" onclick="submitBoost()">🚀 Boost Et</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS MODAL -->
+<div class="analytics-modal-overlay" id="analytics-modal" style="display:none" onclick="if(event.target===this)closeAnalyticsModal()">
+  <div class="analytics-modal">
+    <div class="analytics-modal-header">
+      <h3>📊 Analitik</h3>
+      <button class="contact-popup-close" onclick="closeAnalyticsModal()">✕</button>
+    </div>
+    <div class="analytics-modal-body" id="analytics-modal-body">
+      <div class="loading"><span class="spin">⟳</span></div>
+    </div>
+  </div>
+</div>
 
 <div class="hashtag-popup" id="hashtag-popup">
 <div class="hashtag-popup-header"><span class="hashtag-popup-tag" id="popup-tag">#hashtag</span><span class="hashtag-popup-close" onclick="closeHashtagPopup()">✕</span></div>
@@ -2854,12 +3243,37 @@ const doLogout=()=>{user=null;localStorage.removeItem('yankus-user');showScreen(
 // Init
 const init=()=>{
   try{ $('composer-avatar').innerHTML=avatar(user.profileImage); }catch(e){}
+  // Premium tier setup
+  window._charLimit=user.charLimit||500;
+  user.yankiCoins=user.yankiCoins||0;
   loadFeed();loadTrending();loadNotifications();applyTheme();initEmojis();loadFeaturedMarquee();
   if(user.isAdmin){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');$('admin-indicator').style.display='block'}else{document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');$('admin-indicator').style.display='none'}
+  // Sidebar reklam (free kullanıcılar)
+  if(!user.tier||user.tier==='free') loadSidebarAd();
+  // Gazeteci araçları göster
+  setTimeout(showJournalistTools,100);
   dmUpdateBadge();
   setInterval(dmUpdateBadge, 15000);
   api('/heartbeat', { userId: user.id });
   setInterval(() => api('/heartbeat', { userId: user.id }), 60000);
+  // Tier senkronizasyonu: sunucuyla her 2 dk'da tier/charLimit/coins kontrolü
+  const syncTier=async()=>{
+    const s=await api('tier/sync',{userId:user.id});
+    if(s.error)return;
+    const changed=s.tier!==user.tier||s.charLimit!==window._charLimit;
+    if(changed){
+      user.tier=s.tier;user.charLimit=s.charLimit;window._charLimit=s.charLimit;
+      user.yankiCoins=s.yankiCoins;
+      localStorage.setItem('yankus-user',JSON.stringify(user));
+      updateChar();
+      // UI güncelle: sidebar reklam, fab, gazeteci araçları
+      if(s.tier==='free'){loadSidebarAd();}else{const ab=$('sidebar-ad-box');if(ab)ab.style.display='none';}
+      renderPremiumPopup();
+      showJournalistTools();
+      toast(s.tier==='free'?'Premium süreniz doldu, Ücretsiz plana geçildi':'Tier güncellendi: '+s.tier);
+    }
+  };
+  setInterval(syncTier, 2*60*1000);
   setTimeout(()=>{ nfPoll(); setInterval(nfPoll, 12000); }, 3000);
   // Band poller — defer so all functions are defined
   setTimeout(()=>{
@@ -2931,8 +3345,8 @@ const toggleEmoji=e=>{e.stopPropagation();$('emoji-picker').classList.toggle('sh
 const insertEmoji=e=>{$('yanki-input').value+=e;updateChar();$('emoji-picker').classList.remove('show')};
 
 // Panels
-const titles={home:'Ana Sayfa',explore:'Keşfet',notifications:'Bildirimler',messages:'Mesajlar',saved:'Kaydedilenler',profile:'Profil',drafts:'Taslaklar & Zamanlanmış',settings:'Ayarlar',contact:'İletişim',patchnotes:'Yama Notları',admin:'Admin Panel'};
-const ROOT_PANELS=['home','explore','notifications','messages','saved','profile','drafts','patchnotes','admin'];
+const titles={home:'Ana Sayfa',explore:'Keşfet',notifications:'Bildirimler',messages:'Mesajlar',saved:'Kaydedilenler',profile:'Profil',drafts:'Taslaklar & Zamanlanmış',settings:'Ayarlar',contact:'İletişim',patchnotes:'Yama Notları',admin:'Admin Panel',subscription:'Yankuş Premium'};
+const ROOT_PANELS=['home','explore','notifications','messages','saved','profile','drafts','patchnotes','admin','subscription'];
 const goPanel=(name,add=true)=>{
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
@@ -2966,6 +3380,7 @@ const loadFeed=async(algo)=>{
   } else {
     r=await api('/feed',{userId:user.id,algo:'chrono'});
   }
+  window._feedAds=r.ads||[];
   renderYankis(r.yankis||[],'home-feed');
   // Band sıfırla
   newBandCount=0;$('new-yanki-band').classList.remove('visible');
@@ -2994,6 +3409,13 @@ const loadExplore=async()=>{
   $('explore-trending-section').innerHTML='';
   $('explore-hashtags-section').innerHTML='';
   $('explore-categories').innerHTML='';
+  const newsSection=$('explore-news-section');
+  if(newsSection)newsSection.style.display=_exploreTab==='news'?'block':'none';
+
+  if(_exploreTab==='news'){
+    loadNewsTab('all');
+    return;
+  }
 
   if(_exploreTab==='foryou'){
     // Senin İçin: Öneriler + Trend hashtagler + Trend yankılar
@@ -3409,6 +3831,8 @@ const renderYankis=(yankis,cid,emptyMsg='Henüz yankı yok',append=false)=>{
   else c.innerHTML=yankis.map(yankiCard).join('');
   // Feed'e suggest card ekle (3. karttan sonra, sadece home-feed'de)
   if(cid==='home-feed'&&yankis.length>=3&&!append){injectFeedSuggest(c);}
+  // Feed'e reklam ekle (free kullanıcılar için)
+  if(cid==='home-feed'&&!append&&window._feedAds&&window._feedAds.length&&(!user.tier||user.tier==='free')){injectFeedAds(c);}
 };
 const formatYankiText=t=>t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/(#[\wğüşıöçĞÜŞİÖÇ]+)/gi,m=>`<span class="tag hashtag-tag" data-tag="${m}">${m}</span>`).replace(/(@[\wğüşıöçĞÜŞİÖÇ_]+)/gi,m=>`<span class="tag mention-tag" data-user="${m.slice(1)}" onclick="event.stopPropagation();goUser('${m}')">${m}</span>`);
 const readTime=t=>{const w=(t||'').split(/\s+/).length;return w>30?`${Math.ceil(w/200)} dk okuma`:'';};
@@ -3431,7 +3855,11 @@ const yankiCard=y=>{
           <span class="yanki-name">${y.displayName}</span>
           ${y.verified?'<span class="yanki-verified">✓</span>':''}
           ${y.isBot?'<span class="yanki-bot">BOT</span>':''}
+          ${y.tier==='pro'?'<span class="pro-badge">PRO</span>':''}
+          ${y.tier==='journalist'?'<span class="press-badge">BASIN</span>':''}
           <span class="yanki-handle">@${y.username}</span>
+          ${y.journalistOrg?'<span class="press-org">'+y.journalistOrg+'</span>':''}
+          ${y.boosted?'<span class="boost-badge">🚀 Boost</span>':''}
           ${y.editedAt?'<span class="yanki-edited">(düzenlendi)</span>':''}
         </div>
         <div class="yanki-meta-right">
@@ -3442,8 +3870,10 @@ const yankiCard=y=>{
               ${y.userId===user.id
                 ?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>
                   <div class="yanki-dropdown-item" onclick="toggleFeatured('${y.id}')">${y.featured?'⭐ Öne Çıkarmayı Kaldır':'⭐ Öne Çıkar'}</div>
+                  ${(user.tier==='pro'||user.tier==='journalist')?`<div class="yanki-dropdown-item" onclick="boostYanki('${y.id}')">${y.boosted?'🔽 Boost Kaldır':'🚀 Boost Et'}</div>`:''}
                   <div class="yanki-dropdown-item danger" onclick="deleteYanki('${y.id}')">🗑 Sil</div>`
                 :`<div class="yanki-dropdown-item" onclick="openChat('${y.userId}')">💬 Mesaj</div>
+                  <div class="yanki-dropdown-item" onclick="addCommunityNote('${y.id}')">📝 Topluluk Notu</div>
                   <div class="yanki-dropdown-item" onclick="reportYanki('${y.id}')">🚨 Şikayet Et</div>
                   <div class="yanki-dropdown-item danger" onclick="blockUser('${y.userId}')">🚫 Engelle</div>`
               }
@@ -3474,6 +3904,34 @@ const yankiCard=y=>{
           <div class="yanki-quote-text">${formatYankiText(y.quote.text||'')}</div>
           ${y.quote.image?`<img class="yanki-image" src="${y.quote.image}" style="margin-top:6px;max-height:120px">`:''}
         </div>`:''}
+      ${y.isBreaking?'<span class="breaking-tag">🔴 SON DAKİKA</span>':''}
+      ${y.isLive?'<span class="live-tag">CANLI</span>':''}
+      ${y.newsCategory?'<span class="news-cat-tag">'+y.newsCategory+'</span>':''}
+      ${y.isArticle&&y.articleTitle?`
+        <div class="article-preview" onclick="event.stopPropagation();openArticle('${y.id}')">
+          <div class="article-preview-title">${y.articleTitle}</div>
+          ${y.articleBody?'<div class="article-preview-body">'+y.articleBody.substring(0,300)+'</div>':''}
+          <span class="article-read-more">Devamını oku →</span>
+        </div>`:''}
+      ${y.correctionNote?`
+        <div class="correction-note" onclick="event.stopPropagation()">
+          <div class="correction-note-title">⚠️ Düzeltme Notu</div>
+          <div class="correction-note-text">${y.correctionNote}</div>
+        </div>`:''}
+      ${y.sources&&y.sources.length?`
+        <div class="article-sources" onclick="event.stopPropagation()">
+          <div class="article-sources-title">Kaynaklar</div>
+          ${y.sources.map(s=>'<a class="article-source-link" href="'+s+'" target="_blank" rel="noopener">'+s+'</a>').join('')}
+        </div>`:''}
+      ${(y.communityNotes||[]).length?y.communityNotes.map(n=>`
+        <div class="community-note" onclick="event.stopPropagation()">
+          <div class="community-note-header"><span class="community-note-icon">📝</span><span class="community-note-author">@${n.username} tarafından topluluk notu</span></div>
+          <div class="community-note-text">${n.text}</div>
+          <div class="community-note-votes">
+            <span class="community-note-vote-btn" onclick="voteCommunityNote('${n.id}','up')">👍 ${n.upvotes}</span>
+            <span class="community-note-vote-btn" onclick="voteCommunityNote('${n.id}','down')">👎 ${n.downvotes}</span>
+          </div>
+        </div>`).join(''):''}
       ${y.poll?renderPoll(y.poll,y.id):''}
       ${reactionsHtml?`<div class="yanki-reactions" onclick="event.stopPropagation()">${reactionsHtml}<span class="yanki-react-add" onclick="toggleReactPicker('${y.id}',this)" title="Tepki ekle">+</span><div class="react-picker" id="rpick-${y.id}">${REACTION_EMOJIS.map(e=>`<span onclick="toggleReaction('${y.id}','${e}');closeReactPickers()">${e}</span>`).join('')}</div></div>`:''}
       <div class="yanki-actions" onclick="event.stopPropagation()">
@@ -3509,17 +3967,18 @@ const renderPoll=(p,yid)=>`<div class="yanki-poll">${p.options.map(o=>`<div clas
 // Composer
 let _composerMood=null;
 const updateChar=()=>{
+  const maxChar=window._charLimit||500;
   const l=$('yanki-input').value.length;
-  $('char-count').textContent=l+'/500';
-  $('char-count').className='char-count'+(l>500?' bad':l>450?' warn':'');
+  $('char-count').textContent=l+'/'+maxChar;
+  $('char-count').className='char-count'+(l>maxChar?' bad':l>maxChar*0.9?' warn':'');
   const validPoll=pollOptions.filter(o=>o.trim()).length>=2;
   const hasContent=threadMode?threadItems.some(t=>t.trim())||l>0:(l>0||!!selectedImage||validPoll);
-  $('btn-post').disabled=(!hasContent)||(l>500);
+  $('btn-post').disabled=(!hasContent)||(l>maxChar);
   // Circular ring update
-  const pct=Math.min(l/500,1);
+  const pct=Math.min(l/maxChar,1);
   const fill=document.getElementById('char-ring-fill');
   const txt=document.getElementById('char-ring-text');
-  if(fill){fill.setAttribute('stroke-dashoffset',69.1-(69.1*pct));fill.style.stroke=l>500?'#ef4444':l>450?'var(--accent2)':'var(--accent)';}
+  if(fill){fill.setAttribute('stroke-dashoffset',69.1-(69.1*pct));fill.style.stroke=l>maxChar?'#ef4444':l>maxChar*0.9?'var(--accent2)':'var(--accent)';}
   if(txt)txt.textContent=l;
   // Draft indicator
   const draft=document.getElementById('composer-draft');
@@ -3582,8 +4041,16 @@ const postYanki=async()=>{
     $('btn-post').disabled=false;return;
   }
 
-  // Normal yanki
-  const r=await api('/yanki/create',{userId:user.id,text,image:selectedImage,poll});
+  // Normal yanki + gazetecilik alanları
+  const yankiData={userId:user.id,text,image:selectedImage,poll};
+  if(user.tier==='journalist'){
+    if(window._jArticle){yankiData.isArticle=true;yankiData.articleTitle=$('jt-article-title')?.value||'';yankiData.articleBody=$('jt-article-body')?.value||'';
+      const src=$('jt-sources')?.value;if(src)yankiData.sources=src.split(',').map(s=>s.trim()).filter(Boolean);}
+    if(window._jBreaking)yankiData.isBreaking=true;
+    if(window._jLive)yankiData.isLive=true;
+    if(window._jCategory)yankiData.newsCategory=window._jCategory;
+  }
+  const r=await api('/yanki/create',yankiData);
   if(r.error){toast('Hata: '+r.error);}
   else{
     resetComposer();toast('✦ Yankılandı!');loadFeed();
@@ -3604,6 +4071,14 @@ const resetComposer=()=>{
   $('thread-btn')?.classList.remove('active-tool');
   $('schedule-btn')?.classList.remove('active-tool');
   $('schedule-wrap').style.display='none';
+  // Gazeteci alanları sıfırla
+  window._jArticle=false;window._jBreaking=false;window._jLive=false;window._jCategory='';
+  document.querySelectorAll('.composer-journalist-btn').forEach(b=>b.classList.remove('active'));
+  if($('jt-article-fields'))$('jt-article-fields').style.display='none';
+  if($('jt-article-title'))$('jt-article-title').value='';
+  if($('jt-article-body'))$('jt-article-body').value='';
+  if($('jt-sources'))$('jt-sources').value='';
+  if($('jt-category'))$('jt-category').value='';
   updateChar();
 };
 const likeYanki=async(id,el)=>{
@@ -3987,8 +4462,10 @@ const renderProfile=(p,yankis,cid)=>{
         <span class="profile-name">${p.displayName}</span>
         ${p.verified?`<span class="profile-badge-verified">✓</span>`:''}
         ${p.isBot?`<span class="profile-badge-bot">BOT</span>`:''}
+        ${p.tier==='pro'?'<span class="pro-badge">PRO</span>':''}
+        ${p.tier==='journalist'?'<span class="press-badge">BASIN</span>':''}
       </div>
-      <div class="profile-handle">@${p.username}</div>
+      <div class="profile-handle">@${p.username}${p.journalistOrg?' · <span class="press-org">'+p.journalistOrg+'</span>':''}</div>
       ${p.bio?`<div class="profile-bio">${p.bio}</div>`:''}
       <div class="profile-meta">
         ${_loc?`<div class="profile-meta-item">📍 <span>${_loc}</span></div>`:''}
@@ -4023,7 +4500,8 @@ const renderProfile=(p,yankis,cid)=>{
       <!-- AKSİYON BUTONLARI -->
       <div class="profile-actions">
         ${isMe
-          ? `<button class="btn btn-sm btn-ghost" onclick="openEditProfile()">✎ Profili Düzenle</button>`
+          ? `<button class="btn btn-sm btn-ghost" onclick="openEditProfile()">✎ Profili Düzenle</button>
+             <button class="btn btn-sm btn-ghost" onclick="openAnalyticsModal()" style="margin-left:6px">📊 Analitik</button>`
           : `<button class="btn btn-sm btn-ghost" onclick="openChat('${p.id}')">💬 Mesaj</button>
              <button class="btn btn-sm ${p.isFollowing?'btn-following':'btn-follow'}" onclick="toggleFollow('${p.id}',this)">${p.isFollowing?'✓ Takipte':'+ Takip Et'}</button>`
         }
@@ -5398,6 +5876,8 @@ const adminTab=(tab,el)=>{
   if(tab==='content'){adminLoadContent();adminLoadReports();}
   if(tab==='analytics')adminLoadAnalytics();
   if(tab==='bots')loadBotList();
+  if(tab==='ads')adminLoadAds();
+  if(tab==='journalism')adminLoadJournalism();
   if(tab==='system')adminLoadSystem();
 };
 
@@ -5507,7 +5987,9 @@ const adminShowUserDetail=async(uid)=>{
 };
 const adminDelYankiModal=async(yankiId)=>{
   const r=await api('/admin/yanki/delete',{yankiId});
-  if(r.success){toast('🗑 Yankı silindi');document.querySelectorAll(`[onclick*="${yankiId}"]`).forEach(b=>{const row=b.closest('.admin-modal-yanki');if(row)row.remove();});}
+  if(r.success){toast('🗑 Yankı silindi');document.querySelectorAll(`[onclick*="${yankiId}"]`).forEach(b=>{const row=b.closest('.admin-modal-yanki');if(row)row.remove();});
+    const feedEl=document.getElementById('y-'+yankiId);if(feedEl)feedEl.remove();
+  }
 };
 const closeAdminModal=()=>{document.getElementById('admin-user-modal').style.display='none';};
 
@@ -5520,9 +6002,9 @@ const adminLoadContent=async()=>{
   if(!yankis.length){el.innerHTML='<div class="empty">İçerik yok</div>';return;}
   el.innerHTML=yankis.map(y=>'<div class="mod-yanki-row" id="myr-'+y.id+'">'
     +'<input type="checkbox" class="mod-yanki-cb" onchange="adminToggleSel(&quot;'+y.id+'&quot;,this)" '+(_adminSelYankis.has(y.id)?'checked':'')+'>'
-    +'<div class="mod-yanki-body"><div class="mod-yanki-text">'+(y.text||'[görsel]')+'</div>'
-    +'<div class="mod-yanki-meta"><span>@'+y.authorUsername+(y.authorIsBot?' 🤖':'')+'</span>'
-    +'<span>❤️ '+y.likes+'</span><span>💬 '+y.comments+'</span><span>'+timeAgo(y.createdAt)+'</span>'
+    +'<div class="mod-yanki-body" style="cursor:pointer" onclick="openYanki(&quot;'+y.id+'&quot;)"><div class="mod-yanki-text">'+(y.text||'[görsel]')+'</div>'
+    +'<div class="mod-yanki-meta"><span>@'+(y.authorUsername||'silinmiş')+(y.authorIsBot?' 🤖':'')+'</span>'
+    +'<span>❤️ '+(y.likes||0)+'</span><span>💬 '+(y.comments||0)+'</span><span>'+timeAgo(y.createdAt)+'</span>'
     +(y.reportCount>0?'<span class="mod-report-badge">⚠️ '+y.reportCount+' şikayet</span>':'')
     +'</div></div>'
     +'<div class="mod-yanki-actions"><button class="admin-action-btn abn-del" onclick="adminDelYanki(&quot;'+y.id+'&quot;)">🗑</button></div>'
@@ -5546,7 +6028,10 @@ const adminLoadReports=async()=>{
 };
 const adminDelYanki=async(yankiId)=>{
   const r=await api('/admin/yanki/delete',{yankiId});
-  if(r.success){toast('🗑 Yankı silindi');const row=document.getElementById('myr-'+yankiId);if(row)row.remove();_adminSelYankis.delete(yankiId);adminUpdateBulkBar();adminLoadReports();}
+  if(r.success){toast('🗑 Yankı silindi');const row=document.getElementById('myr-'+yankiId);if(row)row.remove();_adminSelYankis.delete(yankiId);adminUpdateBulkBar();adminLoadReports();
+    // Feed'deki yankıyı da kaldır
+    const feedEl=document.getElementById('y-'+yankiId);if(feedEl)feedEl.remove();
+  }
 };
 const adminIgnoreReport=(yankiId)=>{const row=document.getElementById('myr-'+yankiId);if(row)row.remove();adminLoadReports();toast('Şikayet yoksayıldı');};
 const adminToggleSel=(yankiId,cb)=>{if(cb.checked)_adminSelYankis.add(yankiId);else _adminSelYankis.delete(yankiId);adminUpdateBulkBar();};
@@ -5685,9 +6170,10 @@ const adminExportData=async()=>{
       if(parsed&&parsed.id&&parsed.username){
         // Sunucudan güncel kullanıcı verisini al (isAdmin, banned vb. doğru gelsin)
         const r=await api('/profile',{userId:parsed.id,viewerId:parsed.id}).catch(()=>null);
-        if(r&&!r.error&&r.id){
+        const serverUser=r?.user||r;
+        if(r&&!r.error&&(serverUser?.id||r.id)){
           // Sunucudan gelen güncel veriyle birleştir
-          user={...parsed,...r,password:undefined};
+          user={...parsed,...serverUser,password:undefined};
           localStorage.setItem('yankus-user',JSON.stringify(user));
           showScreen('dashboard');
           init();
@@ -6269,6 +6755,710 @@ document.addEventListener('keydown',e=>{
     if($('yanki-popup-overlay')?.classList.contains('show'))closeYankiPopup();
   }
 });
+
+// ═══════════════════════════════════════════════════════════════
+// PREMIUM / REKLAM / GAZETECİLİK SİSTEMİ
+// ═══════════════════════════════════════════════════════════════
+
+// ── Premium FAB Popup ──
+const togglePremiumPopup=()=>{
+  const popup=$('premium-popup');
+  popup.classList.toggle('show');
+  if(popup.classList.contains('show')) renderPremiumPopup();
+};
+
+const renderPremiumPopup=()=>{
+  const tier=user.tier||'free';
+  const tierInfo={
+    free:{icon:'👤',name:'Ücretsiz Plan',sub:'Temel deneyim'},
+    pro:{icon:'⭐',name:'Pro Plan',sub:'Gelişmiş özellikler'},
+    journalist:{icon:'📰',name:'Gazeteci Plan',sub:'Tam erişim'}
+  };
+  const t=tierInfo[tier];
+
+  // FAB buton stilini güncelle
+  const btn=$('premium-fab-btn');
+  btn.textContent=t.icon;
+  if(tier==='journalist'){btn.classList.add('journalist');}else{btn.classList.remove('journalist');}
+
+  // Header rengi
+  const header=document.querySelector('.premium-popup-header');
+  if(tier==='journalist')header.style.background='linear-gradient(135deg,#3b82f6,#6366f1)';
+  else if(tier==='pro')header.style.background='linear-gradient(135deg,#f59e0b,#f97316)';
+  else header.style.background='var(--gradient)';
+
+  $('premium-tier-badge').innerHTML=`
+    <div class="premium-tier-icon">${t.icon}</div>
+    <div class="premium-tier-info">
+      <div class="premium-tier-name">${t.name}</div>
+      <div class="premium-tier-sub">${t.sub}</div>
+    </div>
+    ${tier!=='free'?'<span class="pro-badge" style="font-size:11px">'+(tier==='pro'?'PRO':'BASIN')+'</span>':''}`;
+
+  const features=[
+    {icon:'📝',text:'500 karakter',pro:'2.000 karakter',press:'5.000 karakter'},
+    {icon:'🚫',text:'Reklamlar gösterilir',pro:'Reklamsız deneyim',press:'Reklamsız deneyim'},
+    {icon:'✏️',text:null,pro:'Yankı düzenleme',press:'Yankı düzenleme'},
+    {icon:'📊',text:null,pro:'Gelişmiş analitik',press:'Gelişmiş analitik'},
+    {icon:'🚀',text:null,pro:'Yankı boost',press:'Yankı boost'},
+    {icon:'📄',text:null,pro:null,press:'Makale modu'},
+    {icon:'🔴',text:null,pro:null,press:'Son dakika haberleri'},
+    {icon:'📡',text:null,pro:null,press:'Canlı haber thread\'i'},
+    {icon:'📝',text:null,pro:null,press:'Topluluk notları'},
+  ];
+
+  $('premium-feature-list').innerHTML=features.map(f=>{
+    const val=tier==='journalist'?(f.press||f.pro||f.text):tier==='pro'?(f.pro||f.text):f.text;
+    if(!val)return `<div class="premium-feature premium-feature-lock"><span class="premium-feature-icon">${f.icon}</span>${f.press||f.pro||'—'} 🔒</div>`;
+    return `<div class="premium-feature"><span class="premium-feature-icon">${f.icon}</span>${val}</div>`;
+  }).join('');
+
+  let actions='';
+  if(tier==='free'){
+    actions=`<button class="premium-action-btn primary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">⭐ Pro'ya Yükselt</button>
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">📰 Gazetecilik Başvurusu</button>`;
+  } else if(tier==='pro'){
+    actions=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px">Pro avantajlarının keyfini çıkarıyorsun ⭐</div>
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">📰 Gazetecilik Başvurusu</button>
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">Plan Detayları</button>`;
+  } else {
+    actions=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px">Tüm özelliklere erişimin var 📰</div>
+    <button class="premium-action-btn secondary" onclick="togglePremiumPopup();goPanel('subscription');loadSubscriptionPanel()">Plan Detayları</button>`;
+  }
+  $('premium-popup-actions').innerHTML=actions;
+};
+
+// ── Feed Reklam Enjeksiyonu ──
+const injectFeedAds=(container)=>{
+  const ads=window._feedAds||[];
+  if(!ads.length)return;
+  const cards=container.querySelectorAll('.yanki');
+  ads.forEach((ad,i)=>{
+    const pos=7*(i+1);
+    const target=cards[pos-1];
+    if(target){
+      const html=`<div class="ad-card" id="ad-${ad.id}">
+        <button class="ad-card-close" onclick="this.parentElement.remove()" title="Kapat">✕</button>
+        <div class="ad-card-label">Sponsorlu</div>
+        <div class="ad-card-title">${ad.title}</div>
+        <div class="ad-card-text">${ad.text}</div>
+        ${ad.image?'<img src="'+ad.image+'" style="width:100%;border-radius:10px;margin-bottom:8px">':''}
+        ${ad.linkText?'<button class="ad-card-btn" onclick="adClick(\''+ad.id+'\')">'+ad.linkText+'</button>':''}
+      </div>`;
+      target.insertAdjacentHTML('afterend',html);
+      api('/ads/impression',{adId:ad.id});
+    }
+  });
+};
+const adClick=(adId)=>{
+  api('/ads/click',{adId});
+  goPanel('subscription');loadSubscriptionPanel();
+};
+
+// ── Sidebar Banner Reklam ──
+const loadSidebarAd=async()=>{
+  const r=await api('/ads/banner',{userId:user.id});
+  if(!r.ad)return;
+  const box=$('sidebar-ad-box');
+  if(!box)return;
+  box.style.display='block';
+  $('sidebar-ad-content').innerHTML=`
+    <div class="sidebar-ad" onclick="adClick('${r.ad.id}')">
+      <div class="sidebar-ad-title">${r.ad.title}</div>
+      <div class="sidebar-ad-text">${r.ad.text}</div>
+      <button class="sidebar-ad-btn">${r.ad.linkText||'Keşfet'}</button>
+      <div class="sidebar-ad-label">Sponsorlu</div>
+    </div>`;
+};
+
+// ── Abonelik Paneli ──
+// old loadSubscriptionPanel removed - replaced with premium-page version above
+
+const upgradeTier=async(tier)=>{
+  if(tier==='journalist'){openJournalistApply();return;}
+  const r=await api('/tier/upgrade',{userId:user.id,tier});
+  if(r.error){toast(r.error);return;}
+  user.tier=tier;user.charLimit=r.charLimit;window._charLimit=r.charLimit;
+  localStorage.setItem('yankus-user',JSON.stringify(user));
+  updateChar(); // Sayacı yeni limite göre güncelle
+  renderPremiumPopup();
+  showJournalistTools();
+  toast(tier==='pro'?'⭐ Pro\'ya yükseltildin!':'Plan değiştirildi');
+  loadSubscriptionPanel();
+  // Sidebar reklam güncelle
+  if(tier!=='free'){const adBox=$('sidebar-ad-box');if(adBox)adBox.style.display='none';}
+  else loadSidebarAd();
+};
+
+// ── Gazetecilik Başvurusu ──
+const openJournalistApply=()=>{
+  const existing=$('journalist-apply-section');
+  existing.innerHTML=`
+    <div style="padding:16px;background:var(--card);border:1px solid var(--border);border-radius:16px">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">📰 Gazetecilik Başvurusu</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Doğrulanmış gazeteci olmak için başvuru yapın. Başvurunuz admin tarafından incelenecektir.</p>
+      <div class="journalist-apply-form">
+        <label>Medya Kuruluşu *</label>
+        <input id="ja-org" placeholder="Örn: Anadolu Ajansı, TRT, bağımsız...">
+        <label>Uzmanlık Alanı</label>
+        <input id="ja-expertise" placeholder="Örn: Siyaset, Teknoloji, Spor...">
+        <label>Portfolyo / Önceki Çalışmalar</label>
+        <input id="ja-portfolio" placeholder="Web sitesi veya örnek çalışma linki">
+        <label>Basın Kartı No (varsa)</label>
+        <input id="ja-press" placeholder="Basın kartı numarası">
+        <label>Başvuru Açıklaması *</label>
+        <textarea id="ja-statement" placeholder="Neden gazetecilik hesabı istiyorsunuz? Deneyimlerinizi anlatın..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="tier-card-btn primary" onclick="submitJournalistApply()">Başvuruyu Gönder</button>
+          <button class="tier-card-btn secondary" onclick="loadSubscriptionPanel()">İptal</button>
+        </div>
+      </div>
+    </div>`;
+};
+
+const submitJournalistApply=async()=>{
+  const orgName=$('ja-org')?.value;
+  const expertise=$('ja-expertise')?.value;
+  const portfolio=$('ja-portfolio')?.value;
+  const pressCard=$('ja-press')?.value;
+  const statement=$('ja-statement')?.value;
+  if(!orgName||!statement){toast('Kuruluş adı ve açıklama zorunlu');return;}
+  const r=await api('/journalist/apply',{userId:user.id,orgName,expertise,portfolio,pressCard,statement});
+  if(r.error){toast(r.error);return;}
+  toast('📰 Başvurunuz gönderildi! Admin inceleyecek.');
+  loadSubscriptionPanel();
+};
+
+// ── Haberler Sekmesi ──
+const loadNewsTab=async(category,btn)=>{
+  if(btn){document.querySelectorAll('.news-cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  const cat=category==='all'?null:category;
+  $('news-feed-list').innerHTML='<div class="loading" style="padding:14px"><span class="spin">⟳</span></div>';
+  // Son dakika haberleri
+  const br=await api('/news/breaking',{userId:user.id});
+  if(br.yankis&&br.yankis.length){
+    $('news-breaking-bar').innerHTML='<div style="padding:8px 0;margin-bottom:8px"><div style="font-size:13px;font-weight:800;color:#dc2626;margin-bottom:6px">🔴 SON DAKİKA</div>'+br.yankis.slice(0,3).map(y=>'<div style="font-size:12px;color:var(--text);padding:4px 0;cursor:pointer;border-bottom:1px solid var(--border)" onclick="openYanki(\''+y.id+'\')"><b>'+y.displayName+'</b>: '+(y.text||'').substring(0,100)+'</div>').join('')+'</div>';
+  } else $('news-breaking-bar').innerHTML='';
+  // Haber feed
+  const r=await api('/news/feed',{userId:user.id,category:cat});
+  if(!r.yankis||!r.yankis.length){$('news-feed-list').innerHTML='<div class="empty"><p>Henüz haber yok</p></div>';return;}
+  $('news-feed-list').innerHTML=r.yankis.map(yankiCard).join('');
+};
+
+// ── Makale Görüntüleme ──
+const openArticle=async(yankiId)=>{
+  const r=await api('/yanki/detail',{yankiId,viewerId:user.id});
+  if(!r.yanki) return;
+  const y=r.yanki;
+  goPanel('yanki');
+  $('yanki-content').innerHTML=`
+    <div style="padding:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div class="avatar" onclick="goUser('@${y.username}')">${avatar(y.profileImage)}</div>
+        <div>
+          <div style="font-weight:700">${y.displayName} ${y.tier==='journalist'?'<span class="press-badge">BASIN</span>':''}</div>
+          <div style="font-size:12px;color:var(--muted)">@${y.username}${y.journalistOrg?' · '+y.journalistOrg:''} · ${timeAgo(y.createdAt)}</div>
+        </div>
+      </div>
+      ${y.isBreaking?'<span class="breaking-tag" style="margin-bottom:12px;display:inline-block">🔴 SON DAKİKA</span>':''}
+      ${y.newsCategory?'<span class="news-cat-tag" style="margin-bottom:12px;display:inline-block">'+y.newsCategory+'</span>':''}
+      ${y.articleTitle?'<h1 style="font-size:24px;font-weight:800;margin-bottom:12px;line-height:1.3">'+y.articleTitle+'</h1>':''}
+      ${y.text?'<div style="font-size:14px;color:var(--muted);margin-bottom:16px">'+formatYankiText(y.text)+'</div>':''}
+      ${y.articleBody?'<div class="article-full">'+y.articleBody+'</div>':''}
+      ${y.correctionNote?'<div class="correction-note"><div class="correction-note-title">⚠️ Düzeltme Notu</div><div class="correction-note-text">'+y.correctionNote+'</div></div>':''}
+      ${y.sources&&y.sources.length?'<div class="article-sources"><div class="article-sources-title">Kaynaklar</div>'+y.sources.map(s=>'<a class="article-source-link" href="'+s+'" target="_blank" rel="noopener">'+s+'</a>').join('')+'</div>':''}
+    </div>`;
+};
+
+// ── Topluluk Notu ──
+const voteCommunityNote=async(noteId,vote)=>{
+  await api('/community-note/vote',{noteId,vote});
+  toast(vote==='up'?'👍 Oy verildi':'👎 Oy verildi');
+};
+
+const addCommunityNote=async(yankiId)=>{
+  const text=prompt('Topluluk notu ekleyin (en az 10 karakter):');
+  if(!text||text.length<10){toast('Not en az 10 karakter olmalı');return;}
+  const r=await api('/community-note/add',{yankiId,userId:user.id,text});
+  if(r.error)toast(r.error);
+  else toast('📝 Not gönderildi, admin onayı bekleniyor');
+};
+
+// ── Admin: Reklam Yönetimi ──
+const adminLoadAds=async()=>{
+  const [adsR,statsR]=await Promise.all([api('/admin/ads',{}),api('/admin/ads/stats',{})]);
+  $('admin-ad-stats').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${statsR.total||0}</div><div class="admin-modal-stat-lbl">Toplam</div></div>
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${statsR.active||0}</div><div class="admin-modal-stat-lbl">Aktif</div></div>
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${statsR.totalImpressions||0}</div><div class="admin-modal-stat-lbl">Gösterim</div></div>
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${statsR.totalClicks||0}</div><div class="admin-modal-stat-lbl">Tıklama</div></div>
+  </div>`;
+  const ads=adsR.ads||[];
+  $('admin-ad-list').innerHTML=ads.length?ads.map(ad=>`
+    <div class="ad-list-item">
+      <div class="ad-list-item-info">
+        <div class="ad-list-item-title"><span class="ad-status-dot ${ad.active?'active':'inactive'}"></span>${ad.title}</div>
+        <div class="ad-list-item-meta">${ad.type==='banner'?'Banner':'Sponsorlu Yankı'} · ${timeAgo(ad.createdAt)}</div>
+      </div>
+      <div class="ad-list-item-stats">
+        <span>👁 ${ad.impressions}</span>
+        <span>👆 ${ad.clicks}</span>
+        <span>CTR: ${ad.impressions>0?((ad.clicks/ad.impressions)*100).toFixed(1):'0'}%</span>
+      </div>
+      <div class="ad-list-item-actions">
+        <button class="admin-action-btn" onclick="editAd('${ad.id}')" style="font-size:11px;padding:3px 8px">✏️ Düzenle</button>
+        <button class="admin-action-btn" onclick="toggleAd('${ad.id}',${ad.active?0:1})" style="font-size:11px;padding:3px 8px">${ad.active?'⏸ Duraklat':'▶ Etkinleştir'}</button>
+        <button class="admin-action-btn abn-del" onclick="deleteAd('${ad.id}')" style="font-size:11px;padding:3px 8px">🗑</button>
+      </div>
+    </div>`).join(''):'<div class="empty">Henüz reklam yok</div>';
+};
+
+const openAdCreateForm=()=>{
+  $('admin-ad-create-form').style.display='block';
+  $('admin-ad-create-form').innerHTML=`
+    <div style="padding:14px;background:var(--elevated);border-radius:12px">
+      <div style="font-weight:700;margin-bottom:10px">Yeni Reklam Oluştur</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <select id="ad-type" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+          <option value="sponsored_yanki">Sponsorlu Yankı</option>
+          <option value="banner">Sidebar Banner</option>
+        </select>
+        <input id="ad-title" placeholder="Başlık" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+        <textarea id="ad-text" placeholder="Reklam metni" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);min-height:60px"></textarea>
+        <input id="ad-link-text" placeholder="Buton metni (örn: Keşfet)" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+        <input id="ad-priority" type="number" value="5" placeholder="Öncelik (1-10)" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+        <div style="display:flex;gap:8px">
+          <button class="tier-card-btn primary" onclick="createAd()">Oluştur</button>
+          <button class="tier-card-btn secondary" onclick="$('admin-ad-create-form').style.display='none'">İptal</button>
+        </div>
+      </div>
+    </div>`;
+};
+
+const createAd=async()=>{
+  const r=await api('/admin/ads/create',{
+    type:$('ad-type').value, title:$('ad-title').value, text:$('ad-text').value,
+    linkText:$('ad-link-text').value, priority:parseInt($('ad-priority').value)||5, createdBy:user.id
+  });
+  if(r.error){toast(r.error);return;}
+  toast('✅ Reklam oluşturuldu');
+  $('admin-ad-create-form').style.display='none';
+  adminLoadAds();
+};
+
+const toggleAd=async(adId,active)=>{
+  await api('/admin/ads/update',{adId,active:!!active});
+  toast(active?'Reklam etkinleştirildi':'Reklam duraklatıldı');
+  adminLoadAds();
+};
+
+const deleteAd=async(adId)=>{
+  if(!confirm('Bu reklamı silmek istediğinize emin misiniz?'))return;
+  await api('/admin/ads/delete',{adId});
+  toast('🗑 Reklam silindi');
+  adminLoadAds();
+};
+
+const editAd=async(adId)=>{
+  const r=await api('/admin/ads',{});
+  const ad=(r.ads||[]).find(a=>a.id===adId);
+  if(!ad){toast('Reklam bulunamadı');return;}
+  $('admin-ad-create-form').style.display='block';
+  $('admin-ad-create-form').innerHTML=`
+    <div style="padding:14px;background:var(--elevated);border-radius:12px">
+      <div style="font-weight:700;margin-bottom:10px">Reklam Düzenle</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <select id="ad-type" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+          <option value="sponsored_yanki" ${ad.type==='sponsored_yanki'?'selected':''}>Sponsorlu Yankı</option>
+          <option value="banner" ${ad.type==='banner'?'selected':''}>Sidebar Banner</option>
+        </select>
+        <input id="ad-title" value="${ad.title||''}" placeholder="Başlık" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+        <textarea id="ad-text" placeholder="Reklam metni" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);min-height:60px">${ad.text||''}</textarea>
+        <input id="ad-link-text" value="${ad.linkText||''}" placeholder="Buton metni" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+        <input id="ad-priority" type="number" value="${ad.priority||5}" placeholder="Öncelik (1-10)" style="padding:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text)">
+        <div style="display:flex;gap:8px">
+          <button class="tier-card-btn primary" onclick="saveAdEdit('${adId}')">Kaydet</button>
+          <button class="tier-card-btn secondary" onclick="$('admin-ad-create-form').style.display='none'">İptal</button>
+        </div>
+      </div>
+    </div>`;
+};
+const saveAdEdit=async(adId)=>{
+  const r=await api('/admin/ads/update',{
+    adId, title:$('ad-title').value, text:$('ad-text').value,
+    type:$('ad-type').value, linkText:$('ad-link-text').value,
+    priority:parseInt($('ad-priority').value)||5
+  });
+  if(r.error){toast(r.error);return;}
+  toast('✅ Reklam güncellendi');
+  $('admin-ad-create-form').style.display='none';
+  adminLoadAds();
+};
+
+// ── Admin: Gazetecilik Yönetimi ──
+const adminLoadJournalism=async()=>{
+  const [tiersR,appsR,notesR]=await Promise.all([
+    api('/admin/tiers',{}),
+    api('/admin/journalist/applications',{}),
+    api('/admin/community-notes',{})
+  ]);
+
+  // Tier dağılımı
+  const pu=tiersR.premiumUsers||[];
+  $('admin-tier-stats').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${tiersR.free||0}</div><div class="admin-modal-stat-lbl">Ücretsiz</div></div>
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${tiersR.pro||0}</div><div class="admin-modal-stat-lbl">Pro</div></div>
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${tiersR.journalist||0}</div><div class="admin-modal-stat-lbl">Gazeteci</div></div>
+    <div class="admin-modal-stat"><div class="admin-modal-stat-val">${tiersR.pendingApps||0}</div><div class="admin-modal-stat-lbl">Bekleyen</div></div>
+  </div>
+  ${pu.length?`<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Premium Kullanıcılar</div>`+pu.map(u=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--elevated);border-radius:10px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:700;font-size:13px">${u.displayName||u.username}</span>
+        <span style="font-size:11px;color:var(--muted)">@${u.username}</span>
+        ${u.isBot?'<span style="font-size:9px;background:var(--muted);color:var(--bg);padding:1px 5px;border-radius:4px">BOT</span>':''}
+        <span class="${u.tier==='journalist'?'press-badge':'pro-badge'}" style="font-size:10px">${u.tier==='journalist'?'BASIN':'PRO'}</span>
+        ${u.journalistOrg?'<span style="font-size:11px;color:var(--muted)">'+u.journalistOrg+'</span>':''}
+      </div>
+      <div style="display:flex;gap:4px">
+        <select onchange="adminChangeTier('${u.id}',this.value)" style="padding:4px 8px;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:11px">
+          <option value="free" ${u.tier==='free'?'selected':''}>Ücretsiz</option>
+          <option value="pro" ${u.tier==='pro'?'selected':''}>Pro</option>
+          <option value="journalist" ${u.tier==='journalist'?'selected':''}>Gazeteci</option>
+        </select>
+      </div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:8px">Premium kullanıcı yok</div>'}`;
+
+  // Başvurular
+  const apps=appsR.applications||[];
+  $('admin-journalist-apps').innerHTML=apps.length?apps.map(a=>{
+    const statusMap={pending:'⏳ Bekliyor',approved:'✅ Onaylandı',rejected:'❌ Reddedildi'};
+    const statusColor={pending:'#f59e0b',approved:'#22c55e',rejected:'#ef4444'};
+    return `<div style="padding:12px;background:var(--elevated);border-radius:10px;margin-bottom:8px;border-left:3px solid ${statusColor[a.status]}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div>
+          <span style="font-weight:700">${a.displayName||a.username}</span>
+          <span style="color:var(--muted);font-size:12px"> @${a.username}</span>
+        </div>
+        <span style="font-size:11px;color:${statusColor[a.status]}">${statusMap[a.status]}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">🏢 ${a.orgName} ${a.expertise?'· 📋 '+a.expertise:''}</div>
+      ${a.portfolio?'<div style="font-size:11px;color:var(--accent);margin-bottom:4px">🔗 '+a.portfolio+'</div>':''}
+      <div style="font-size:12px;color:var(--text);margin-bottom:8px;line-height:1.4">${a.statement||''}</div>
+      ${a.status==='pending'?`<div style="display:flex;gap:6px">
+        <button class="admin-action-btn" onclick="reviewJournalist('${a.id}','approved')" style="background:#22c55e;color:#fff;padding:4px 12px;border-radius:8px;font-size:11px">✅ Onayla</button>
+        <button class="admin-action-btn abn-del" onclick="reviewJournalist('${a.id}','rejected')" style="padding:4px 12px;border-radius:8px;font-size:11px">❌ Reddet</button>
+      </div>`:'<div style="font-size:11px;color:var(--muted)">'+timeAgo(a.reviewedAt||a.createdAt)+'</div>'}
+    </div>`;
+  }).join(''):'<div class="empty">Henüz başvuru yok</div>';
+
+  // Topluluk notları
+  const notes=notesR.notes||[];
+  $('admin-community-notes').innerHTML=notes.length?notes.map(n=>{
+    const statusMap={pending:'⏳',approved:'✅',rejected:'❌'};
+    return `<div style="padding:10px;background:var(--elevated);border-radius:10px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px"><b>@${n.username}</b> → <i style="color:var(--muted)">${(n.yankiText||'').substring(0,50)}...</i></span>
+        <span style="font-size:11px">${statusMap[n.status]}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text);margin-bottom:6px">${n.text}</div>
+      ${n.status==='pending'?`<div style="display:flex;gap:6px">
+        <button class="admin-action-btn" onclick="reviewNote('${n.id}','approved')" style="font-size:11px;padding:2px 8px">✅</button>
+        <button class="admin-action-btn abn-del" onclick="reviewNote('${n.id}','rejected')" style="font-size:11px;padding:2px 8px">❌</button>
+      </div>`:''}
+    </div>`;
+  }).join(''):'<div class="empty">Henüz topluluk notu yok</div>';
+};
+
+const reviewJournalist=async(appId,status)=>{
+  const r=await api('/admin/journalist/review',{applicationId:appId,status,reviewedBy:user.id});
+  if(r.error){toast(r.error);return;}
+  toast(status==='approved'?'✅ Başvuru onaylandı':'❌ Başvuru reddedildi');
+  adminLoadJournalism();
+};
+
+const reviewNote=async(noteId,status)=>{
+  await api('/admin/community-note/review',{noteId,status});
+  toast(status==='approved'?'✅ Not onaylandı':'❌ Not reddedildi');
+  adminLoadJournalism();
+};
+
+// ── Gazeteci Composer Araçları ──
+window._jArticle=false;window._jBreaking=false;window._jLive=false;window._jCategory='';
+const toggleJournalistMode=(mode,btn)=>{
+  if(mode==='article'){window._jArticle=!window._jArticle;btn.classList.toggle('active');$('jt-article-fields').style.display=window._jArticle?'flex':'none';}
+  if(mode==='breaking'){window._jBreaking=!window._jBreaking;btn.classList.toggle('active');}
+  if(mode==='live'){window._jLive=!window._jLive;btn.classList.toggle('active');}
+};
+const showJournalistTools=()=>{
+  const el=$('journalist-composer-tools');
+  if(el&&user.tier==='journalist')el.style.display='block';
+};
+
+// ── Yankı Boost ──
+// ── Boost Modal System ──
+let _boostYankiId=null;
+let _boostSelection={duration:48,age:'',region:'',category:''};
+
+const boostYanki=async(yankiId)=>{
+  document.querySelectorAll('.yanki-dropdown.show').forEach(d=>d.classList.remove('show'));
+  const infoR=await api('/boost/info',{userId:user.id});
+  if(infoR.tier==='free'){toast('🔒 Boost özelliği Pro üyelere özel');return;}
+
+  // Yankının boost durumunu kontrol et
+  const detail=await api('/yanki/detail',{yankiId,viewerId:user.id});
+  if(detail.yanki?.boosted){
+    const r=await api('/yanki/unboost',{yankiId,userId:user.id});
+    if(r.error){toast(r.error);return;}
+    toast('🔽 Boost kaldırıldı');
+    loadFeed();return;
+  }
+
+  if(infoR.remaining<=0){toast(`Bu ay ${infoR.limit} boost hakkınızın tamamını kullandınız`);return;}
+
+  // Modal aç
+  _boostYankiId=yankiId;
+  _boostSelection={duration:48,age:'',region:'',category:''};
+  $('boost-remaining').textContent=infoR.remaining+'/'+infoR.limit;
+  $('boost-coins').textContent=infoR.coins;
+  $('boost-used').textContent=infoR.used;
+  $('boost-coin-balance').textContent=infoR.coins;
+  // Reset sliders
+  $('boost-dur-slider').value=0;
+  $('boost-age-slider').value=0;
+  $('boost-region-slider').value=0;
+  $('boost-cat-slider').value=0;
+  onBoostSlider();
+  $('boost-modal').style.display='flex';
+};
+
+const _durOpts=[{val:48,label:'48 Saat',cost:0},{val:72,label:'3 Gün',cost:5},{val:168,label:'7 Gün',cost:25}];
+const _ageOpts=[{val:'',label:'Herkese',cost:0},{val:'18-25',label:'18-25',cost:3},{val:'25-35',label:'25-35',cost:3},{val:'35+',label:'35+',cost:3}];
+const _regionOpts=[{val:'',label:'Tüm Bölge',cost:0},{val:'tr',label:'Türkiye 🇹🇷',cost:3},{val:'eu',label:'Avrupa 🇪🇺',cost:3},{val:'global',label:'Global 🌐',cost:3}];
+const _catOpts=[{val:'',label:'Genel',cost:0},{val:'teknoloji',label:'Teknoloji 💻',cost:2},{val:'spor',label:'Spor ⚽',cost:2},{val:'sanat',label:'Sanat 🎨',cost:2},{val:'muzik',label:'Müzik 🎵',cost:2},{val:'bilim',label:'Bilim 🔬',cost:2}];
+
+const onBoostSlider=()=>{
+  const di=parseInt($('boost-dur-slider').value);
+  const ai=parseInt($('boost-age-slider').value);
+  const ri=parseInt($('boost-region-slider').value);
+  const ci=parseInt($('boost-cat-slider').value);
+  const d=_durOpts[di], a=_ageOpts[ai], r=_regionOpts[ri], c=_catOpts[ci];
+  _boostSelection.duration=d.val;
+  _boostSelection.age=a.val;
+  _boostSelection.region=r.val;
+  _boostSelection.category=c.val;
+  $('boost-dur-label').textContent=d.label+(d.cost?' (+'+d.cost+'🪙)':' (Ücretsiz)');
+  $('boost-age-label').textContent=a.label+(a.cost?' (+'+a.cost+'🪙)':' (Ücretsiz)');
+  $('boost-region-label').textContent=r.label+(r.cost?' (+'+r.cost+'🪙)':' (Ücretsiz)');
+  $('boost-cat-label').textContent=c.label+(c.cost?' (+'+c.cost+'🪙)':' (Ücretsiz)');
+  updateBoostCost();
+};
+
+const updateBoostCost=()=>{
+  const di=parseInt($('boost-dur-slider')?.value||0);
+  const ai=parseInt($('boost-age-slider')?.value||0);
+  const ri=parseInt($('boost-region-slider')?.value||0);
+  const ci=parseInt($('boost-cat-slider')?.value||0);
+  const cost=(_durOpts[di]?.cost||0)+(_ageOpts[ai]?.cost||0)+(_regionOpts[ri]?.cost||0)+(_catOpts[ci]?.cost||0);
+  const coins=parseInt($('boost-coin-balance').textContent)||0;
+  $('boost-cost-total').textContent=cost===0?'Ücretsiz ✨':cost+' 🪙';
+  const details=[];
+  if(_durOpts[di]?.cost) details.push('Süre: +'+_durOpts[di].cost);
+  if(_ageOpts[ai]?.cost) details.push('Yaş: +'+_ageOpts[ai].cost);
+  if(_regionOpts[ri]?.cost) details.push('Bölge: +'+_regionOpts[ri].cost);
+  if(_catOpts[ci]?.cost) details.push('Kategori: +'+_catOpts[ci].cost);
+  $('boost-cost-detail').textContent=details.length?details.join(' · '):'Temel boost ücretsiz';
+  const btn=$('boost-submit-btn');
+  if(cost>coins){btn.disabled=true;btn.textContent='❌ Yetersiz Coin ('+cost+' 🪙 gerekli)';}
+  else{btn.disabled=false;btn.textContent='🚀 Boost Et'+(cost>0?' ('+cost+' 🪙)':'');}
+};
+
+const submitBoost=async()=>{
+  if(!_boostYankiId)return;
+  const r=await api('/yanki/boost',{
+    yankiId:_boostYankiId,userId:user.id,
+    duration:_boostSelection.duration,
+    targetAge:_boostSelection.age||undefined,
+    targetRegion:_boostSelection.region||undefined,
+    targetCategory:_boostSelection.category||undefined
+  });
+  if(r.error){toast(r.error);return;}
+  closeBoostModal();
+  const coinMsg=r.coinSpent>0?` (${r.coinSpent} 🪙 harcandı)`:'';
+  toast(`🚀 Yankın boost edildi!${coinMsg} Kalan: ${r.remaining} hak`);
+  user.yankiCoins=r.coinsLeft;
+  loadFeed();
+};
+
+const closeBoostModal=()=>{$('boost-modal').style.display='none';_boostYankiId=null;};
+
+// ── Analytics Modal ──
+const openAnalyticsModal=async()=>{
+  $('analytics-modal').style.display='flex';
+  const body=$('analytics-modal-body');
+  body.innerHTML='<div class="loading"><span class="spin">⟳</span></div>';
+  const d=await api('/user/analytics',{userId:user.id});
+  if(d.error){body.innerHTML='<p style="color:red">'+d.error+'</p>';return;}
+  const maxY=Math.max(...d.dailyActivity.map(x=>x.yankis+x.likes),1);
+  body.innerHTML=`
+    <div class="analytics-stats-grid">
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.totalYankis}</div><div class="analytics-stat-lbl">Toplam Yankı</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.totalLikes}</div><div class="analytics-stat-lbl">Beğeni</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.totalComments}</div><div class="analytics-stat-lbl">Yorum</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.totalReyankis}</div><div class="analytics-stat-lbl">Reyankı</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.followerCount}</div><div class="analytics-stat-lbl">Takipçi</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.followingCount}</div><div class="analytics-stat-lbl">Takip</div></div>
+    </div>
+    <div class="analytics-engagement">
+      <div class="analytics-eng-ring" style="border-color:${d.engagementRate>5?'#22c55e':d.engagementRate>2?'#f59e0b':'var(--border)'}">${d.engagementRate}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Etkileşim Oranı</div>
+        <div style="font-size:11px;color:var(--muted)">Yankı başına ortalama etkileşim</div>
+      </div>
+    </div>
+    <div class="analytics-chart">
+      <div class="analytics-chart-title">📈 Son 7 Gün Aktivite</div>
+      <div class="analytics-bars">
+        ${d.dailyActivity.map(x=>{
+          const h=Math.max(4,Math.round(((x.yankis+x.likes)/maxY)*100));
+          return '<div class="analytics-bar-col"><div class="analytics-bar" style="height:'+h+'%"></div><div class="analytics-bar-lbl">'+x.day+'</div></div>';
+        }).join('')}
+      </div>
+    </div>
+    <div class="analytics-stats-grid" style="grid-template-columns:1fr 1fr">
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.weekYankis}</div><div class="analytics-stat-lbl">Bu Hafta Yankı</div></div>
+      <div class="analytics-stat"><div class="analytics-stat-val">${d.weekLikes}</div><div class="analytics-stat-lbl">Bu Hafta Beğeni</div></div>
+    </div>
+    ${d.topYanki?`<div class="analytics-top-yanki">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">🏆 En Popüler Yankı</div>
+      <div style="font-size:13px;color:var(--text)">${d.topYanki.text?.substring(0,120)||''}${d.topYanki.text?.length>120?'...':''}</div>
+      <div style="font-size:11px;color:var(--accent);margin-top:4px">❤️ ${d.topYanki.likes} beğeni</div>
+    </div>`:''}
+    <div style="text-align:center;padding:8px">
+      <div style="font-size:12px;color:var(--muted)">🪙 Yankı Coin Bakiyesi: <b style="color:#f59e0b">${d.coins}</b></div>
+    </div>`;
+};
+const closeAnalyticsModal=()=>{$('analytics-modal').style.display='none';};
+
+// ── Premium Detail Page ──
+const loadSubscriptionPanel=()=>{
+  const tier=user.tier||'free';
+  const coins=user.yankiCoins||0;
+  const el=$('premium-page-content');
+  el.innerHTML=`
+    <div class="premium-hero">
+      <div class="premium-hero-icon">${tier==='journalist'?'📰':tier==='pro'?'⭐':'🚀'}</div>
+      <div class="premium-hero-title">Yankuş Premium</div>
+      <div class="premium-hero-sub">Deneyimini bir üst seviyeye taşı. Reklamsız kullanım, gelişmiş özellikler ve daha fazlası.</div>
+    </div>
+
+    <div class="premium-coin-section">
+      <div class="premium-coin-header">
+        <div class="premium-coin-icon">🪙</div>
+        <div class="premium-coin-info">
+          <h4>Yankı Coin</h4>
+          <p>Boost hedefleme ve premium özellikler için kullanılır</p>
+        </div>
+      </div>
+      <div class="premium-coin-balance">${coins} 🪙</div>
+      <div class="premium-coin-uses">
+        <div class="premium-coin-use">🚀 Boost süre uzatma (5🪙/gün)</div>
+        <div class="premium-coin-use">🎯 Yaş hedefleme (+3🪙)</div>
+        <div class="premium-coin-use">📍 Bölge hedefleme (+3🪙)</div>
+        <div class="premium-coin-use">📂 Kategori hedefleme (+2🪙)</div>
+      </div>
+    </div>
+
+    <div class="premium-plans">
+      <div class="premium-plan ${tier==='free'?'':''}">
+        <div class="premium-plan-icon">👤</div>
+        <div class="premium-plan-name">Ücretsiz</div>
+        <div class="premium-plan-price">Herkes için temel deneyim</div>
+        <div class="premium-plan-features">
+          <div class="premium-plan-feat">500 karakter limiti</div>
+          <div class="premium-plan-feat">Yankı paylaşma & etkileşim</div>
+          <div class="premium-plan-feat">Keşfet & gündem takibi</div>
+          <div class="premium-plan-feat locked">Reklam gösterilir</div>
+          <div class="premium-plan-feat locked">Yankı düzenleme yok</div>
+          <div class="premium-plan-feat locked">Boost özelliği yok</div>
+        </div>
+        <button class="premium-plan-btn gray" ${tier==='free'?'disabled':''}>${tier==='free'?'Mevcut Planın':'Ücretsiz Plan'}</button>
+      </div>
+      <div class="premium-plan popular ${tier==='pro'?'':''}">
+        <div class="premium-plan-icon">⭐</div>
+        <div class="premium-plan-name">Pro</div>
+        <div class="premium-plan-price">Gelişmiş özellikler, reklamsız</div>
+        <div class="premium-plan-features">
+          <div class="premium-plan-feat">2.000 karakter limiti</div>
+          <div class="premium-plan-feat">Reklamsız deneyim</div>
+          <div class="premium-plan-feat">Yankı düzenleme</div>
+          <div class="premium-plan-feat">Aylık 3 boost hakkı</div>
+          <div class="premium-plan-feat">Gelişmiş analitik</div>
+          <div class="premium-plan-feat">PRO rozeti</div>
+        </div>
+        <button class="premium-plan-btn gold" onclick="upgradeTier('pro')" ${tier==='pro'||tier==='journalist'?'disabled':''}>${tier==='pro'?'Mevcut Planın':tier==='journalist'?'Gazeteci Planındasın':'⭐ Pro\'ya Yükselt'}</button>
+      </div>
+      <div class="premium-plan ${tier==='journalist'?'':''}">
+        <div class="premium-plan-icon">📰</div>
+        <div class="premium-plan-name">Gazeteci</div>
+        <div class="premium-plan-price">Basın & haber özellikleri</div>
+        <div class="premium-plan-features">
+          <div class="premium-plan-feat">5.000 karakter limiti</div>
+          <div class="premium-plan-feat">Pro'nun tüm özellikleri</div>
+          <div class="premium-plan-feat">Aylık 5 boost hakkı</div>
+          <div class="premium-plan-feat">Makale modu & uzun içerik</div>
+          <div class="premium-plan-feat">Son dakika & canlı haber</div>
+          <div class="premium-plan-feat">Haber kategorileri</div>
+          <div class="premium-plan-feat">BASIN rozeti</div>
+        </div>
+        <button class="premium-plan-btn blue" onclick="openJournalistApply()" ${tier==='journalist'?'disabled':''}>${tier==='journalist'?'Mevcut Planın':'📰 Gazetecilik Başvurusu'}</button>
+      </div>
+    </div>
+
+    <div class="premium-compare">
+      <h3 style="font-size:16px;font-weight:800;margin:0 0 16px">📊 Plan Karşılaştırması</h3>
+      <table>
+        <thead><tr><th>Özellik</th><th>Ücretsiz</th><th>Pro ⭐</th><th>Gazeteci 📰</th></tr></thead>
+        <tbody>
+          <tr><td>Karakter limiti</td><td>500</td><td>2.000</td><td>5.000</td></tr>
+          <tr><td>Reklamlar</td><td><span class="premium-cross">Var</span></td><td><span class="premium-check">Yok ✓</span></td><td><span class="premium-check">Yok ✓</span></td></tr>
+          <tr><td>Yankı düzenleme</td><td><span class="premium-cross">✕</span></td><td><span class="premium-check">✓</span></td><td><span class="premium-check">✓</span></td></tr>
+          <tr><td>Boost hakkı</td><td><span class="premium-cross">✕</span></td><td>3/ay</td><td>5/ay</td></tr>
+          <tr><td>Analitik</td><td><span class="premium-cross">✕</span></td><td><span class="premium-check">✓</span></td><td><span class="premium-check">✓</span></td></tr>
+          <tr><td>Makale modu</td><td><span class="premium-cross">✕</span></td><td><span class="premium-cross">✕</span></td><td><span class="premium-check">✓</span></td></tr>
+          <tr><td>Son dakika haber</td><td><span class="premium-cross">✕</span></td><td><span class="premium-cross">✕</span></td><td><span class="premium-check">✓</span></td></tr>
+          <tr><td>Canlı haber</td><td><span class="premium-cross">✕</span></td><td><span class="premium-cross">✕</span></td><td><span class="premium-check">✓</span></td></tr>
+          <tr><td>Rozet</td><td><span class="premium-cross">—</span></td><td>PRO</td><td>BASIN</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="journalist-apply-section"></div>
+  `;
+};
+
+// ── Admin: Kullanıcı Tier Değiştirme ──
+const adminSetTier=async(targetUserId,tier)=>{
+  const r=await api('/admin/tier/set',{targetUserId,tier});
+  if(r.error){toast(r.error);return;}
+  toast('Tier değiştirildi: '+tier);
+};
+const adminChangeTier=async(targetUserId,tier,duration)=>{
+  const tierNames={free:'Ücretsiz',pro:'Pro',journalist:'Gazeteci'};
+  const durNames={'30d':'30 gün','365d':'1 yıl','lifetime':'Süresiz'};
+  // Free'ye düşürüyorsa süre sorma
+  let dur=duration;
+  if(tier!=='free'&&!dur){
+    dur=prompt(`Süre seçin:\n• 30d = 30 gün\n• 365d = 1 yıl\n• lifetime = Süresiz`,'365d');
+    if(!dur)return;
+    if(!['30d','365d','lifetime'].includes(dur)){toast('Geçersiz süre');return;}
+  }
+  if(!confirm(`${tierNames[tier]} plana geçir${dur?' ('+durNames[dur]+')':''}?`))return;
+  const r=await api('/admin/tier/set',{targetUserId,tier,duration:dur});
+  if(r.error){toast(r.error);return;}
+  toast(`✅ Plan: ${tierNames[tier]}${dur?' ('+durNames[dur]+')':''}`);
+  adminLoadJournalism();
+};
 </script>
 
 <!-- Reyanki Modal -->

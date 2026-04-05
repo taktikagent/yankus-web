@@ -253,6 +253,77 @@ try { sqlite.prepare('ALTER TABLE messages ADD COLUMN deleted INTEGER DEFAULT 0'
 try { sqlite.prepare('ALTER TABLE messages ADD COLUMN edited INTEGER DEFAULT 0').run(); } catch(e) { /* zaten var */ }
 try { sqlite.prepare('ALTER TABLE messages ADD COLUMN deletedFor TEXT DEFAULT \'[]\'').run(); } catch(e) { /* zaten var */ }
 
+// Premium & Gazetecilik migrations
+try { sqlite.prepare("ALTER TABLE users ADD COLUMN tier TEXT DEFAULT 'free'").run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN tierExpiresAt TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN journalistOrg TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN journalistExpertise TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN journalistBio TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boosted INTEGER DEFAULT 0').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostedAt TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN boostCount INTEGER DEFAULT 0').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN isArticle INTEGER DEFAULT 0').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN articleTitle TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN articleBody TEXT').run(); } catch(e) {}
+try { sqlite.prepare("ALTER TABLE yankis ADD COLUMN newsCategory TEXT").run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN isBreaking INTEGER DEFAULT 0').run(); } catch(e) {}
+try { sqlite.prepare("ALTER TABLE yankis ADD COLUMN sources TEXT DEFAULT '[]'").run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN correctionNote TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN isLive INTEGER DEFAULT 0').run(); } catch(e) {}
+
+// Yankı Coin sistemi
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN yankiCoins INTEGER DEFAULT 50').run(); } catch(e) {}
+// Boost targeting
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostDuration INTEGER DEFAULT 48').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostTargetAge TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostTargetRegion TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostTargetCategory TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostCoinSpent INTEGER DEFAULT 0').run(); } catch(e) {}
+
+// Reklam, Gazetecilik başvuru, Topluluk notu tabloları
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS ads (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    title TEXT,
+    text TEXT,
+    image TEXT,
+    linkUrl TEXT,
+    linkText TEXT,
+    impressions INTEGER DEFAULT 0,
+    clicks INTEGER DEFAULT 0,
+    active INTEGER DEFAULT 1,
+    priority INTEGER DEFAULT 0,
+    startDate TEXT,
+    endDate TEXT,
+    createdBy TEXT,
+    createdAt TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS journalist_applications (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    orgName TEXT,
+    expertise TEXT,
+    portfolio TEXT,
+    pressCard TEXT,
+    statement TEXT,
+    status TEXT DEFAULT 'pending',
+    reviewedBy TEXT,
+    reviewedAt TEXT,
+    createdAt TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS community_notes (
+    id TEXT PRIMARY KEY,
+    yankiId TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    text TEXT NOT NULL,
+    upvotes INTEGER DEFAULT 0,
+    downvotes INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'pending',
+    createdAt TEXT NOT NULL
+  );
+`);
+
 // Doğrulama & sıfırlama kodları tablosu
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS verification_codes (
@@ -407,8 +478,14 @@ function chance(probability) { return Math.random() < probability; }
 // Parse JSON fields from SQLite rows
 function parseUser(row) {
   if (!row) return null;
+  // Tier expiry: sadece oku, DB'ye yazma (side-effect yok)
+  let tier = row.tier || 'free';
+  if (tier !== 'free' && row.tierExpiresAt && new Date(row.tierExpiresAt) < new Date()) {
+    tier = 'free';
+  }
   return {
     ...row,
+    tier,
     verified: !!row.verified,
     isAdmin: !!row.isAdmin,
     isBot: !!row.isBot,
@@ -416,6 +493,47 @@ function parseUser(row) {
     socialLinks: JSON.parse(row.socialLinks || '{}'),
     interests: JSON.parse(row.interests || '[]')
   };
+}
+
+// Süresi dolan tier'ları temizleyen bağımsız zamanlayıcı (her 5 dk)
+function cleanExpiredTiers() {
+  const now = new Date().toISOString();
+  const expired = sqlite.prepare("UPDATE users SET tier = 'free', tierExpiresAt = NULL WHERE tier != 'free' AND tierExpiresAt IS NOT NULL AND tierExpiresAt < ?").run(now);
+  if (expired.changes > 0) console.log(`⏰ ${expired.changes} kullanıcının tier süresi doldu, free'ye düşürüldü`);
+}
+cleanExpiredTiers(); // Başlangıçta çalıştır
+setInterval(cleanExpiredTiers, 5 * 60 * 1000); // Her 5 dakikada bir
+const getUserTier = (userId) => { const u = getUser(userId); return u?.tier || 'free'; };
+const isPro = (userId) => { const t = getUserTier(userId); return t === 'pro' || t === 'journalist'; };
+const isJournalist = (userId) => getUserTier(userId) === 'journalist';
+const getCharLimit = (userId) => { const t = getUserTier(userId); return t === 'journalist' ? 5000 : t === 'pro' ? 2000 : 500; };
+
+function deleteYankiCascade(yankiId) {
+  // Reply yankıları bul ve onların bağlı kayıtlarını sil
+  const replies = sqlite.prepare('SELECT id FROM yankis WHERE replyToId = ?').all(yankiId);
+  replies.forEach(r => {
+    stmts.deleteLikesByYanki.run(r.id);
+    stmts.deleteCommentsByYanki.run(r.id);
+    stmts.deleteSavesByYanki.run(r.id);
+    sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(r.id);
+    sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(r.id);
+    sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(r.id);
+    sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(r.id);
+    try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(r.id); } catch(e) {}
+    try { sqlite.prepare('DELETE FROM community_notes WHERE yankiId = ?').run(r.id); } catch(e) {}
+  });
+  sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(yankiId);
+  // Ana yankının bağlı kayıtlarını sil
+  stmts.deleteLikesByYanki.run(yankiId);
+  stmts.deleteCommentsByYanki.run(yankiId);
+  stmts.deleteSavesByYanki.run(yankiId);
+  sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(yankiId);
+  sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(yankiId);
+  sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(yankiId);
+  sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(yankiId);
+  try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(yankiId); } catch(e) {}
+  try { sqlite.prepare('DELETE FROM community_notes WHERE yankiId = ?').run(yankiId); } catch(e) {}
+  stmts.deleteYanki.run(yankiId);
 }
 
 function parseYanki(row) {
@@ -767,6 +885,17 @@ function initData() {
     }
   });
 
+  // Bot tier atamaları: ayse_dev → pro, ahmet_foto → journalist
+  const botTierMap = { 'ayse_dev': 'pro', 'ahmet_foto': 'journalist' };
+  Object.entries(botTierMap).forEach(([username, tier]) => {
+    const bot = stmts.getUserByUsername.get(username);
+    if (bot && (bot.tier || 'free') === 'free') {
+      const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = ? WHERE id = ?')
+        .run(tier, expires, tier === 'journalist' ? 'Fotoğrafçılık Ajansı' : null, bot.id);
+    }
+  });
+
   // Botlar arası başlangıç etkileşimleri
   const botUsers = stmts.getBotUsers.all().map(parseUser);
   botUsers.forEach(bot => {
@@ -1050,6 +1179,20 @@ function initData() {
 initData();
 startBotAgents();
 
+// Seed default ads
+if (sqlite.prepare('SELECT COUNT(*) as count FROM ads').get().count === 0) {
+  const now = new Date().toISOString();
+  sqlite.prepare('INSERT INTO ads (id, type, title, text, image, linkUrl, linkText, priority, active, createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+    genId(), 'sponsored_yanki', 'Yankuş Pro\'ya Geç!', '🚀 Reklamsız deneyim, uzun yankılar, düzenleme ve daha fazlası. Pro ile Yankuş deneyimini bir üst seviyeye taşı!', null, null, 'Pro\'ya Yükselt', 10, 1, now
+  );
+  sqlite.prepare('INSERT INTO ads (id, type, title, text, image, linkUrl, linkText, priority, active, createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+    genId(), 'sponsored_yanki', 'Gazetecilik Başvurusu Açık!', '📰 Doğrulanmış gazeteci ol, makale yaz, son dakika haberleri paylaş. Basın rozetiyle güvenilirliğini artır!', null, null, 'Başvur', 8, 1, now
+  );
+  sqlite.prepare('INSERT INTO ads (id, type, title, text, image, linkUrl, linkText, priority, active, createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+    genId(), 'banner', 'Yankuş Pro', 'Reklamsız, sınırsız deneyim ✨', null, null, 'Keşfet', 5, 1, now
+  );
+}
+
 // ─── enrichYanki ───────────────────────────────────────────────
 const enrichYanki = (yanki, viewerId) => {
   if (typeof yanki === 'string') yanki = parseYanki(stmts.getYankiById.get(yanki));
@@ -1130,17 +1273,42 @@ const enrichYanki = (yanki, viewerId) => {
   // Images array
   const images = yanki.images ? (typeof yanki.images === 'string' ? JSON.parse(yanki.images) : yanki.images) : [];
 
+  // Community notes
+  const communityNotes = sqlite.prepare("SELECT * FROM community_notes WHERE yankiId = ? AND status = 'approved' ORDER BY upvotes DESC LIMIT 3").all(yanki.id).map(n => {
+    const noter = getUser(n.userId);
+    return { id: n.id, text: n.text, username: noter?.username, upvotes: n.upvotes, downvotes: n.downvotes, createdAt: n.createdAt };
+  });
+
   return {
     id: yanki.id, userId: yanki.userId,
     username: author.username, displayName: author.displayName,
     profileImage: author.profileImage, verified: author.verified,
     isBot: author.isBot || false,
+    tier: author.tier || 'free',
+    journalistOrg: author.journalistOrg || null,
     text: yanki.text, image: yanki.image, images,
     poll: pollData,
     reyanki, replyTo, quote,
     pinned: yanki.pinned || false,
     featured: yanki.featured || false,
+    boosted: !!yanki.boosted,
+    boostedAt: yanki.boostedAt || null,
+    boostDuration: yanki.boostDuration || 48,
+    boostTargetAge: yanki.boostTargetAge || null,
+    boostTargetRegion: yanki.boostTargetRegion || null,
+    boostTargetCategory: yanki.boostTargetCategory || null,
+    boostCoinSpent: yanki.boostCoinSpent || 0,
     editedAt: yanki.editedAt || null,
+    // Journalism fields
+    isArticle: !!yanki.isArticle,
+    articleTitle: yanki.articleTitle || null,
+    articleBody: yanki.articleBody || null,
+    newsCategory: yanki.newsCategory || null,
+    isBreaking: !!yanki.isBreaking,
+    isLive: !!yanki.isLive,
+    sources: yanki.sources ? (typeof yanki.sources === 'string' ? JSON.parse(yanki.sources) : yanki.sources) : [],
+    correctionNote: yanki.correctionNote || null,
+    communityNotes,
     likes: likeCount, commentCount, reyankiCount: reyankis.length,
     reactions: reactionCounts, userReactions,
     isLiked: !!userLike, isSaved: !!save, isReyanked: !!userReyanki,
@@ -1160,6 +1328,9 @@ const buildProfileResponse = (user, viewerId) => {
       id: user.id, username: user.username, displayName: user.displayName,
       bio: user.bio, profileImage: user.profileImage, bannerImage: user.bannerImage,
       verified: user.verified, isAdmin: user.isAdmin || false, isBot: user.isBot || false,
+      tier: user.tier || 'free', tierExpiresAt: user.tierExpiresAt || null,
+      journalistOrg: user.journalistOrg || null, journalistExpertise: user.journalistExpertise || null,
+      journalistBio: user.journalistBio || null,
       theme: user.theme || null, mood: user.mood || null,
       moodEmoji: user.moodEmoji || null, moodUpdatedAt: user.moodUpdatedAt || null,
       location: user.location || '', website: user.website || '',
@@ -1294,7 +1465,7 @@ const routes = {
     if (row.email && !row.emailVerified) return { needsVerification: true, userId: row.id, email: row.email };
     sqlite.prepare('UPDATE users SET lastSeen = ? WHERE id = ?').run(new Date().toISOString(), row.id);
     const user = parseUser(stmts.getUserById.get(row.id));
-    return { user: { ...user, password: undefined } };
+    return { user: { ...user, password: undefined, charLimit: getCharLimit(user.id), yankiCoins: user.yankiCoins || 50 } };
   },
 
   'heartbeat': (data) => {
@@ -1395,7 +1566,24 @@ const routes = {
       }
     }
 
-    return { yankis: yankis.map(y => enrichYanki(y, userId)).filter(Boolean) };
+    // Boost'lu yankıları öne al (her birinin kendi süresine göre kontrol)
+    const now = Date.now();
+    const boostedYankis = sqlite.prepare('SELECT * FROM yankis WHERE boosted = 1 AND boostedAt IS NOT NULL AND replyToId IS NULL ORDER BY boostedAt DESC LIMIT 10').all()
+      .filter(y => {
+        const dur = (y.boostDuration || 48) * 60 * 60 * 1000;
+        return (now - new Date(y.boostedAt).getTime()) < dur && !blockedIds.includes(y.userId) && !yankis.some(yy => yy.id === y.id);
+      }).slice(0, 5);
+    // Boost'lu yankıları başa ekle
+    yankis = [...boostedYankis, ...yankis];
+
+    const enriched = yankis.map(y => enrichYanki(y, userId)).filter(Boolean);
+    // Free kullanıcılara reklam döndür
+    let feedAds = [];
+    if (!isPro(userId)) {
+      const now = new Date().toISOString();
+      feedAds = sqlite.prepare("SELECT * FROM ads WHERE active = 1 AND type = 'sponsored_yanki' AND (startDate IS NULL OR startDate <= ?) AND (endDate IS NULL OR endDate >= ?) ORDER BY priority DESC LIMIT 3").all(now, now);
+    }
+    return { yankis: enriched, ads: feedAds };
   },
 
   // ═══ YANKI CRUD ═══
@@ -1405,6 +1593,23 @@ const routes = {
     const quoteOfId = data.quoteOfId || null;
     if (!text && !image && !poll && !quoteOfId && (!images || images.length === 0)) return { error: 'İçerik gerekli' };
 
+    // Karakter limiti kontrolü
+    const charLimit = getCharLimit(userId);
+    if (text && text.length > charLimit) return { error: `Karakter limiti aşıldı (max ${charLimit})` };
+
+    // Gazetecilik alanları - yetki doğrulaması
+    const journalistFields = data.isArticle || data.newsCategory || data.isBreaking || data.isLive || (data.sources && data.sources.length > 0);
+    if (journalistFields && !isJournalist(userId)) {
+      return { error: 'Makale, haber kategorisi ve son dakika özellikleri yalnızca Gazeteci üyelere açıktır' };
+    }
+    const isArticle = data.isArticle && isJournalist(userId) ? 1 : 0;
+    const articleTitle = isArticle ? (data.articleTitle || '') : null;
+    const articleBody = isArticle ? (data.articleBody || '') : null;
+    const newsCategory = data.newsCategory && isJournalist(userId) ? data.newsCategory : null;
+    const isBreaking = data.isBreaking && isJournalist(userId) ? 1 : 0;
+    const isLive = data.isLive && isJournalist(userId) ? 1 : 0;
+    const sources = data.sources && isJournalist(userId) ? JSON.stringify(data.sources) : '[]';
+
     const yanki = {
       id: genId(), userId, text: text || '', image: image || null,
       images: images ? JSON.stringify(images) : '[]',
@@ -1413,6 +1618,11 @@ const routes = {
       createdAt: new Date().toISOString()
     };
     stmts.insertYanki.run(yanki);
+    // Gazetecilik alanlarını ayrı güncelle
+    if (isArticle || newsCategory || isBreaking || isLive) {
+      sqlite.prepare('UPDATE yankis SET isArticle=?, articleTitle=?, articleBody=?, newsCategory=?, isBreaking=?, isLive=?, sources=? WHERE id=?')
+        .run(isArticle, articleTitle, articleBody, newsCategory, isBreaking, isLive, sources, yanki.id);
+    }
 
     if (replyToId) {
       const parent = parseYanki(stmts.getYankiById.get(replyToId));
@@ -1438,16 +1648,7 @@ const routes = {
     const { yankiId, userId } = data;
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
-    stmts.deleteLikesByYanki.run(yankiId);
-    stmts.deleteCommentsByYanki.run(yankiId);
-    stmts.deleteSavesByYanki.run(yankiId);
-    sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(yankiId);
-    sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(yankiId);
-    sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(yankiId);
-    sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(yankiId);
-    try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(yankiId); } catch(e) {}
-    sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(yankiId);
-    stmts.deleteYanki.run(yankiId);
+    deleteYankiCascade(yankiId);
     return { success: true };
   },
 
@@ -2152,36 +2353,27 @@ const routes = {
 
   'admin/yanki/delete': (data) => {
     const { yankiId } = data;
-    // Bağlı kayıtları önce sil (FK constraint)
-    stmts.deleteLikesByYanki.run(yankiId);
-    stmts.deleteCommentsByYanki.run(yankiId);
-    stmts.deleteSavesByYanki.run(yankiId);
-    sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(yankiId);
-    sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(yankiId);
-    sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(yankiId);
-    sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(yankiId);
-    try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(yankiId); } catch(e) {}
-    // Yorumları (reply yankılar) da sil
-    const replies = sqlite.prepare('SELECT id FROM yankis WHERE replyToId = ?').all(yankiId);
-    replies.forEach(r => {
-      stmts.deleteLikesByYanki.run(r.id);
-      sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(r.id);
-      sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(r.id);
-    });
-    sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(yankiId);
-    stmts.deleteYanki.run(yankiId);
+    deleteYankiCascade(yankiId);
     return { success: true };
   },
 
   'admin/yankis/recent': (data) => {
-    const yankis = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC LIMIT ?').all(data.limit || 50)
-      .map(y => {
+    const search = data.search || '';
+    let rows;
+    if (search) {
+      rows = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL AND text LIKE ? ORDER BY createdAt DESC LIMIT ?').all('%' + search + '%', data.limit || 50);
+    } else {
+      rows = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL ORDER BY createdAt DESC LIMIT ?').all(data.limit || 50);
+    }
+    const yankis = rows.map(y => {
         const author = getUser(y.userId);
+        const reportCount = sqlite.prepare('SELECT COUNT(*) as count FROM reports WHERE yankiId = ?').get(y.id).count;
         return {
-          ...parseYanki(y), username: author?.username, displayName: author?.displayName,
-          profileImage: author?.profileImage,
+          ...parseYanki(y), authorUsername: author?.username, authorDisplayName: author?.displayName,
+          authorIsBot: !!author?.isBot, profileImage: author?.profileImage,
           likes: stmts.getLikeCount.get(y.id).count,
-          commentCount: stmts.getCommentCount.get(y.id).count
+          comments: stmts.getCommentCount.get(y.id).count,
+          reportCount
         };
       });
     return { yankis };
@@ -2201,24 +2393,7 @@ const routes = {
     const { yankiIds } = data;
     if (!Array.isArray(yankiIds)) return { error: 'yankiIds gerekli' };
     const del = sqlite.transaction(() => {
-      yankiIds.forEach(id => {
-        stmts.deleteLikesByYanki.run(id);
-        stmts.deleteCommentsByYanki.run(id);
-        stmts.deleteSavesByYanki.run(id);
-        sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(id);
-        sqlite.prepare('DELETE FROM reports WHERE yankiId = ?').run(id);
-        sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(id);
-        sqlite.prepare('DELETE FROM pollVotes WHERE yankiId = ?').run(id);
-        try { sqlite.prepare('DELETE FROM bookmarks WHERE yankiId = ?').run(id); } catch(e) {}
-        const replies = sqlite.prepare('SELECT id FROM yankis WHERE replyToId = ?').all(id);
-        replies.forEach(r => {
-          stmts.deleteLikesByYanki.run(r.id);
-          sqlite.prepare('DELETE FROM reactions WHERE yankiId = ?').run(r.id);
-          sqlite.prepare('DELETE FROM notifications WHERE yankiId = ?').run(r.id);
-        });
-        sqlite.prepare('DELETE FROM yankis WHERE replyToId = ?').run(id);
-        stmts.deleteYanki.run(id);
-      });
+      yankiIds.forEach(id => deleteYankiCascade(id));
     });
     del();
     return { success: true, deletedCount: yankiIds.length };
@@ -2227,30 +2402,57 @@ const routes = {
   'admin/analytics': () => {
     const now = Date.now();
     const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
-    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const dailyActivity = [];
-    for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(now - (i + 1) * 24 * 60 * 60 * 1000).toISOString();
-      const dayEnd = new Date(now - i * 24 * 60 * 60 * 1000).toISOString();
-      dailyActivity.push({
-        date: dayEnd.split('T')[0],
-        yankis: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ? AND createdAt <= ?').get(dayStart, dayEnd).count,
-        likes: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE createdAt > ? AND createdAt <= ?').get(dayStart, dayEnd).count,
-        users: sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE createdAt > ? AND createdAt <= ?').get(dayStart, dayEnd).count
+    // Saatlik aktivite (son 24 saat)
+    const hourlyActivity = [];
+    for (let i = 23; i >= 0; i--) {
+      const hStart = new Date(now - (i + 1) * 60 * 60 * 1000).toISOString();
+      const hEnd = new Date(now - i * 60 * 60 * 1000).toISOString();
+      const h = new Date(now - i * 60 * 60 * 1000).getHours();
+      hourlyActivity.push({
+        label: String(h).padStart(2, '0') + ':00',
+        yankis: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ? AND createdAt <= ?').get(hStart, hEnd).count,
+        comments: sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE createdAt > ? AND createdAt <= ?').get(hStart, hEnd).count,
+        likes: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE createdAt > ? AND createdAt <= ?').get(hStart, hEnd).count
       });
     }
 
-    return {
-      totalUsers: sqlite.prepare('SELECT COUNT(*) as count FROM users').get().count,
-      totalYankis: sqlite.prepare('SELECT COUNT(*) as count FROM yankis').get().count,
-      totalLikes: sqlite.prepare('SELECT COUNT(*) as count FROM likes').get().count,
-      totalComments: sqlite.prepare('SELECT COUNT(*) as count FROM comments').get().count,
-      newUsersToday: sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE createdAt > ?').get(dayAgo).count,
-      newYankisToday: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ?').get(dayAgo).count,
-      newUsersWeek: sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE createdAt > ?').get(weekAgo).count,
-      dailyActivity
-    };
+    // Kullanıcı istatistikleri
+    const totalUsers = sqlite.prepare('SELECT COUNT(*) as count FROM users').get().count;
+    const botCount = sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE isBot = 1').get().count;
+    const realCount = totalUsers - botCount;
+    const bannedCount = sqlite.prepare('SELECT COUNT(*) as count FROM users WHERE banned = 1').get().count;
+    const reportedCount = sqlite.prepare('SELECT COUNT(*) as count FROM reports').get().count;
+    const activeToday = sqlite.prepare('SELECT COUNT(DISTINCT userId) as count FROM yankis WHERE createdAt > ?').get(dayAgo).count;
+
+    // Etkileşim oranı
+    const totalYankis = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ?').get(dayAgo).count;
+    const totalLikes = sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE createdAt > ?').get(dayAgo).count;
+    const totalComments = sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE createdAt > ?').get(dayAgo).count;
+    const engagementRate = totalYankis > 0 ? Math.round(((totalLikes + totalComments) / totalYankis) * 100) : 0;
+
+    // Sağlık skoru
+    const healthScore = Math.min(100, Math.round(
+      (activeToday / Math.max(realCount, 1)) * 40 +
+      Math.min(engagementRate, 100) * 0.3 +
+      (reportedCount === 0 ? 20 : Math.max(0, 20 - reportedCount * 5)) +
+      (bannedCount === 0 ? 10 : Math.max(0, 10 - bannedCount * 2))
+    ));
+
+    // En aktif kullanıcılar
+    const userActivity = sqlite.prepare(`
+      SELECT u.id, u.displayName, u.isBot,
+        (SELECT COUNT(*) FROM yankis WHERE userId = u.id AND createdAt > ?) as yankis,
+        (SELECT COUNT(*) FROM comments WHERE userId = u.id AND createdAt > ?) as comments,
+        (SELECT COUNT(*) FROM likes WHERE userId = u.id AND createdAt > ?) as likes
+      FROM users u
+      ORDER BY yankis + comments + likes DESC LIMIT 10
+    `).all(dayAgo, dayAgo, dayAgo).map(u => ({
+      ...u, isBot: !!u.isBot,
+      score: u.yankis * 3 + u.comments * 2 + u.likes
+    })).filter(u => u.score > 0);
+
+    return { totalUsers, botCount, realCount, bannedCount, reportedCount, activeToday, engagementRate, healthScore, hourlyActivity, userActivity };
   },
 
   'admin/bots': () => {
@@ -2491,10 +2693,16 @@ const routes = {
 
   // ═══ EDIT YANKI ═══
   'yanki/edit': (data) => {
-    const { yankiId, userId, text } = data;
+    const { yankiId, userId, text, correctionNote } = data;
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    if (!isPro(userId)) return { error: 'Düzenleme özelliği Pro ve Gazeteci üyelere özeldir' };
+    const charLimit = getCharLimit(userId);
+    if (text && text.length > charLimit) return { error: `Karakter limiti aşıldı (max ${charLimit})` };
     sqlite.prepare('UPDATE yankis SET text = ?, editedAt = ? WHERE id = ?').run(text, new Date().toISOString(), yankiId);
+    if (correctionNote && isJournalist(userId)) {
+      sqlite.prepare('UPDATE yankis SET correctionNote = ? WHERE id = ?').run(correctionNote, yankiId);
+    }
     return { yanki: enrichYanki(yankiId, userId) };
   },
 
@@ -2533,15 +2741,363 @@ const routes = {
 
   'profile/featured': (data) => {
     const { userId, viewerId } = data;
-    // Önce kullanıcının elle seçtiği öne çıkan yankıları getir
     let yankis = sqlite.prepare('SELECT * FROM yankis WHERE userId = ? AND featured = 1 AND replyToId IS NULL ORDER BY createdAt DESC LIMIT 3').all(userId);
-    // Yoksa en çok beğenilenleri göster
     if (!yankis.length) {
       yankis = sqlite.prepare('SELECT y.*, COUNT(l.id) as likeCount FROM yankis y LEFT JOIN likes l ON l.yankiId = y.id WHERE y.userId = ? AND y.replyToId IS NULL AND y.reyankiOfId IS NULL GROUP BY y.id ORDER BY likeCount DESC LIMIT 3').all(userId);
       yankis = yankis.filter(y => y.likeCount > 0);
     }
     const featured = yankis.map(y => enrichYanki(y, viewerId)).filter(Boolean);
     return { featured };
+  },
+
+  // ═══ BOOST ═══
+  // Boost mantığı:
+  // - Temel boost (48 saat): Pro/Journalist üyelere ücretsiz, aylık limit (Pro=3, Journalist=5)
+  // - Ekstra süre ve hedefleme: Yankı Coin ile satın alınır (Pro/Journalist gerekli)
+  // - Coin sadece ek özellikler için harcanır, temel boost hakkı tier'a bağlıdır
+  'yanki/boost': (data) => {
+    const { yankiId, userId, duration, targetAge, targetRegion, targetCategory } = data;
+    if (!isPro(userId)) return { error: 'Boost özelliği Pro ve Gazeteci üyelere özel' };
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
+    if (yanki.boosted) return { error: 'Bu yankı zaten boost edilmiş' };
+
+    const tier = getUserTier(userId);
+    const boostLimit = tier === 'journalist' ? 5 : 3;
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    const usedBoosts = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND boosted = 1 AND boostedAt > ?').get(userId, monthStart).count;
+    if (usedBoosts >= boostLimit) return { error: `Bu ay ${boostLimit} boost hakkınızın tamamını kullandınız` };
+
+    // Coin sadece ek özellikler için (ekstra süre + hedefleme)
+    const dur = duration || 48;
+    let coinCost = 0;
+    if (dur > 48) coinCost += Math.floor((dur - 48) / 24) * 5;
+    if (targetAge) coinCost += 3;
+    if (targetRegion) coinCost += 3;
+    if (targetCategory) coinCost += 2;
+
+    const u = getUser(userId);
+    const coins = u.yankiCoins || 0;
+    if (coinCost > 0 && coins < coinCost) return { error: `Yetersiz Yankı Coin! Gereken: ${coinCost}, Mevcut: ${coins}` };
+    if (coinCost > 0) {
+      sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ?').run(coinCost, userId);
+    }
+
+    sqlite.prepare('UPDATE yankis SET boosted = 1, boostedAt = ?, boostDuration = ?, boostTargetAge = ?, boostTargetRegion = ?, boostTargetCategory = ?, boostCoinSpent = ? WHERE id = ?')
+      .run(new Date().toISOString(), dur, targetAge || null, targetRegion || null, targetCategory || null, coinCost, yankiId);
+    sqlite.prepare('UPDATE users SET boostCount = boostCount + 1 WHERE id = ?').run(userId);
+    return { success: true, remaining: boostLimit - usedBoosts - 1, coinSpent: coinCost, coinsLeft: coins - coinCost };
+  },
+
+  'yanki/unboost': (data) => {
+    const { yankiId, userId } = data;
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yetkiniz yok' };
+    sqlite.prepare('UPDATE yankis SET boosted = 0, boostedAt = NULL WHERE id = ?').run(yankiId);
+    return { success: true };
+  },
+
+  'boost/info': (data) => {
+    const { userId } = data;
+    const u = getUser(userId);
+    const coins = u?.yankiCoins || 0;
+    if (!isPro(userId)) return { tier: 'free', limit: 0, used: 0, remaining: 0, coins };
+    const tier = getUserTier(userId);
+    const boostLimit = tier === 'journalist' ? 5 : 3;
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    const used = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND boosted = 1 AND boostedAt > ?').get(userId, monthStart).count;
+    return { tier, limit: boostLimit, used, remaining: boostLimit - used, coins };
+  },
+
+  // ═══ COIN ═══
+  'coins/info': (data) => {
+    const u = getUser(data.userId);
+    return { coins: u?.yankiCoins || 0 };
+  },
+  'coins/add': (data) => {
+    // Admin only
+    const { targetUserId, amount } = data;
+    sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins + ? WHERE id = ?').run(amount, targetUserId);
+    const u = getUser(targetUserId);
+    return { success: true, newBalance: u?.yankiCoins || 0 };
+  },
+
+  // ═══ USER ANALYTICS ═══
+  'user/analytics': (data) => {
+    const { userId } = data;
+    const u = getUser(userId);
+    if (!u) return { error: 'Kullanıcı bulunamadı' };
+    const totalYankis = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE userId = ? AND replyToId IS NULL').get(userId).c;
+    const totalLikes = sqlite.prepare('SELECT COUNT(*) as c FROM likes l JOIN yankis y ON y.id = l.yankiId WHERE y.userId = ?').get(userId).c;
+    const totalComments = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE replyToId IN (SELECT id FROM yankis WHERE userId = ?)').get(userId).c;
+    const totalReyankis = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE reyankiOfId IN (SELECT id FROM yankis WHERE userId = ?)').get(userId).c;
+    const totalViews = totalYankis * 12; // simulated view count
+    const followerCount = sqlite.prepare('SELECT COUNT(*) as c FROM follows WHERE followingId = ?').get(userId).c;
+    const followingCount = sqlite.prepare('SELECT COUNT(*) as c FROM follows WHERE followerId = ?').get(userId).c;
+    // Son 7 gün aktivite
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const weekYankis = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE userId = ? AND createdAt > ?').get(userId, weekAgo).c;
+    const weekLikes = sqlite.prepare('SELECT COUNT(*) as c FROM likes l JOIN yankis y ON y.id = l.yankiId WHERE y.userId = ? AND l.createdAt > ?').get(userId, weekAgo).c;
+    // En popüler yankı
+    const topYanki = sqlite.prepare('SELECT y.*, COUNT(l.id) as lc FROM yankis y LEFT JOIN likes l ON l.yankiId = y.id WHERE y.userId = ? AND y.replyToId IS NULL GROUP BY y.id ORDER BY lc DESC LIMIT 1').get(userId);
+    // Günlük aktivite (son 7 gün)
+    const dailyActivity = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).toISOString();
+      const yc = sqlite.prepare('SELECT COUNT(*) as c FROM yankis WHERE userId = ? AND createdAt >= ? AND createdAt < ?').get(userId, dayStart, dayEnd).c;
+      const lc = sqlite.prepare('SELECT COUNT(*) as c FROM likes l JOIN yankis y ON y.id = l.yankiId WHERE y.userId = ? AND l.createdAt >= ? AND l.createdAt < ?').get(userId, dayStart, dayEnd).c;
+      dailyActivity.push({ day: ['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'][d.getDay()], yankis: yc, likes: lc });
+    }
+    const engagementRate = totalYankis > 0 ? Math.round(((totalLikes + totalComments + totalReyankis) / totalYankis) * 100) / 100 : 0;
+    return {
+      totalYankis, totalLikes, totalComments, totalReyankis, totalViews,
+      followerCount, followingCount,
+      weekYankis, weekLikes,
+      engagementRate,
+      topYanki: topYanki ? { id: topYanki.id, text: topYanki.text, likes: topYanki.lc } : null,
+      dailyActivity,
+      coins: u.yankiCoins || 0
+    };
+  },
+
+  // ═══ PREMIUM / TİER ═══
+  'tier/info': (data) => {
+    const { userId } = data;
+    const u = getUser(userId);
+    if (!u) return { error: 'Kullanıcı bulunamadı' };
+    return {
+      tier: u.tier || 'free', tierExpiresAt: u.tierExpiresAt || null,
+      charLimit: getCharLimit(userId),
+      features: {
+        free: { charLimit: 500, canEdit: false, ads: true, analytics: false, boost: false, badge: null },
+        pro: { charLimit: 2000, canEdit: true, ads: false, analytics: true, boost: true, badge: 'PRO' },
+        journalist: { charLimit: 5000, canEdit: true, ads: false, analytics: true, boost: true, badge: 'BASIN',
+          articles: true, breakingNews: true, liveThread: true, newsCategories: true, sources: true, communityNotes: true }
+      }
+    };
+  },
+
+  // Hafif senkronizasyon: frontend'in tier/charLimit/coins bilgisini doğrulaması için
+  'tier/sync': (data) => {
+    const u = getUser(data.userId);
+    if (!u) return { error: 'Kullanıcı bulunamadı' };
+    return { tier: u.tier || 'free', charLimit: getCharLimit(data.userId), yankiCoins: u.yankiCoins || 0, tierExpiresAt: u.tierExpiresAt || null };
+  },
+
+  'tier/upgrade': (data) => {
+    const { userId, tier } = data;
+    if (!['free', 'pro', 'journalist'].includes(tier)) return { error: 'Geçersiz tier' };
+    if (tier === 'journalist') {
+      // Gazetecilik için başvuru onayı lazım
+      const app = sqlite.prepare("SELECT * FROM journalist_applications WHERE userId = ? AND status = 'approved' ORDER BY createdAt DESC LIMIT 1").get(userId);
+      if (!app) return { error: 'Gazetecilik için başvurunuz onaylanmalı' };
+    }
+    const expires = tier === 'free' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, userId);
+    const u = getUser(userId);
+    return { success: true, user: { ...u, password: undefined }, charLimit: getCharLimit(userId) };
+  },
+
+  // ═══ GAZETECİLİK ═══
+  'journalist/apply': (data) => {
+    const { userId, orgName, expertise, portfolio, pressCard, statement } = data;
+    if (!userId || !orgName || !statement) return { error: 'Kuruluş adı ve başvuru metni gerekli' };
+    const existing = sqlite.prepare("SELECT * FROM journalist_applications WHERE userId = ? AND status = 'pending'").get(userId);
+    if (existing) return { error: 'Zaten bekleyen bir başvurunuz var' };
+    const id = genId();
+    sqlite.prepare('INSERT INTO journalist_applications (id, userId, orgName, expertise, portfolio, pressCard, statement, status, createdAt) VALUES (?,?,?,?,?,?,?,?,?)')
+      .run(id, userId, orgName, expertise || '', portfolio || '', pressCard || '', statement, 'pending', new Date().toISOString());
+    return { success: true, applicationId: id };
+  },
+
+  'journalist/application-status': (data) => {
+    const { userId } = data;
+    const app = sqlite.prepare('SELECT * FROM journalist_applications WHERE userId = ? ORDER BY createdAt DESC LIMIT 1').get(userId);
+    return { application: app || null };
+  },
+
+  'news/feed': (data) => {
+    const { userId, category } = data;
+    let sql = "SELECT * FROM yankis WHERE replyToId IS NULL AND (isArticle = 1 OR newsCategory IS NOT NULL OR isBreaking = 1) ";
+    const params = [];
+    if (category) { sql += " AND newsCategory = ? "; params.push(category); }
+    sql += " ORDER BY isBreaking DESC, createdAt DESC LIMIT 50";
+    const yankis = sqlite.prepare(sql).all(...params);
+    return { yankis: yankis.map(y => enrichYanki(y, userId)).filter(Boolean) };
+  },
+
+  'news/breaking': (data) => {
+    const { userId } = data;
+    const yankis = sqlite.prepare('SELECT * FROM yankis WHERE isBreaking = 1 ORDER BY createdAt DESC LIMIT 10').all();
+    return { yankis: yankis.map(y => enrichYanki(y, userId)).filter(Boolean) };
+  },
+
+  'article/update': (data) => {
+    const { yankiId, userId, articleTitle, articleBody, correctionNote, isLive, sources } = data;
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki || yanki.userId !== userId) return { error: 'Yetkiniz yok' };
+    if (!isJournalist(userId)) return { error: 'Bu özellik gazetecilere özel' };
+    const updates = [];
+    const params = [];
+    if (articleTitle !== undefined) { updates.push('articleTitle=?'); params.push(articleTitle); }
+    if (articleBody !== undefined) { updates.push('articleBody=?'); params.push(articleBody); }
+    if (correctionNote !== undefined) { updates.push('correctionNote=?'); params.push(correctionNote); }
+    if (isLive !== undefined) { updates.push('isLive=?'); params.push(isLive ? 1 : 0); }
+    if (sources !== undefined) { updates.push('sources=?'); params.push(JSON.stringify(sources)); }
+    if (updates.length) {
+      updates.push('editedAt=?'); params.push(new Date().toISOString());
+      params.push(yankiId);
+      sqlite.prepare(`UPDATE yankis SET ${updates.join(',')} WHERE id=?`).run(...params);
+    }
+    return { yanki: enrichYanki(yankiId, userId) };
+  },
+
+  'community-note/add': (data) => {
+    const { yankiId, userId, text } = data;
+    if (!text || text.length < 10) return { error: 'Not en az 10 karakter olmalı' };
+    const existing = sqlite.prepare('SELECT * FROM community_notes WHERE yankiId = ? AND userId = ?').get(yankiId, userId);
+    if (existing) return { error: 'Bu yankıya zaten not eklediniz' };
+    const id = genId();
+    sqlite.prepare('INSERT INTO community_notes (id, yankiId, userId, text, status, createdAt) VALUES (?,?,?,?,?,?)')
+      .run(id, yankiId, userId, text, 'pending', new Date().toISOString());
+    return { success: true };
+  },
+
+  'community-note/vote': (data) => {
+    const { noteId, vote } = data;
+    if (vote === 'up') sqlite.prepare('UPDATE community_notes SET upvotes = upvotes + 1 WHERE id = ?').run(noteId);
+    else sqlite.prepare('UPDATE community_notes SET downvotes = downvotes + 1 WHERE id = ?').run(noteId);
+    return { success: true };
+  },
+
+  // ═══ REKLAMLAR ═══
+  'ads/banner': (data) => {
+    const { userId } = data;
+    if (isPro(userId)) return { ad: null };
+    const now = new Date().toISOString();
+    const ad = sqlite.prepare("SELECT * FROM ads WHERE active = 1 AND type = 'banner' AND (startDate IS NULL OR startDate <= ?) AND (endDate IS NULL OR endDate >= ?) ORDER BY priority DESC LIMIT 1").get(now, now);
+    if (ad) sqlite.prepare('UPDATE ads SET impressions = impressions + 1 WHERE id = ?').run(ad.id);
+    return { ad };
+  },
+
+  'ads/click': (data) => {
+    const { adId } = data;
+    sqlite.prepare('UPDATE ads SET clicks = clicks + 1 WHERE id = ?').run(adId);
+    return { success: true };
+  },
+
+  'ads/impression': (data) => {
+    const { adId } = data;
+    sqlite.prepare('UPDATE ads SET impressions = impressions + 1 WHERE id = ?').run(adId);
+    return { success: true };
+  },
+
+  // ═══ ADMIN: REKLAMLAR ═══
+  'admin/ads': (data) => {
+    const ads = sqlite.prepare('SELECT * FROM ads ORDER BY createdAt DESC').all();
+    return { ads };
+  },
+
+  'admin/ads/create': (data) => {
+    const { type, title, text, image, linkUrl, linkText, priority, startDate, endDate, createdBy } = data;
+    if (!type || !title) return { error: 'Tür ve başlık gerekli' };
+    const id = genId();
+    sqlite.prepare('INSERT INTO ads (id, type, title, text, image, linkUrl, linkText, priority, startDate, endDate, createdBy, createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(id, type, title, text || '', image || null, linkUrl || null, linkText || null, priority || 0, startDate || null, endDate || null, createdBy || null, new Date().toISOString());
+    return { success: true, ad: sqlite.prepare('SELECT * FROM ads WHERE id = ?').get(id) };
+  },
+
+  'admin/ads/update': (data) => {
+    const { adId, active, priority, title, text, image, linkUrl, linkText, startDate, endDate } = data;
+    const updates = []; const params = [];
+    if (active !== undefined) { updates.push('active=?'); params.push(active ? 1 : 0); }
+    if (priority !== undefined) { updates.push('priority=?'); params.push(priority); }
+    if (title !== undefined) { updates.push('title=?'); params.push(title); }
+    if (text !== undefined) { updates.push('text=?'); params.push(text); }
+    if (image !== undefined) { updates.push('image=?'); params.push(image); }
+    if (linkUrl !== undefined) { updates.push('linkUrl=?'); params.push(linkUrl); }
+    if (linkText !== undefined) { updates.push('linkText=?'); params.push(linkText); }
+    if (startDate !== undefined) { updates.push('startDate=?'); params.push(startDate); }
+    if (endDate !== undefined) { updates.push('endDate=?'); params.push(endDate); }
+    if (updates.length) { params.push(adId); sqlite.prepare(`UPDATE ads SET ${updates.join(',')} WHERE id=?`).run(...params); }
+    return { success: true };
+  },
+
+  'admin/ads/delete': (data) => {
+    sqlite.prepare('DELETE FROM ads WHERE id = ?').run(data.adId);
+    return { success: true };
+  },
+
+  'admin/ads/stats': (data) => {
+    const total = sqlite.prepare('SELECT COUNT(*) as count FROM ads').get().count;
+    const active = sqlite.prepare('SELECT COUNT(*) as count FROM ads WHERE active = 1').get().count;
+    const totalImpressions = sqlite.prepare('SELECT SUM(impressions) as total FROM ads').get().total || 0;
+    const totalClicks = sqlite.prepare('SELECT SUM(clicks) as total FROM ads').get().total || 0;
+    return { total, active, totalImpressions, totalClicks, ctr: totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0' };
+  },
+
+  // ═══ ADMIN: GAZETECİLİK ═══
+  'admin/journalist/applications': (data) => {
+    const apps = sqlite.prepare('SELECT ja.*, u.username, u.displayName, u.profileImage FROM journalist_applications ja LEFT JOIN users u ON u.id = ja.userId ORDER BY ja.createdAt DESC').all();
+    return { applications: apps };
+  },
+
+  'admin/journalist/review': (data) => {
+    const { applicationId, status, reviewedBy } = data;
+    if (!['approved', 'rejected'].includes(status)) return { error: 'Geçersiz durum' };
+    const app = sqlite.prepare('SELECT * FROM journalist_applications WHERE id = ?').get(applicationId);
+    if (!app) return { error: 'Başvuru bulunamadı' };
+    sqlite.prepare('UPDATE journalist_applications SET status = ?, reviewedBy = ?, reviewedAt = ? WHERE id = ?')
+      .run(status, reviewedBy, new Date().toISOString(), applicationId);
+    if (status === 'approved') {
+      const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = ?, journalistExpertise = ? WHERE id = ?')
+        .run('journalist', expires, app.orgName, app.expertise, app.userId);
+    }
+    return { success: true };
+  },
+
+  'admin/tiers': (data) => {
+    const free = sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE tier IS NULL OR tier = 'free'").get().count;
+    const pro = sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE tier = 'pro'").get().count;
+    const journalist = sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE tier = 'journalist'").get().count;
+    const pendingApps = sqlite.prepare("SELECT COUNT(*) as count FROM journalist_applications WHERE status = 'pending'").get().count;
+    // Premium kullanıcı listesi
+    const premiumUsers = sqlite.prepare("SELECT id, username, displayName, tier, tierExpiresAt, journalistOrg, isBot FROM users WHERE tier IN ('pro','journalist') ORDER BY tier DESC, displayName").all();
+    return { free, pro, journalist, pendingApps, premiumUsers };
+  },
+
+  'admin/tier/set': (data) => {
+    const { targetUserId, tier, duration } = data;
+    // duration: '30d' (30 gün), '365d' (1 yıl), 'lifetime' (süresiz), veya undefined (varsayılan 365 gün)
+    if (!['free', 'pro', 'journalist'].includes(tier)) return { error: 'Geçersiz tier' };
+    let expires = null;
+    if (tier !== 'free') {
+      if (duration === 'lifetime') {
+        expires = null; // Süresiz
+      } else if (duration === '30d') {
+        expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      } else {
+        expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(); // Varsayılan 1 yıl
+      }
+    }
+    sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, targetUserId);
+    return { success: true, tier, expires };
+  },
+
+  // Admin: topluluk notları yönetimi
+  'admin/community-notes': (data) => {
+    const notes = sqlite.prepare("SELECT cn.*, u.username, u.displayName, y.text as yankiText FROM community_notes cn LEFT JOIN users u ON u.id = cn.userId LEFT JOIN yankis y ON y.id = cn.yankiId ORDER BY cn.createdAt DESC LIMIT 50").all();
+    return { notes };
+  },
+
+  'admin/community-note/review': (data) => {
+    const { noteId, status } = data;
+    if (!['approved', 'rejected'].includes(status)) return { error: 'Geçersiz durum' };
+    sqlite.prepare('UPDATE community_notes SET status = ? WHERE id = ?').run(status, noteId);
+    return { success: true };
   }
 };
 
