@@ -1901,6 +1901,7 @@ select:focus{border-color:var(--accent);outline:none}
 .composer-journalist-tools{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0;border-top:1px solid var(--border);margin-top:8px}
 .composer-journalist-btn{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;background:var(--elevated);color:var(--text);border:1px solid var(--border);cursor:pointer;transition:all .15s}
 .composer-journalist-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.composer-input.article-mode{min-height:300px;font-size:15px;line-height:1.8;border-radius:12px}
 .composer-article-fields{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .composer-article-fields input,.composer-article-fields textarea,.composer-article-fields select{background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;font-family:var(--font)}
 </style>
@@ -4997,6 +4998,8 @@ const NF_META = {
   message:        { emoji:'💌', bg:'#ec4899' },
   quote:          { emoji:'💬', bg:'#8b5cf6' },
   reaction:       { emoji:'😊', bg:'#f97316' },
+  journalist_rejected: { emoji:'❌', bg:'#ef4444' },
+  journalist_approved: { emoji:'✅', bg:'#22c55e' },
 };
 const _nfUser = n => n.fromUser?.displayName || n.fromName || 'Biri';
 const NF_TEXT = {
@@ -5014,6 +5017,8 @@ const NF_TEXT = {
   achievement:    n=>`🏆 Başarı ödülü kazandınız! +10 Yankı Coin`,
   quote:          n=>`<strong>${_nfUser(n)}</strong> yankını alıntıladı`,
   reaction:       n=>`<strong>${_nfUser(n)}</strong> yankına tepki verdi`,
+  journalist_rejected: n=>`❌ Gazetecilik başvurunuz reddedildi`,
+  journalist_approved: n=>`✅ Gazetecilik başvurunuz onaylandı!`,
 };
 
 let _nfState = { tab:'all', onlyUnread:false };
@@ -7142,11 +7147,12 @@ const toggleAd=async(adId,active)=>{
   adminLoadAds();
 };
 
-const deleteAd=async(adId)=>{
-  if(!confirm('Bu reklamı silmek istediğinize emin misiniz?'))return;
-  await api('/admin/ads/delete',{adId});
-  toast('🗑 Reklam silindi');
-  adminLoadAds();
+const deleteAd=(adId)=>{
+  askConfirm('Bu reklamı silmek istediğinize emin misiniz?', async()=>{
+    await api('/admin/ads/delete',{adId});
+    toast('🗑 Reklam silindi');
+    adminLoadAds();
+  });
 };
 
 const editAd=async(adId)=>{
@@ -7260,11 +7266,22 @@ const adminLoadJournalism=async()=>{
   }).join(''):'<div class="empty">Henüz topluluk notu yok</div>';
 };
 
-const reviewJournalist=async(appId,status)=>{
-  const r=await api('/admin/journalist/review',{applicationId:appId,status,reviewedBy:user.id});
-  if(r.error){toast(r.error);return;}
-  toast(status==='approved'?'✅ Başvuru onaylandı':'❌ Başvuru reddedildi');
-  adminLoadJournalism();
+const reviewJournalist=(appId,status)=>{
+  if(status==='rejected'){
+    askPrompt('Ret nedeni (başvuru sahibine bildirilecek):','Neden belirtin...', async(reason)=>{
+      const r=await api('/admin/journalist/review',{applicationId:appId,status,reviewedBy:user.id,reason:reason||null});
+      if(r.error){toast(r.error);return;}
+      toast('❌ Başvuru reddedildi');
+      adminLoadJournalism();
+    });
+  } else {
+    askConfirm('Bu başvuruyu onaylamak istediğinize emin misiniz?', async()=>{
+      const r=await api('/admin/journalist/review',{applicationId:appId,status,reviewedBy:user.id});
+      if(r.error){toast(r.error);return;}
+      toast('✅ Başvuru onaylandı');
+      adminLoadJournalism();
+    });
+  }
 };
 
 const reviewNote=async(noteId,status)=>{
@@ -7276,7 +7293,7 @@ const reviewNote=async(noteId,status)=>{
 // ── Gazeteci Composer Araçları ──
 window._jArticle=false;window._jBreaking=false;window._jLive=false;window._jCategory='';
 const toggleJournalistMode=(mode,btn)=>{
-  if(mode==='article'){window._jArticle=!window._jArticle;btn.classList.toggle('active');$('jt-article-fields').style.display=window._jArticle?'flex':'none';}
+  if(mode==='article'){window._jArticle=!window._jArticle;btn.classList.toggle('active');$('jt-article-fields').style.display=window._jArticle?'flex':'none';$('yanki-input').classList.toggle('article-mode',window._jArticle);}
   if(mode==='breaking'){window._jBreaking=!window._jBreaking;btn.classList.toggle('active');}
   if(mode==='live'){window._jLive=!window._jLive;btn.classList.toggle('active');}
 };
@@ -7622,21 +7639,23 @@ const adminSetTier=async(targetUserId,tier)=>{
 };
 const adminChangeTier=(targetUserId,tier,duration)=>{
   const tierNames={free:'Ücretsiz',pro:'Pro',journalist:'Gazeteci'};
-  const durNames={'30d':'30 gün','365d':'1 yıl','lifetime':'Süresiz'};
   const doChange=async(dur)=>{
-    askConfirm(`${tierNames[tier]} plana geçir${dur?' ('+durNames[dur]+')':''}?`, async()=>{
+    const label=dur==='lifetime'?'Süresiz':dur+' gün';
+    askConfirm(`${tierNames[tier]} plana geçir (${label})?`, async()=>{
       const r=await api('/admin/tier/set',{targetUserId,tier,duration:dur});
       if(r.error){toast(r.error);return;}
-      toast(`✅ Plan: ${tierNames[tier]}${dur?' ('+durNames[dur]+')':''}`);
+      toast(`✅ Plan: ${tierNames[tier]} (${label})`);
       adminLoadJournalism();
     });
   };
-  if(tier==='free'||duration){doChange(duration);return;}
-  askPrompt('Süre seçin: 30d / 365d / lifetime', '365d', (dur)=>{
+  if(tier==='free'||duration){doChange(duration||0);return;}
+  askPrompt('Süre girin (gün sayısı veya "lifetime"):', '365', (dur)=>{
     if(!dur)return;
-    if(!['30d','365d','lifetime'].includes(dur)){toast('Geçersiz süre');return;}
-    doChange(dur);
-  }, '365d');
+    if(dur==='lifetime'){doChange('lifetime');return;}
+    const days=parseInt(dur);
+    if(isNaN(days)||days<=0){toast('Geçersiz süre — sayı veya "lifetime" girin');return;}
+    doChange(days);
+  }, '365');
 };
 </script>
 

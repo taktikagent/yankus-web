@@ -259,6 +259,7 @@ try { sqlite.prepare('ALTER TABLE users ADD COLUMN tierExpiresAt TEXT').run(); }
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN journalistOrg TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN journalistExpertise TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN journalistBio TEXT').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE journalist_applications ADD COLUMN rejectReason TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boosted INTEGER DEFAULT 0').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostedAt TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN boostCount INTEGER DEFAULT 0').run(); } catch(e) {}
@@ -335,6 +336,7 @@ sqlite.exec(`
     status TEXT DEFAULT 'pending',
     reviewedBy TEXT,
     reviewedAt TEXT,
+    rejectReason TEXT,
     createdAt TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS community_notes (
@@ -524,8 +526,8 @@ function parseUser(row) {
 // Süresi dolan tier'ları temizleyen bağımsız zamanlayıcı (her 5 dk)
 function cleanExpiredTiers() {
   const now = new Date().toISOString();
-  const expired = sqlite.prepare("UPDATE users SET tier = 'free', tierExpiresAt = NULL WHERE tier != 'free' AND tierExpiresAt IS NOT NULL AND tierExpiresAt < ?").run(now);
-  if (expired.changes > 0) console.log(`⏰ ${expired.changes} kullanıcının tier süresi doldu, free'ye düşürüldü`);
+  const expired = sqlite.prepare("UPDATE users SET tier = 'free', tierExpiresAt = NULL, journalistOrg = NULL, journalistExpertise = NULL, journalistBio = NULL WHERE tier != 'free' AND tierExpiresAt IS NOT NULL AND tierExpiresAt < ?").run(now);
+  if (expired.changes > 0) console.log(`⏰ ${expired.changes} kullanıcının tier süresi doldu, free'ye düşürüldü (gazeteci verileri temizlendi)`);
 }
 cleanExpiredTiers(); // Başlangıçta çalıştır
 setInterval(cleanExpiredTiers, 5 * 60 * 1000); // Her 5 dakikada bir
@@ -3121,12 +3123,25 @@ const routes = {
     const { userId, tier } = data;
     if (!['free', 'pro', 'journalist'].includes(tier)) return { error: 'Geçersiz tier' };
     if (tier === 'journalist') {
-      // Gazetecilik için başvuru onayı lazım
       const app = sqlite.prepare("SELECT * FROM journalist_applications WHERE userId = ? AND status = 'approved' ORDER BY createdAt DESC LIMIT 1").get(userId);
       if (!app) return { error: 'Gazetecilik için başvurunuz onaylanmalı' };
     }
+    // Coin ücreti: free'ye geçiş bedava, pro=100, journalist=başvuru ile (bedava)
+    const tierCosts = { free: 0, pro: 100, journalist: 0 };
+    const cost = tierCosts[tier] || 0;
+    if (cost > 0) {
+      const deducted = sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ? AND yankiCoins >= ?').run(cost, userId, cost);
+      if (deducted.changes === 0) {
+        const u = getUser(userId);
+        return { error: `Yetersiz Yankı Coin! Gereken: ${cost}, Mevcut: ${u?.yankiCoins || 0}` };
+      }
+    }
     const expires = tier === 'free' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, userId);
+    if (tier === 'free') {
+      sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = NULL, journalistExpertise = NULL, journalistBio = NULL WHERE id = ?').run(tier, expires, userId);
+    } else {
+      sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, userId);
+    }
     const u = getUser(userId);
     return { success: true, user: { ...u, password: undefined }, charLimit: getCharLimit(userId) };
   },
@@ -3276,16 +3291,22 @@ const routes = {
   },
 
   'admin/journalist/review': (data) => {
-    const { applicationId, status, reviewedBy } = data;
+    const { applicationId, status, reviewedBy, reason } = data;
     if (!['approved', 'rejected'].includes(status)) return { error: 'Geçersiz durum' };
     const app = sqlite.prepare('SELECT * FROM journalist_applications WHERE id = ?').get(applicationId);
     if (!app) return { error: 'Başvuru bulunamadı' };
-    sqlite.prepare('UPDATE journalist_applications SET status = ?, reviewedBy = ?, reviewedAt = ? WHERE id = ?')
-      .run(status, reviewedBy, new Date().toISOString(), applicationId);
+    sqlite.prepare('UPDATE journalist_applications SET status = ?, reviewedBy = ?, reviewedAt = ?, rejectReason = ? WHERE id = ?')
+      .run(status, reviewedBy, new Date().toISOString(), reason || null, applicationId);
     if (status === 'approved') {
       const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
       sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = ?, journalistExpertise = ? WHERE id = ?')
         .run('journalist', expires, app.orgName, app.expertise, app.userId);
+    }
+    if (status === 'rejected') {
+      stmts.insertNotification.run({ id: genId(), userId: app.userId, fromId: 'system', type: 'journalist_rejected', yankiId: null, read: 0, createdAt: new Date().toISOString() });
+    }
+    if (status === 'approved') {
+      stmts.insertNotification.run({ id: genId(), userId: app.userId, fromId: 'system', type: 'journalist_approved', yankiId: null, read: 0, createdAt: new Date().toISOString() });
     }
     return { success: true };
   },
@@ -3302,19 +3323,22 @@ const routes = {
 
   'admin/tier/set': (data) => {
     const { targetUserId, tier, duration } = data;
-    // duration: '30d' (30 gün), '365d' (1 yıl), 'lifetime' (süresiz), veya undefined (varsayılan 365 gün)
+    // duration: tam sayı gün (integer) veya 'lifetime' (süresiz)
     if (!['free', 'pro', 'journalist'].includes(tier)) return { error: 'Geçersiz tier' };
     let expires = null;
     if (tier !== 'free') {
-      if (duration === 'lifetime') {
+      if (duration === 'lifetime' || duration === 0) {
         expires = null; // Süresiz
-      } else if (duration === '30d') {
-        expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       } else {
-        expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(); // Varsayılan 1 yıl
+        const days = parseInt(duration) || 365; // Varsayılan 365 gün
+        expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
       }
     }
-    sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, targetUserId);
+    if (tier === 'free') {
+      sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = NULL, journalistExpertise = NULL, journalistBio = NULL WHERE id = ?').run(tier, expires, targetUserId);
+    } else {
+      sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, targetUserId);
+    }
     return { success: true, tier, expires };
   },
 
