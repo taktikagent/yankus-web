@@ -1133,7 +1133,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 /* ═══════════════════════════════════════════════════════════
    ANLIQ BİLDİRİM POPUP KARTI
 ═══════════════════════════════════════════════════════════ */
-#nf-popup-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column-reverse;gap:8px;z-index:9999;pointer-events:none}
+#nf-popup-wrap{position:fixed;top:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;pointer-events:none}
 .nf-popup{pointer-events:all;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px 14px;width:290px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.45);cursor:pointer;position:relative;overflow:hidden;animation:nfSlideIn .3s cubic-bezier(.34,1.1,.64,1) both}
 .nf-popup::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
 .nf-popup.mile-popup::before{background:var(--gradient)}
@@ -1197,7 +1197,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .premium-action-btn.primary:hover{opacity:.9}
 .premium-action-btn.secondary{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
 .premium-action-btn.secondary:hover{border-color:var(--accent)}
-@media(max-width:768px){.premium-fab{bottom:16px;left:16px}.premium-popup{width:calc(100vw - 32px)}}
+@media(max-width:768px){
+.premium-fab{bottom:70px;left:16px}.premium-popup{width:calc(100vw - 32px)}
+.right-col{display:none}
+.main-col{width:100%!important;max-width:100%!important;margin:0!important;border-left:none;border-right:none;height:calc(100vh - 56px)}
+.sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%!important;min-width:100%!important;height:56px;flex-direction:row;justify-content:space-around;align-items:center;padding:0 4px;border-right:none;border-top:1px solid var(--border);z-index:999;gap:0}
+.sidebar .sidebar-brand,.sidebar .nav-section-label,.sidebar .sidebar-yanki-btn,.sidebar .admin-indicator-wrap{display:none}
+.sidebar .mi-label{display:none}
+.sidebar .menu-item{padding:8px;justify-content:center;border-radius:10px}
+.main-wrap{flex-direction:column;padding-bottom:56px}
+.contact-fab{bottom:70px}
+#toast-container{left:50%;transform:translateX(-50%);width:90vw;max-width:360px}
+}
 @media(max-width:1024px){.premium-fab{left:16px}}
 
 .contact-fab{position:fixed;bottom:24px;right:24px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
@@ -1267,12 +1278,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
 .loading{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--muted);gap:10px}
 .spin{display:inline-block;animation:spin 1s linear infinite;color:var(--accent2)}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gradient);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;box-shadow:0 4px 20px var(--glow);animation:fadeIn .2s ease}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--gradient);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;box-shadow:0 4px 20px var(--glow);animation:toastDropIn .3s ease}
+@keyframes toastDropIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 /* ═══════════════════════════════════════════════════════════
    TOAST BİLDİRİM SİSTEMİ
 ═══════════════════════════════════════════════════════════ */
-#toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column-reverse;gap:8px;z-index:99999;pointer-events:none}
+#toast-container{position:fixed;top:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:99999;pointer-events:none}
 .toast-item{pointer-events:all;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;width:300px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastSlide .35s cubic-bezier(.34,1.1,.64,1) both;position:relative;overflow:hidden}
 .toast-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2)}
 .toast-item.toast-success::before{background:var(--success)}
@@ -1368,13 +1380,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .reyanki-popup{max-width:95vw;margin:10px}
 }
 @media(max-width:400px){
-.sidebar{display:none}
+.sidebar{display:flex!important}
 .main-col{width:100%;border:none}
 .profile-stat-cards{grid-template-columns:1fr 1fr 1fr;gap:4px}
 .profile-banner{height:100px;border-radius:0}
 .profile-card{margin:0 6px;padding:14px 10px;border-radius:14px;margin-top:-36px}
 .profile-avatar-wrap .avatar-lg{width:64px;height:64px;font-size:28px}
 }
+
+/* ── Admin Select/Option Koyu Tema ── */
+select,select option{background:var(--card);color:var(--text);border:1px solid var(--border)}
+select option{background:var(--elevated);color:var(--text);padding:6px 10px}
+select:focus{border-color:var(--accent);outline:none}
 
 /* ═══════════════════════════════════════════════════════════
    KAYDEDİLENLER — TAM YENİ TASARIM
@@ -4839,6 +4856,28 @@ const askConfirm = (msg, onYes) => {
   setTimeout(() => div.remove(), 6000);
 };
 
+const askPrompt = (msg, placeholder, callback, defaultVal) => {
+  const id = 'prompt_' + Date.now();
+  const div = document.createElement('div');
+  div.id = id;
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99998;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease';
+  div.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;box-shadow:0 12px 48px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:14px;min-width:320px;max-width:90vw">
+    <div style="font-size:14px;color:var(--text);font-weight:600">${msg}</div>
+    <input id="${id}_input" type="text" value="${defaultVal||''}" placeholder="${placeholder||''}" style="padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--elevated);color:var(--text);font-size:13px;outline:none;font-family:inherit;width:100%;box-sizing:border-box" autofocus>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('${id}').remove()" style="padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">İptal</button>
+      <button id="${id}_ok" style="padding:8px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Tamam</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  const inp = document.getElementById(id + '_input');
+  inp.focus();
+  inp.select();
+  inp.addEventListener('keydown', e => { if(e.key === 'Enter') { div.remove(); callback(inp.value); } if(e.key === 'Escape') div.remove(); });
+  document.getElementById(id + '_ok').onclick = () => { div.remove(); callback(inp.value); };
+  div.addEventListener('click', e => { if(e.target === div) div.remove(); });
+};
+
 const blockUser = async id => askConfirm('Bu kullanıcıyı engellemek istiyor musunuz?', async () => {
   const r = await api('/block', { userId: user.id, targetId: id });
   if (r.blocked!==undefined) { toast(r.blocked ? 'Engellendi' : 'Engel kaldırıldı'); loadFeed(); }
@@ -5897,13 +5936,14 @@ const showLikers=async(yid)=>{
 };
 
 // Yankı düzenleme
-const editYankiPrompt=async(yid)=>{
+const editYankiPrompt=(yid)=>{
   document.querySelectorAll('.yanki-dropdown.show').forEach(d=>d.classList.remove('show'));
-  const text=prompt('Yankıyı düzenle:');
-  if(text===null)return;
-  const r=await api('/yanki/edit',{yankiId:yid,userId:user.id,text});
-  if(r.error)toast('Hata: '+r.error);
-  else{toast('✏️ Yankı düzenlendi');loadFeed();}
+  askPrompt('Yankıyı düzenle:', 'Yeni metin...', async(text)=>{
+    if(!text)return;
+    const r=await api('/yanki/edit',{yankiId:yid,userId:user.id,text});
+    if(r.error)toast('Hata: '+r.error);
+    else{toast('✏️ Yankı düzenlendi');loadFeed();}
+  });
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -6891,16 +6931,17 @@ const injectFeedAds=(container)=>{
         <div class="ad-card-title">${ad.title}</div>
         <div class="ad-card-text">${ad.text}</div>
         ${ad.image?'<img src="'+ad.image+'" style="width:100%;border-radius:10px;margin-bottom:8px">':''}
-        ${ad.linkText?'<button class="ad-card-btn" onclick="adClick(\''+ad.id+'\')">'+ad.linkText+'</button>':''}
+        ${ad.linkText?'<button class="ad-card-btn" onclick="adClick(\''+ad.id+'\','+(ad.linkUrl?'\''+ad.linkUrl+'\'':'null')+')">'+ad.linkText+'</button>':''}
       </div>`;
       target.insertAdjacentHTML('afterend',html);
       api('/ads/impression',{adId:ad.id});
     }
   });
 };
-const adClick=(adId)=>{
+const adClick=(adId, linkUrl)=>{
   api('/ads/click',{adId});
-  goPanel('subscription');loadSubscriptionPanel();
+  if(linkUrl){window.open(linkUrl,'_blank');}
+  else{goPanel('subscription');loadSubscriptionPanel();}
 };
 
 // ── Sidebar Banner Reklam ──
@@ -6911,7 +6952,7 @@ const loadSidebarAd=async()=>{
   if(!box)return;
   box.style.display='block';
   $('sidebar-ad-content').innerHTML=`
-    <div class="sidebar-ad" onclick="adClick('${r.ad.id}')">
+    <div class="sidebar-ad" onclick="adClick('${r.ad.id}',${r.ad.linkUrl?'\''+r.ad.linkUrl+'\'':'null'})">
       <div class="sidebar-ad-title">${r.ad.title}</div>
       <div class="sidebar-ad-text">${r.ad.text}</div>
       <button class="sidebar-ad-btn">${r.ad.linkText||'Keşfet'}</button>
@@ -7024,12 +7065,13 @@ const voteCommunityNote=async(noteId,vote)=>{
   toast(vote==='up'?'👍 Oy verildi':'👎 Oy verildi');
 };
 
-const addCommunityNote=async(yankiId)=>{
-  const text=prompt('Topluluk notu ekleyin (en az 10 karakter):');
-  if(!text||text.length<10){toast('Not en az 10 karakter olmalı');return;}
-  const r=await api('/community-note/add',{yankiId,userId:user.id,text});
-  if(r.error)toast(r.error);
-  else toast('📝 Not gönderildi, admin onayı bekleniyor');
+const addCommunityNote=(yankiId)=>{
+  askPrompt('Topluluk notu ekleyin (en az 10 karakter):', 'Notunuzu yazın...', async(text)=>{
+    if(!text||text.length<10){toast('Not en az 10 karakter olmalı');return;}
+    const r=await api('/community-note/add',{yankiId,userId:user.id,text});
+    if(r.error)toast(r.error);
+    else toast('📝 Not gönderildi, admin onayı bekleniyor');
+  });
 };
 
 // ── Admin: Reklam Yönetimi ──
@@ -7578,21 +7620,23 @@ const adminSetTier=async(targetUserId,tier)=>{
   if(r.error){toast(r.error);return;}
   toast('Tier değiştirildi: '+tier);
 };
-const adminChangeTier=async(targetUserId,tier,duration)=>{
+const adminChangeTier=(targetUserId,tier,duration)=>{
   const tierNames={free:'Ücretsiz',pro:'Pro',journalist:'Gazeteci'};
   const durNames={'30d':'30 gün','365d':'1 yıl','lifetime':'Süresiz'};
-  // Free'ye düşürüyorsa süre sorma
-  let dur=duration;
-  if(tier!=='free'&&!dur){
-    dur=prompt(`Süre seçin:\n• 30d = 30 gün\n• 365d = 1 yıl\n• lifetime = Süresiz`,'365d');
+  const doChange=async(dur)=>{
+    askConfirm(`${tierNames[tier]} plana geçir${dur?' ('+durNames[dur]+')':''}?`, async()=>{
+      const r=await api('/admin/tier/set',{targetUserId,tier,duration:dur});
+      if(r.error){toast(r.error);return;}
+      toast(`✅ Plan: ${tierNames[tier]}${dur?' ('+durNames[dur]+')':''}`);
+      adminLoadJournalism();
+    });
+  };
+  if(tier==='free'||duration){doChange(duration);return;}
+  askPrompt('Süre seçin: 30d / 365d / lifetime', '365d', (dur)=>{
     if(!dur)return;
     if(!['30d','365d','lifetime'].includes(dur)){toast('Geçersiz süre');return;}
-  }
-  if(!confirm(`${tierNames[tier]} plana geçir${dur?' ('+durNames[dur]+')':''}?`))return;
-  const r=await api('/admin/tier/set',{targetUserId,tier,duration:dur});
-  if(r.error){toast(r.error);return;}
-  toast(`✅ Plan: ${tierNames[tier]}${dur?' ('+durNames[dur]+')':''}`);
-  adminLoadJournalism();
+    doChange(dur);
+  }, '365d');
 };
 </script>
 

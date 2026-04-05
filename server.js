@@ -530,6 +530,23 @@ function cleanExpiredTiers() {
 cleanExpiredTiers(); // Başlangıçta çalıştır
 setInterval(cleanExpiredTiers, 5 * 60 * 1000); // Her 5 dakikada bir
 
+// ═══ Süresi Dolan Boost'ları Temizleme ═══
+function cleanExpiredBoosts() {
+  const now = Date.now();
+  const boosted = sqlite.prepare("SELECT id, boostedAt, boostDuration FROM yankis WHERE boosted = 1 AND boostedAt IS NOT NULL").all();
+  let cleaned = 0;
+  boosted.forEach(y => {
+    const boostEnd = new Date(y.boostedAt).getTime() + (y.boostDuration || 48) * 60 * 60 * 1000;
+    if (now > boostEnd) {
+      sqlite.prepare('UPDATE yankis SET boosted = 0, boostedAt = NULL WHERE id = ?').run(y.id);
+      cleaned++;
+    }
+  });
+  if (cleaned > 0) console.log(`🚀 ${cleaned} boost süresi doldu, temizlendi`);
+}
+cleanExpiredBoosts();
+setInterval(cleanExpiredBoosts, 15 * 60 * 1000); // Her 15 dakikada bir
+
 // ═══ Etkileşim Madenciliği (Achievement Mining) — Günlük cron ═══
 function achievementMining() {
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -1679,14 +1696,22 @@ const routes = {
           finalFeed.push(sponsored);
           // Impression sayacı artır
           sqlite.prepare('UPDATE yankis SET boostImpressions = boostImpressions + 1 WHERE id = ?').run(allBoosted[boostedIdx].id);
-          // Her 100 gösterimde coin düş (impression bütçesi)
+          // Toplam gösterimi hesapla → olması gereken fatura ile ödenen faturayı karşılaştır
           const updatedY = stmts.getYankiById.get(allBoosted[boostedIdx].id);
-          if (updatedY && updatedY.boostImpressions > 0 && updatedY.boostImpressions % 100 === 0) {
-            const costPer100 = 5; // Her 100 gösterim = 5 coin
-            const deducted = sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ? AND yankiCoins >= ?').run(costPer100, updatedY.userId, costPer100);
-            if (deducted.changes === 0) {
-              // Bakiye bitti → boost'u iptal et
-              sqlite.prepare('UPDATE yankis SET boosted = 0, boostedAt = NULL WHERE id = ?').run(updatedY.id);
+          if (updatedY && updatedY.boostImpressions > 0) {
+            const costPer100 = 5;
+            const expectedCost = Math.floor(updatedY.boostImpressions / 100) * costPer100;
+            const alreadyPaid = updatedY.boostCoinSpent || 0;
+            const owedCost = expectedCost - alreadyPaid;
+            if (owedCost > 0) {
+              const deducted = sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ? AND yankiCoins >= ?').run(owedCost, updatedY.userId, owedCost);
+              if (deducted.changes === 0) {
+                // Bakiye bitti → boost'u iptal et
+                sqlite.prepare('UPDATE yankis SET boosted = 0, boostedAt = NULL WHERE id = ?').run(updatedY.id);
+              } else {
+                // Ödenen tutarı güncelle
+                sqlite.prepare('UPDATE yankis SET boostCoinSpent = ? WHERE id = ?').run(expectedCost, updatedY.id);
+              }
             }
           }
         }
@@ -1705,7 +1730,7 @@ const routes = {
     let feedAds = [];
     if (!isPro(userId)) {
       const nowStr = new Date().toISOString();
-      feedAds = sqlite.prepare("SELECT * FROM ads WHERE active = 1 AND type = 'sponsored_yanki' AND (startDate IS NULL OR startDate <= ?) AND (endDate IS NULL OR endDate >= ?) ORDER BY priority DESC LIMIT 3").all(nowStr, nowStr);
+      feedAds = sqlite.prepare("SELECT * FROM ads WHERE active = 1 AND type = 'sponsored_yanki' AND (startDate IS NULL OR startDate <= ?) AND (endDate IS NULL OR endDate >= ?) ORDER BY priority DESC, RANDOM() LIMIT 3").all(nowStr, nowStr);
     }
     return { yankis: finalFeed, ads: feedAds };
   },
