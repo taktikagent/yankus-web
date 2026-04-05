@@ -1664,6 +1664,33 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
 .press-org{font-size:11px;color:var(--muted);margin-left:4px;font-style:italic}
 .boost-badge{display:inline-flex;align-items:center;padding:1px 5px;border-radius:6px;font-size:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;margin-left:4px;animation:boostGlow 2s infinite}
 @keyframes boostGlow{0%,100%{box-shadow:0 0 4px rgba(139,92,246,.3)}50%{box-shadow:0 0 10px rgba(139,92,246,.6)}}
+/* Auto badges: Pro = mavi tık, Journalist = sarı tık */
+.yanki-verified.pro-tick{color:#3b82f6;text-shadow:0 0 6px rgba(59,130,246,.5)}
+.yanki-verified.journalist-tick{color:#f59e0b;text-shadow:0 0 6px rgba(245,158,11,.5)}
+/* Sponsored tag */
+.sponsored-tag{display:inline-flex;align-items:center;padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;background:rgba(139,92,246,.15);color:#a78bfa;margin-left:4px;letter-spacing:.3px}
+/* Tip action */
+.tip-action:hover .action-icon{transform:scale(1.2)}
+.tip-action .action-icon{transition:transform .2s}
+/* Disabled dropdown item (paywall lock) */
+.yanki-dropdown-item.disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+/* Ghost mode indicator */
+.ghost-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);padding:2px 8px;border-radius:6px;background:rgba(139,92,246,.1)}
+.ghost-indicator::before{content:'👻';font-size:12px}
+/* Tip modal */
+.tip-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.tip-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:340px;max-width:92vw;text-align:center}
+.tip-modal h3{font-size:18px;margin-bottom:12px;font-family:var(--font-display)}
+.tip-amounts{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.tip-amount-btn{padding:8px 16px;border-radius:12px;background:var(--elevated);border:2px solid var(--border);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;font-family:var(--font)}
+.tip-amount-btn:hover,.tip-amount-btn.selected{border-color:var(--accent);background:var(--accent-active);color:var(--accent)}
+.tip-custom{margin:12px 0;display:flex;gap:8px;align-items:center;justify-content:center}
+.tip-custom input{width:80px;padding:8px 12px;border-radius:10px;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-size:14px;text-align:center;font-family:var(--font)}
+.tip-custom input:focus{outline:none;border-color:var(--accent)}
+.tip-balance{font-size:12px;color:var(--muted);margin:8px 0}
+.tip-send-btn{width:100%;padding:12px;border-radius:14px;background:var(--gradient);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:var(--font);transition:transform .2s}
+.tip-send-btn:hover{transform:translateY(-1px)}
+.tip-cancel-btn{margin-top:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:var(--font)}
 
 /* ── Boost Popup Modal ── */
 .boost-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
@@ -2363,6 +2390,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:va
           <div class="fab-settings-label">🔒 Gizlilik</div>
           <div class="settings-item"><span class="settings-item-label">Çevrimiçi durumumu göster</span><div class="toggle on" id="toggle-online" onclick="toggleSetting('online',this)"></div></div>
           <div class="settings-item"><span class="settings-item-label">Okundu bilgisi gönder</span><div class="toggle on" id="toggle-readreceipt" onclick="toggleSetting('readreceipt',this)"></div></div>
+          <div class="settings-item"><span class="settings-item-label">👻 Hayalet Modu <span style="font-size:10px;color:var(--accent)">(Premium)</span></span><div class="toggle" id="ghost-mode-toggle" onclick="toggleGhostMode()"></div></div>
           <div class="settings-item"><span class="settings-item-label">Profilimi herkese aç</span><div class="toggle on" id="toggle-publicprofile" onclick="toggleSetting('publicprofile',this)"></div></div>
         </div>
         <!-- Hesap İşlemleri -->
@@ -3261,9 +3289,11 @@ const init=()=>{
     const s=await api('tier/sync',{userId:user.id});
     if(s.error)return;
     const changed=s.tier!==user.tier||s.charLimit!==window._charLimit;
+    user.yankiCoins=s.yankiCoins;
+    if(s.ghostMode!==undefined)user.ghostMode=s.ghostMode;
+    updateGhostUI();
     if(changed){
       user.tier=s.tier;user.charLimit=s.charLimit;window._charLimit=s.charLimit;
-      user.yankiCoins=s.yankiCoins;
       localStorage.setItem('yankus-user',JSON.stringify(user));
       updateChar();
       // UI güncelle: sidebar reklam, fab, gazeteci araçları
@@ -3853,13 +3883,14 @@ const yankiCard=y=>{
       <div class="yanki-meta-row">
         <div class="yanki-meta-left">
           <span class="yanki-name">${y.displayName}</span>
-          ${y.verified?'<span class="yanki-verified">✓</span>':''}
+          ${y.badge==='journalist'?'<span class="yanki-verified journalist-tick" title="Gazeteci">✓</span>':y.badge==='pro'?'<span class="yanki-verified pro-tick" title="Pro">✓</span>':y.verified?'<span class="yanki-verified">✓</span>':''}
           ${y.isBot?'<span class="yanki-bot">BOT</span>':''}
           ${y.tier==='pro'?'<span class="pro-badge">PRO</span>':''}
           ${y.tier==='journalist'?'<span class="press-badge">BASIN</span>':''}
           <span class="yanki-handle">@${y.username}</span>
           ${y.journalistOrg?'<span class="press-org">'+y.journalistOrg+'</span>':''}
           ${y.boosted?'<span class="boost-badge">🚀 Boost</span>':''}
+          ${y._sponsored?'<span class="sponsored-tag">Öne Çıkarıldı</span>':''}
           ${y.editedAt?'<span class="yanki-edited">(düzenlendi)</span>':''}
         </div>
         <div class="yanki-meta-right">
@@ -3868,11 +3899,13 @@ const yankiCard=y=>{
             <span class="yanki-menu-btn" onclick="toggleMenu('${y.id}',event)">⋯</span>
             <div class="yanki-dropdown" id="menu-${y.id}">
               ${y.userId===user.id
-                ?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>
+                ?`${(user.tier==='pro'||user.tier==='journalist')?`<div class="yanki-dropdown-item" onclick="editYankiPrompt('${y.id}')">✏️ Düzenle</div>`:`<div class="yanki-dropdown-item disabled" title="Pro üyelere özel">🔒 Düzenle</div>`}
                   <div class="yanki-dropdown-item" onclick="toggleFeatured('${y.id}')">${y.featured?'⭐ Öne Çıkarmayı Kaldır':'⭐ Öne Çıkar'}</div>
-                  ${(user.tier==='pro'||user.tier==='journalist')?`<div class="yanki-dropdown-item" onclick="boostYanki('${y.id}')">${y.boosted?'🔽 Boost Kaldır':'🚀 Boost Et'}</div>`:''}
+                  ${(user.tier==='pro'||user.tier==='journalist')?`<div class="yanki-dropdown-item" onclick="pinYanki('${y.id}')">${y.pinned?'📌 Sabitlemeyi Kaldır':'📌 Sabitle'}</div>`:`<div class="yanki-dropdown-item disabled" title="Pro üyelere özel">🔒 Sabitle</div>`}
+                  <div class="yanki-dropdown-item" onclick="boostYanki('${y.id}')">${y.boosted?'🔽 Boost Kaldır':'🚀 Boost Et'}</div>
                   <div class="yanki-dropdown-item danger" onclick="deleteYanki('${y.id}')">🗑 Sil</div>`
-                :`<div class="yanki-dropdown-item" onclick="openChat('${y.userId}')">💬 Mesaj</div>
+                :`<div class="yanki-dropdown-item" onclick="tipYanki('${y.id}')">💰 Bahşiş Ver</div>
+                  <div class="yanki-dropdown-item" onclick="openChat('${y.userId}')">💬 Mesaj</div>
                   <div class="yanki-dropdown-item" onclick="addCommunityNote('${y.id}')">📝 Topluluk Notu</div>
                   <div class="yanki-dropdown-item" onclick="reportYanki('${y.id}')">🚨 Şikayet Et</div>
                   <div class="yanki-dropdown-item danger" onclick="blockUser('${y.userId}')">🚫 Engelle</div>`
@@ -3950,6 +3983,7 @@ const yankiCard=y=>{
         <div class="yanki-action ${y.isSaved?'saved':''}" onclick="saveYanki('${y.id}',this)" title="Kaydet">
           <span class="action-icon">🔖</span>
         </div>
+        ${y.userId!==user.id?`<div class="yanki-action tip-action" onclick="tipYanki('${y.id}')" title="Bahşiş"><span class="action-icon">💰</span></div>`:''}
         <div class="yanki-action" onclick="showShareMenu('${y.id}',event)" style="flex:0;position:relative" title="Paylaş">
           <span class="action-icon">↗</span>
           <div class="share-popup" id="share-${y.id}">
@@ -4091,7 +4125,7 @@ const likeYanki=async(id,el)=>{
 };
 const saveYanki=async(id,el)=>{const r=await api('/yanki/save',{userId:user.id,yankiId:id});if(r.success){el.classList.toggle('saved',r.saved);toast(r.saved?'Kaydedildi':'Kaldırıldı')}};
 const deleteYanki=async id=>askConfirm('Bu yankıyı silmek istiyor musunuz?',async()=>{await api('/yanki/delete',{userId:user.id,yankiId:id});toast('Silindi');loadFeed()});
-const pinYanki=async id=>{const r=await api('/yanki/pin',{userId:user.id,yankiId:id});if(r.success){toast(r.pinned?'Sabitlendi':'Kaldırıldı');loadFeed()}};
+// pinYanki tanımı aşağıda (ghost/tip bölümünde)
 const toggleFeatured=async id=>{const r=await api('/yanki/feature',{userId:user.id,yankiId:id});if(r.success){toast(r.featured?'⭐ Öne çıkarıldı':'Öne çıkarmadan kaldırıldı');loadFeatured(user.id);/* Dropdown metnini güncelle */document.querySelectorAll('[onclick*="toggleFeatured(\''+id+'\')"]').forEach(el=>{el.innerHTML=r.featured?'⭐ Öne Çıkarmayı Kaldır':'⭐ Öne Çıkar';});/* Profildeyse yankıları yenile */if(document.getElementById('panel-profile')?.style.display!=='none'){loadMyProfile();}else{loadFeed();}}else{toast(r.error||'Hata oluştu','error')}};
 let _reyankiTargetId = null;
 
@@ -4919,6 +4953,11 @@ const NF_META = {
   milestone_like: { emoji:'🏆', bg:'#b5485d' },
   trending:       { emoji:'🔥', bg:'#f59e0b' },
   dm:             { emoji:'💌', bg:'#ec4899' },
+  tip:            { emoji:'💰', bg:'#f59e0b' },
+  achievement:    { emoji:'🏆', bg:'#22c58b' },
+  message:        { emoji:'💌', bg:'#ec4899' },
+  quote:          { emoji:'💬', bg:'#8b5cf6' },
+  reaction:       { emoji:'😊', bg:'#f97316' },
 };
 const _nfUser = n => n.fromUser?.displayName || n.fromName || 'Biri';
 const NF_TEXT = {
@@ -4931,6 +4970,11 @@ const NF_TEXT = {
   milestone_like: n=>`🏆 Yankın <strong>${n.data?.count} beğeni</strong> aldı!`,
   trending:       n=>`🔥 Yankın şu an <strong>trending</strong>de!`,
   dm:             n=>`<strong>${_nfUser(n)}</strong> sana mesaj gönderdi`,
+  message:        n=>`<strong>${_nfUser(n)}</strong> sana mesaj gönderdi`,
+  tip:            n=>`<strong>${_nfUser(n)}</strong> yankına 💰 bahşiş gönderdi`,
+  achievement:    n=>`🏆 Başarı ödülü kazandınız! +10 Yankı Coin`,
+  quote:          n=>`<strong>${_nfUser(n)}</strong> yankını alıntıladı`,
+  reaction:       n=>`<strong>${_nfUser(n)}</strong> yankına tepki verdi`,
 };
 
 let _nfState = { tab:'all', onlyUnread:false };
@@ -6174,6 +6218,9 @@ const adminExportData=async()=>{
         if(r&&!r.error&&(serverUser?.id||r.id)){
           // Sunucudan gelen güncel veriyle birleştir
           user={...parsed,...serverUser,password:undefined};
+          // Tier sync ile ek bilgileri çek
+          const ts=await api('tier/sync',{userId:user.id}).catch(()=>null);
+          if(ts&&!ts.error){user.yankiCoins=ts.yankiCoins;user.ghostMode=ts.ghostMode;window._charLimit=ts.charLimit;}
           localStorage.setItem('yankus-user',JSON.stringify(user));
           showScreen('dashboard');
           init();
@@ -6187,8 +6234,9 @@ const adminExportData=async()=>{
       }
     }
   }catch(e){
+    console.error('AUTO-LOGIN ERROR:',e.message,e.stack);
     localStorage.removeItem('yankus-user');
-    console.warn('Oturum sıfırlandı:',e);
+    showScreen('login');
   }
 })();
 
@@ -7203,26 +7251,28 @@ let _boostSelection={duration:48,age:'',region:'',category:''};
 const boostYanki=async(yankiId)=>{
   document.querySelectorAll('.yanki-dropdown.show').forEach(d=>d.classList.remove('show'));
   const infoR=await api('/boost/info',{userId:user.id});
-  if(infoR.tier==='free'){toast('🔒 Boost özelliği Pro üyelere özel');return;}
 
   // Yankının boost durumunu kontrol et
-  const detail=await api('/yanki/detail',{yankiId,viewerId:user.id});
-  if(detail.yanki?.boosted){
+  const detail=await api('/yanki',{yankiId,viewerId:user.id});
+  if(detail?.boosted){
     const r=await api('/yanki/unboost',{yankiId,userId:user.id});
     if(r.error){toast(r.error);return;}
     toast('🔽 Boost kaldırıldı');
     loadFeed();return;
   }
 
-  if(infoR.remaining<=0){toast(`Bu ay ${infoR.limit} boost hakkınızın tamamını kullandınız`);return;}
+  // Pro/Journalist: aylık limit kontrolü
+  if(infoR.tier!=='free'&&infoR.remaining<=0){toast(`Bu ay ${infoR.limit} boost hakkınızın tamamını kullandınız`);return;}
 
   // Modal aç
   _boostYankiId=yankiId;
   _boostSelection={duration:48,age:'',region:'',category:''};
-  $('boost-remaining').textContent=infoR.remaining+'/'+infoR.limit;
+  const isFree=infoR.tier==='free';
+  $('boost-remaining').textContent=isFree?'Sınırsız (Coin ile)':infoR.remaining+'/'+infoR.limit;
   $('boost-coins').textContent=infoR.coins;
-  $('boost-used').textContent=infoR.used;
+  $('boost-used').textContent=isFree?'-':infoR.used;
   $('boost-coin-balance').textContent=infoR.coins;
+  window._boostBaseCost=infoR.baseCost||0;
   // Reset sliders
   $('boost-dur-slider').value=0;
   $('boost-age-slider').value=0;
@@ -7259,15 +7309,18 @@ const updateBoostCost=()=>{
   const ai=parseInt($('boost-age-slider')?.value||0);
   const ri=parseInt($('boost-region-slider')?.value||0);
   const ci=parseInt($('boost-cat-slider')?.value||0);
-  const cost=(_durOpts[di]?.cost||0)+(_ageOpts[ai]?.cost||0)+(_regionOpts[ri]?.cost||0)+(_catOpts[ci]?.cost||0);
+  const baseCost=window._boostBaseCost||0; // Free=50, Pro/Journalist=0
+  const extraCost=(_durOpts[di]?.cost||0)+(_ageOpts[ai]?.cost||0)+(_regionOpts[ri]?.cost||0)+(_catOpts[ci]?.cost||0);
+  const cost=baseCost+extraCost;
   const coins=parseInt($('boost-coin-balance').textContent)||0;
   $('boost-cost-total').textContent=cost===0?'Ücretsiz ✨':cost+' 🪙';
   const details=[];
+  if(baseCost) details.push('Taban: '+baseCost);
   if(_durOpts[di]?.cost) details.push('Süre: +'+_durOpts[di].cost);
   if(_ageOpts[ai]?.cost) details.push('Yaş: +'+_ageOpts[ai].cost);
   if(_regionOpts[ri]?.cost) details.push('Bölge: +'+_regionOpts[ri].cost);
   if(_catOpts[ci]?.cost) details.push('Kategori: +'+_catOpts[ci].cost);
-  $('boost-cost-detail').textContent=details.length?details.join(' · '):'Temel boost ücretsiz';
+  $('boost-cost-detail').textContent=details.length?details.join(' · '):(baseCost?'Free kullanıcı taban ücreti: '+baseCost+' 🪙':'Temel boost ücretsiz');
   const btn=$('boost-submit-btn');
   if(cost>coins){btn.disabled=true;btn.textContent='❌ Yetersiz Coin ('+cost+' 🪙 gerekli)';}
   else{btn.disabled=false;btn.textContent='🚀 Boost Et'+(cost>0?' ('+cost+' 🪙)':'');}
@@ -7291,6 +7344,88 @@ const submitBoost=async()=>{
 };
 
 const closeBoostModal=()=>{$('boost-modal').style.display='none';_boostYankiId=null;};
+
+// ── Tip (Bahşiş) Modal ──
+let _tipYankiId=null;
+let _tipAmount=10;
+const tipYanki=(yankiId)=>{
+  document.querySelectorAll('.yanki-dropdown.show').forEach(d=>d.classList.remove('show'));
+  _tipYankiId=yankiId;
+  _tipAmount=10;
+  // Tip modal oluştur (yoksa)
+  let modal=document.getElementById('tip-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='tip-modal';
+    modal.className='tip-modal-overlay';
+    modal.innerHTML=`
+      <div class="tip-modal">
+        <h3>💰 Bahşiş Gönder</h3>
+        <p style="color:var(--dim);font-size:13px;margin-bottom:8px">Bu içerik üreticisine Yankı Coin gönder</p>
+        <div class="tip-amounts">
+          <button class="tip-amount-btn" onclick="selectTip(5)">5 🪙</button>
+          <button class="tip-amount-btn selected" onclick="selectTip(10)">10 🪙</button>
+          <button class="tip-amount-btn" onclick="selectTip(25)">25 🪙</button>
+          <button class="tip-amount-btn" onclick="selectTip(50)">50 🪙</button>
+        </div>
+        <div class="tip-custom">
+          <span style="color:var(--dim);font-size:12px">veya</span>
+          <input type="number" id="tip-custom-input" placeholder="Özel" min="1" max="999" oninput="selectTip(parseInt(this.value)||1)">
+          <span style="color:var(--dim);font-size:12px">🪙</span>
+        </div>
+        <div class="tip-balance">Bakiye: <strong id="tip-balance-val">${user.yankiCoins||0}</strong> 🪙</div>
+        <button class="tip-send-btn" id="tip-send-btn" onclick="sendTip()">💰 10 Coin Gönder</button>
+        <button class="tip-cancel-btn" onclick="closeTipModal()">Vazgeç</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{if(e.target===modal)closeTipModal();});
+  }
+  document.getElementById('tip-balance-val').textContent=user.yankiCoins||0;
+  document.getElementById('tip-send-btn').textContent='💰 10 Coin Gönder';
+  document.querySelectorAll('.tip-amount-btn').forEach((b,i)=>{b.classList.toggle('selected',[5,10,25,50][i]===10);});
+  const ci=document.getElementById('tip-custom-input');if(ci)ci.value='';
+  modal.style.display='flex';
+};
+const selectTip=(amount)=>{
+  _tipAmount=Math.max(1,amount);
+  document.querySelectorAll('.tip-amount-btn').forEach(b=>{b.classList.toggle('selected',parseInt(b.textContent)===_tipAmount);});
+  const btn=document.getElementById('tip-send-btn');
+  if(btn){
+    if(_tipAmount>(user.yankiCoins||0)){btn.textContent='❌ Yetersiz Coin';btn.disabled=true;}
+    else{btn.textContent='💰 '+_tipAmount+' Coin Gönder';btn.disabled=false;}
+  }
+};
+const sendTip=async()=>{
+  if(!_tipYankiId)return;
+  const r=await api('/yanki/tip',{yankiId:_tipYankiId,userId:user.id,amount:_tipAmount});
+  if(r.error){toast(r.error);return;}
+  user.yankiCoins=r.senderBalance;
+  closeTipModal();
+  toast(`💰 ${_tipAmount} Coin bahşiş gönderildi!`);
+};
+const closeTipModal=()=>{const m=document.getElementById('tip-modal');if(m)m.style.display='none';_tipYankiId=null;};
+
+// ── Pin (Sabitle) ──
+const pinYanki=async(yankiId)=>{
+  document.querySelectorAll('.yanki-dropdown.show').forEach(d=>d.classList.remove('show'));
+  const r=await api('/yanki/pin',{yankiId,userId:user.id});
+  if(r.error){toast(r.error);return;}
+  toast(r.pinned?'📌 Yankı sabitlendi':'📌 Sabitleme kaldırıldı');
+  loadFeed();
+};
+
+// ── Ghost Mode Toggle ──
+const toggleGhostMode=async()=>{
+  const r=await api('/ghost/toggle',{userId:user.id});
+  if(r.error){toast(r.error);return;}
+  user.ghostMode=r.ghostMode;
+  toast(r.ghostMode?'👻 Hayalet modu açıldı — okundu bilgisi gizli':'👁️ Hayalet modu kapatıldı');
+  updateGhostUI();
+};
+const updateGhostUI=()=>{
+  const el=document.getElementById('ghost-mode-toggle');
+  if(el)el.classList.toggle('on',!!user.ghostMode);
+};
 
 // ── Analytics Modal ──
 const openAnalyticsModal=async()=>{

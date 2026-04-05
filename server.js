@@ -273,12 +273,37 @@ try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN isLive INTEGER DEFAULT 0').r
 
 // Yankı Coin sistemi
 try { sqlite.prepare('ALTER TABLE users ADD COLUMN yankiCoins INTEGER DEFAULT 50').run(); } catch(e) {}
+// Ghost mode (Premium DM gizlilik)
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN ghostMode INTEGER DEFAULT 0').run(); } catch(e) {}
+// Login streak tracking
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN loginStreak INTEGER DEFAULT 0').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE users ADD COLUMN lastLoginDate TEXT').run(); } catch(e) {}
+// Tip transactions log
+sqlite.exec(`CREATE TABLE IF NOT EXISTS tips (
+  id TEXT PRIMARY KEY,
+  fromUserId TEXT NOT NULL,
+  toUserId TEXT NOT NULL,
+  yankiId TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  createdAt TEXT NOT NULL
+)`);
+// Achievement rewards log
+sqlite.exec(`CREATE TABLE IF NOT EXISTS achievements (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL,
+  type TEXT NOT NULL,
+  reward INTEGER NOT NULL,
+  createdAt TEXT NOT NULL
+)`);
 // Boost targeting
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostDuration INTEGER DEFAULT 48').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostTargetAge TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostTargetRegion TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostTargetCategory TEXT').run(); } catch(e) {}
 try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostCoinSpent INTEGER DEFAULT 0').run(); } catch(e) {}
+// Impression-based budget tracking
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostImpressions INTEGER DEFAULT 0').run(); } catch(e) {}
+try { sqlite.prepare('ALTER TABLE yankis ADD COLUMN boostBudget INTEGER DEFAULT 0').run(); } catch(e) {}
 
 // Reklam, Gazetecilik başvuru, Topluluk notu tabloları
 sqlite.exec(`
@@ -490,6 +515,7 @@ function parseUser(row) {
     isAdmin: !!row.isAdmin,
     isBot: !!row.isBot,
     banned: !!row.banned,
+    ghostMode: !!row.ghostMode,
     socialLinks: JSON.parse(row.socialLinks || '{}'),
     interests: JSON.parse(row.interests || '[]')
   };
@@ -503,6 +529,45 @@ function cleanExpiredTiers() {
 }
 cleanExpiredTiers(); // Başlangıçta çalıştır
 setInterval(cleanExpiredTiers, 5 * 60 * 1000); // Her 5 dakikada bir
+
+// ═══ Etkileşim Madenciliği (Achievement Mining) — Günlük cron ═══
+function achievementMining() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  // 1) 50 beğeni barajını aşan yankılar (bugün henüz ödüllendirilmemiş)
+  const hotYankis = sqlite.prepare(`
+    SELECT y.userId, y.id, COUNT(l.id) as likeCount
+    FROM yankis y JOIN likes l ON l.yankiId = y.id
+    WHERE l.createdAt > ?
+    GROUP BY y.id
+    HAVING likeCount >= 50
+  `).all(dayAgo);
+
+  hotYankis.forEach(hy => {
+    const alreadyRewarded = sqlite.prepare("SELECT id FROM achievements WHERE userId = ? AND type = 'hot_yanki' AND createdAt > ?").get(hy.userId, dayAgo);
+    if (!alreadyRewarded) {
+      sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins + 10 WHERE id = ?').run(hy.userId);
+      sqlite.prepare('INSERT INTO achievements (id, userId, type, reward, createdAt) VALUES (?,?,?,?,?)').run(genId(), hy.userId, 'hot_yanki', 10, new Date().toISOString());
+      stmts.insertNotification.run({ id: genId(), userId: hy.userId, fromId: 'system', type: 'achievement', yankiId: hy.id, read: 0, createdAt: new Date().toISOString() });
+      console.log(`🏆 ${hy.userId} → +10 Coin (50+ beğeni başarısı)`);
+    }
+  });
+
+  // 2) Login streak (7 gün art arda giriş yapanlar)
+  const streakUsers = sqlite.prepare("SELECT id, loginStreak FROM users WHERE loginStreak >= 7").all();
+  streakUsers.forEach(su => {
+    const alreadyRewarded = sqlite.prepare("SELECT id FROM achievements WHERE userId = ? AND type = 'login_streak_7' AND createdAt > ?").get(su.id, dayAgo);
+    if (!alreadyRewarded) {
+      sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins + 10, loginStreak = 0 WHERE id = ?').run(su.id);
+      sqlite.prepare('INSERT INTO achievements (id, userId, type, reward, createdAt) VALUES (?,?,?,?,?)').run(genId(), su.id, 'login_streak_7', 10, new Date().toISOString());
+      stmts.insertNotification.run({ id: genId(), userId: su.id, fromId: 'system', type: 'achievement', yankiId: null, read: 0, createdAt: new Date().toISOString() });
+      console.log(`🏆 ${su.id} → +10 Coin (7 gün giriş serisi)`);
+    }
+  });
+}
+achievementMining(); // Başlangıçta çalıştır
+setInterval(achievementMining, 24 * 60 * 60 * 1000); // Günde 1 kez
 const getUserTier = (userId) => { const u = getUser(userId); return u?.tier || 'free'; };
 const isPro = (userId) => { const t = getUserTier(userId); return t === 'pro' || t === 'journalist'; };
 const isJournalist = (userId) => getUserTier(userId) === 'journalist';
@@ -1279,12 +1344,17 @@ const enrichYanki = (yanki, viewerId) => {
     return { id: n.id, text: n.text, username: noter?.username, upvotes: n.upvotes, downvotes: n.downvotes, createdAt: n.createdAt };
   });
 
+  // Auto badge: Pro → mavi tık (verified), Journalist → sarı tık
+  const authorTier = author.tier || 'free';
+  const badge = authorTier === 'journalist' ? 'journalist' : authorTier === 'pro' ? 'pro' : null;
+
   return {
     id: yanki.id, userId: yanki.userId,
     username: author.username, displayName: author.displayName,
-    profileImage: author.profileImage, verified: author.verified,
+    profileImage: author.profileImage, verified: author.verified || authorTier === 'pro' || authorTier === 'journalist',
     isBot: author.isBot || false,
-    tier: author.tier || 'free',
+    tier: authorTier,
+    badge,
     journalistOrg: author.journalistOrg || null,
     text: yanki.text, image: yanki.image, images,
     poll: pollData,
@@ -1463,9 +1533,16 @@ const routes = {
     const row = stmts.getUserByUsername.get(username);
     if (!row || row.password !== password) return { error: 'Kullanıcı adı veya şifre hatalı' };
     if (row.email && !row.emailVerified) return { needsVerification: true, userId: row.id, email: row.email };
-    sqlite.prepare('UPDATE users SET lastSeen = ? WHERE id = ?').run(new Date().toISOString(), row.id);
+    // Login streak takibi
+    const today = new Date().toISOString().slice(0, 10);
+    const lastLogin = row.lastLoginDate || '';
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    let newStreak = (row.loginStreak || 0);
+    if (lastLogin === yesterday) newStreak++;
+    else if (lastLogin !== today) newStreak = 1;
+    sqlite.prepare('UPDATE users SET lastSeen = ?, lastLoginDate = ?, loginStreak = ? WHERE id = ?').run(new Date().toISOString(), today, newStreak, row.id);
     const user = parseUser(stmts.getUserById.get(row.id));
-    return { user: { ...user, password: undefined, charLimit: getCharLimit(user.id), yankiCoins: user.yankiCoins || 50 } };
+    return { user: { ...user, password: undefined, charLimit: getCharLimit(user.id), yankiCoins: user.yankiCoins || 50, loginStreak: newStreak, ghostMode: !!user.ghostMode } };
   },
 
   'heartbeat': (data) => {
@@ -1566,24 +1643,71 @@ const routes = {
       }
     }
 
-    // Boost'lu yankıları öne al (her birinin kendi süresine göre kontrol)
+    // ── Native Ads: Boost'lu yankıları akışa her 10 yankıda 1 serpiştirilmiş olarak ekle ──
     const now = Date.now();
-    const boostedYankis = sqlite.prepare('SELECT * FROM yankis WHERE boosted = 1 AND boostedAt IS NOT NULL AND replyToId IS NULL ORDER BY boostedAt DESC LIMIT 10').all()
+    const viewer = getUser(userId);
+    const viewerLocation = (viewer?.location || '').toLowerCase();
+    const viewerInterests = viewer?.interests || [];
+
+    // Aktif boost'lu yankıları çek (süresi dolmamış + bütçesi olan)
+    const allBoosted = sqlite.prepare('SELECT * FROM yankis WHERE boosted = 1 AND boostedAt IS NOT NULL AND replyToId IS NULL ORDER BY boostedAt DESC LIMIT 20').all()
       .filter(y => {
         const dur = (y.boostDuration || 48) * 60 * 60 * 1000;
-        return (now - new Date(y.boostedAt).getTime()) < dur && !blockedIds.includes(y.userId) && !yankis.some(yy => yy.id === y.id);
-      }).slice(0, 5);
-    // Boost'lu yankıları başa ekle
-    yankis = [...boostedYankis, ...yankis];
+        if ((now - new Date(y.boostedAt).getTime()) >= dur) return false;
+        if (blockedIds.includes(y.userId)) return false;
+        if (yankis.some(yy => yy.id === y.id)) return false;
+        // Hedefleme eşleşmesi
+        if (y.boostTargetRegion && viewerLocation && !viewerLocation.includes(y.boostTargetRegion.toLowerCase())) return false;
+        if (y.boostTargetCategory && viewerInterests.length > 0) {
+          const cat = y.boostTargetCategory.toLowerCase();
+          if (!viewerInterests.some(i => (i||'').toLowerCase().includes(cat))) return false;
+        }
+        return true;
+      });
 
+    // Enriched feed oluştur ve her 10 yankıda 1 sponsorlu yankı serpştir
     const enriched = yankis.map(y => enrichYanki(y, userId)).filter(Boolean);
-    // Free kullanıcılara reklam döndür
+    let boostedIdx = 0;
+    const finalFeed = [];
+    for (let i = 0; i < enriched.length; i++) {
+      finalFeed.push(enriched[i]);
+      // Her 10 yankıda bir sponsorlu yankı ekle
+      if ((i + 1) % 10 === 0 && boostedIdx < allBoosted.length) {
+        const sponsored = enrichYanki(allBoosted[boostedIdx], userId);
+        if (sponsored) {
+          sponsored._sponsored = true; // Frontend'de 'Öne Çıkarıldı' etiketi için
+          finalFeed.push(sponsored);
+          // Impression sayacı artır
+          sqlite.prepare('UPDATE yankis SET boostImpressions = boostImpressions + 1 WHERE id = ?').run(allBoosted[boostedIdx].id);
+          // Her 100 gösterimde coin düş (impression bütçesi)
+          const updatedY = stmts.getYankiById.get(allBoosted[boostedIdx].id);
+          if (updatedY && updatedY.boostImpressions > 0 && updatedY.boostImpressions % 100 === 0) {
+            const costPer100 = 5; // Her 100 gösterim = 5 coin
+            const deducted = sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ? AND yankiCoins >= ?').run(costPer100, updatedY.userId, costPer100);
+            if (deducted.changes === 0) {
+              // Bakiye bitti → boost'u iptal et
+              sqlite.prepare('UPDATE yankis SET boosted = 0, boostedAt = NULL WHERE id = ?').run(updatedY.id);
+            }
+          }
+        }
+        boostedIdx++;
+      }
+    }
+
+    // Eğer boosted yankı kaldıysa başa ekle (ilk 2 tane max)
+    while (boostedIdx < allBoosted.length && boostedIdx < 2) {
+      const sponsored = enrichYanki(allBoosted[boostedIdx], userId);
+      if (sponsored) { sponsored._sponsored = true; finalFeed.unshift(sponsored); }
+      boostedIdx++;
+    }
+
+    // Free kullanıcılara platform reklamları
     let feedAds = [];
     if (!isPro(userId)) {
-      const now = new Date().toISOString();
-      feedAds = sqlite.prepare("SELECT * FROM ads WHERE active = 1 AND type = 'sponsored_yanki' AND (startDate IS NULL OR startDate <= ?) AND (endDate IS NULL OR endDate >= ?) ORDER BY priority DESC LIMIT 3").all(now, now);
+      const nowStr = new Date().toISOString();
+      feedAds = sqlite.prepare("SELECT * FROM ads WHERE active = 1 AND type = 'sponsored_yanki' AND (startDate IS NULL OR startDate <= ?) AND (endDate IS NULL OR endDate >= ?) ORDER BY priority DESC LIMIT 3").all(nowStr, nowStr);
     }
-    return { yankis: enriched, ads: feedAds };
+    return { yankis: finalFeed, ads: feedAds };
   },
 
   // ═══ YANKI CRUD ═══
@@ -1717,9 +1841,10 @@ const routes = {
     return { yankis };
   },
 
-  // ═══ PIN ═══
+  // ═══ PIN ═══ (Paywall: sadece Pro/Journalist)
   'yanki/pin': (data) => {
     const { userId, yankiId } = data;
+    if (!isPro(userId)) return { error: 'Sabitleme özelliği Pro ve Gazeteci üyelere özeldir' };
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
 
@@ -2110,6 +2235,9 @@ const routes = {
 
   'messages/read': (data) => {
     const { userId, otherId } = data;
+    // Ghost Mode: Premium kullanıcı ghost mode açıksa okundu bilgisi gönderme
+    const reader = getUser(userId);
+    if (reader?.ghostMode) return { success: true, ghost: true };
     const allConvs = stmts.getAllConversations.all().map(parseConversation);
     const conv = allConvs.find(c => c.participants.includes(userId) && c.participants.includes(otherId));
     if (conv) stmts.markMessagesRead.run(conv.id, otherId);
@@ -2403,17 +2531,22 @@ const routes = {
     const now = Date.now();
     const dayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
 
-    // Saatlik aktivite (son 24 saat)
+    // Saatlik aktivite (son 24 saat) — Fix 3: Tek GROUP BY sorgusu ile (N+1 → 3 sorgu)
+    const hourlyYankis = {};
+    sqlite.prepare("SELECT strftime('%H', createdAt) as h, COUNT(*) as c FROM yankis WHERE createdAt > ? GROUP BY h").all(dayAgo).forEach(r => hourlyYankis[r.h] = r.c);
+    const hourlyComments = {};
+    sqlite.prepare("SELECT strftime('%H', createdAt) as h, COUNT(*) as c FROM comments WHERE createdAt > ? GROUP BY h").all(dayAgo).forEach(r => hourlyComments[r.h] = r.c);
+    const hourlyLikes = {};
+    sqlite.prepare("SELECT strftime('%H', createdAt) as h, COUNT(*) as c FROM likes WHERE createdAt > ? GROUP BY h").all(dayAgo).forEach(r => hourlyLikes[r.h] = r.c);
     const hourlyActivity = [];
     for (let i = 23; i >= 0; i--) {
-      const hStart = new Date(now - (i + 1) * 60 * 60 * 1000).toISOString();
-      const hEnd = new Date(now - i * 60 * 60 * 1000).toISOString();
       const h = new Date(now - i * 60 * 60 * 1000).getHours();
+      const hKey = String(h).padStart(2, '0');
       hourlyActivity.push({
-        label: String(h).padStart(2, '0') + ':00',
-        yankis: sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE createdAt > ? AND createdAt <= ?').get(hStart, hEnd).count,
-        comments: sqlite.prepare('SELECT COUNT(*) as count FROM comments WHERE createdAt > ? AND createdAt <= ?').get(hStart, hEnd).count,
-        likes: sqlite.prepare('SELECT COUNT(*) as count FROM likes WHERE createdAt > ? AND createdAt <= ?').get(hStart, hEnd).count
+        label: hKey + ':00',
+        yankis: hourlyYankis[hKey] || 0,
+        comments: hourlyComments[hKey] || 0,
+        likes: hourlyLikes[hKey] || 0
       });
     }
 
@@ -2752,41 +2885,64 @@ const routes = {
 
   // ═══ BOOST ═══
   // Boost mantığı:
-  // - Temel boost (48 saat): Pro/Journalist üyelere ücretsiz, aylık limit (Pro=3, Journalist=5)
-  // - Ekstra süre ve hedefleme: Yankı Coin ile satın alınır (Pro/Journalist gerekli)
-  // - Coin sadece ek özellikler için harcanır, temel boost hakkı tier'a bağlıdır
+  // - Free kullanıcılar: tam ücret (50 Coin) öder
+  // - Pro/Journalist: taban boost ücretsiz (aylık limitli), hedefleme/ekstra süre coin ile
+  // - Atomik SQL ile coin düşme (race condition koruması)
+  // - Duration type injection koruması (parseInt + Math.max)
   'yanki/boost': (data) => {
-    const { yankiId, userId, duration, targetAge, targetRegion, targetCategory } = data;
-    if (!isPro(userId)) return { error: 'Boost özelliği Pro ve Gazeteci üyelere özel' };
+    const { yankiId, userId, targetAge, targetRegion, targetCategory } = data;
     const yanki = parseYanki(stmts.getYankiById.get(yankiId));
     if (!yanki || yanki.userId !== userId) return { error: 'Yankı bulunamadı veya yetkiniz yok' };
     if (yanki.boosted) return { error: 'Bu yankı zaten boost edilmiş' };
 
+    // Fix 2: Type Injection koruması — duration güvenli parse
+    const dur = Math.max(48, parseInt(data.duration) || 48);
+
     const tier = getUserTier(userId);
-    const boostLimit = tier === 'journalist' ? 5 : 3;
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-    const usedBoosts = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND boosted = 1 AND boostedAt > ?').get(userId, monthStart).count;
-    if (usedBoosts >= boostLimit) return { error: `Bu ay ${boostLimit} boost hakkınızın tamamını kullandınız` };
+    const isProUser = tier === 'pro' || tier === 'journalist';
 
-    // Coin sadece ek özellikler için (ekstra süre + hedefleme)
-    const dur = duration || 48;
+    // Fix 4: Free vs Pro/Journalist maliyet hesaplaması
     let coinCost = 0;
-    if (dur > 48) coinCost += Math.floor((dur - 48) / 24) * 5;
-    if (targetAge) coinCost += 3;
-    if (targetRegion) coinCost += 3;
-    if (targetCategory) coinCost += 2;
+    if (!isProUser) {
+      // Free kullanıcılar: taban boost ücreti 50 Coin
+      coinCost = 50;
+      // + ekstra süre ve hedefleme maliyetleri
+      if (dur > 48) coinCost += Math.floor((dur - 48) / 24) * 5;
+      if (targetAge) coinCost += 3;
+      if (targetRegion) coinCost += 3;
+      if (targetCategory) coinCost += 2;
+    } else {
+      // Pro/Journalist: taban boost ücretsiz, sadece ekstralar coin
+      const boostLimit = tier === 'journalist' ? 5 : 3;
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const usedBoosts = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND boosted = 1 AND boostedAt > ?').get(userId, monthStart).count;
+      if (usedBoosts >= boostLimit) return { error: `Bu ay ${boostLimit} boost hakkınızın tamamını kullandınız` };
 
-    const u = getUser(userId);
-    const coins = u.yankiCoins || 0;
-    if (coinCost > 0 && coins < coinCost) return { error: `Yetersiz Yankı Coin! Gereken: ${coinCost}, Mevcut: ${coins}` };
-    if (coinCost > 0) {
-      sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ?').run(coinCost, userId);
+      if (dur > 48) coinCost += Math.floor((dur - 48) / 24) * 5;
+      if (targetAge) coinCost += 3;
+      if (targetRegion) coinCost += 3;
+      if (targetCategory) coinCost += 2;
     }
 
-    sqlite.prepare('UPDATE yankis SET boosted = 1, boostedAt = ?, boostDuration = ?, boostTargetAge = ?, boostTargetRegion = ?, boostTargetCategory = ?, boostCoinSpent = ? WHERE id = ?')
-      .run(new Date().toISOString(), dur, targetAge || null, targetRegion || null, targetCategory || null, coinCost, yankiId);
+    // Fix 1: Atomik SQL ile coin düşme (race condition koruması)
+    if (coinCost > 0) {
+      const updateResult = sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ? AND yankiCoins >= ?').run(coinCost, userId, coinCost);
+      if (updateResult.changes === 0) {
+        const u = getUser(userId);
+        return { error: `Yetersiz Yankı Coin! Gereken: ${coinCost}, Mevcut: ${u?.yankiCoins || 0}` };
+      }
+    }
+
+    sqlite.prepare('UPDATE yankis SET boosted = 1, boostedAt = ?, boostDuration = ?, boostTargetAge = ?, boostTargetRegion = ?, boostTargetCategory = ?, boostCoinSpent = ?, boostBudget = ?, boostImpressions = 0 WHERE id = ?')
+      .run(new Date().toISOString(), dur, targetAge || null, targetRegion || null, targetCategory || null, coinCost, coinCost, yankiId);
     sqlite.prepare('UPDATE users SET boostCount = boostCount + 1 WHERE id = ?').run(userId);
-    return { success: true, remaining: boostLimit - usedBoosts - 1, coinSpent: coinCost, coinsLeft: coins - coinCost };
+    const afterUser = getUser(userId);
+    const remaining = isProUser ? (() => {
+      const boostLimit = tier === 'journalist' ? 5 : 3;
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      return boostLimit - sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND boosted = 1 AND boostedAt > ?').get(userId, monthStart).count;
+    })() : -1;
+    return { success: true, remaining, coinSpent: coinCost, coinsLeft: afterUser?.yankiCoins || 0 };
   },
 
   'yanki/unboost': (data) => {
@@ -2801,12 +2957,12 @@ const routes = {
     const { userId } = data;
     const u = getUser(userId);
     const coins = u?.yankiCoins || 0;
-    if (!isPro(userId)) return { tier: 'free', limit: 0, used: 0, remaining: 0, coins };
     const tier = getUserTier(userId);
+    if (tier === 'free') return { tier: 'free', limit: -1, used: 0, remaining: -1, coins, baseCost: 50 };
     const boostLimit = tier === 'journalist' ? 5 : 3;
     const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
     const used = sqlite.prepare('SELECT COUNT(*) as count FROM yankis WHERE userId = ? AND boosted = 1 AND boostedAt > ?').get(userId, monthStart).count;
-    return { tier, limit: boostLimit, used, remaining: boostLimit - used, coins };
+    return { tier, limit: boostLimit, used, remaining: boostLimit - used, coins, baseCost: 0 };
   },
 
   // ═══ COIN ═══
@@ -2820,6 +2976,41 @@ const routes = {
     sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins + ? WHERE id = ?').run(amount, targetUserId);
     const u = getUser(targetUserId);
     return { success: true, newBalance: u?.yankiCoins || 0 };
+  },
+
+  // ═══ TIP (Bahşiş) SİSTEMİ ═══
+  'yanki/tip': (data) => {
+    const { yankiId, userId, amount } = data;
+    const tipAmount = Math.max(1, parseInt(amount) || 10);
+    if (!yankiId || !userId) return { error: 'Geçersiz istek' };
+    const yanki = parseYanki(stmts.getYankiById.get(yankiId));
+    if (!yanki) return { error: 'Yankı bulunamadı' };
+    if (yanki.userId === userId) return { error: 'Kendi yankınıza bahşiş veremezsiniz' };
+    // Atomik coin transfer (gönderenden düş)
+    const deductResult = sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins - ? WHERE id = ? AND yankiCoins >= ?').run(tipAmount, userId, tipAmount);
+    if (deductResult.changes === 0) {
+      const u = getUser(userId);
+      return { error: `Yetersiz Yankı Coin! Gereken: ${tipAmount}, Mevcut: ${u?.yankiCoins || 0}` };
+    }
+    // Alıcıya ekle
+    sqlite.prepare('UPDATE users SET yankiCoins = yankiCoins + ? WHERE id = ?').run(tipAmount, yanki.userId);
+    // Log kaydet
+    sqlite.prepare('INSERT INTO tips (id, fromUserId, toUserId, yankiId, amount, createdAt) VALUES (?,?,?,?,?,?)').run(genId(), userId, yanki.userId, yankiId, tipAmount, new Date().toISOString());
+    // Bildirim gönder
+    stmts.insertNotification.run({ id: genId(), userId: yanki.userId, fromId: userId, type: 'tip', yankiId, read: 0, createdAt: new Date().toISOString() });
+    const sender = getUser(userId);
+    const receiver = getUser(yanki.userId);
+    return { success: true, sent: tipAmount, senderBalance: sender?.yankiCoins || 0, receiverBalance: receiver?.yankiCoins || 0 };
+  },
+
+  // Tip geçmişi
+  'tips/history': (data) => {
+    const { userId } = data;
+    const sent = sqlite.prepare('SELECT t.*, u.username as toUsername, u.displayName as toName FROM tips t LEFT JOIN users u ON u.id = t.toUserId WHERE t.fromUserId = ? ORDER BY t.createdAt DESC LIMIT 20').all(userId);
+    const received = sqlite.prepare('SELECT t.*, u.username as fromUsername, u.displayName as fromName FROM tips t LEFT JOIN users u ON u.id = t.fromUserId WHERE t.toUserId = ? ORDER BY t.createdAt DESC LIMIT 20').all(userId);
+    const totalSent = sqlite.prepare('SELECT SUM(amount) as total FROM tips WHERE fromUserId = ?').get(userId).total || 0;
+    const totalReceived = sqlite.prepare('SELECT SUM(amount) as total FROM tips WHERE toUserId = ?').get(userId).total || 0;
+    return { sent, received, totalSent, totalReceived };
   },
 
   // ═══ USER ANALYTICS ═══
@@ -2879,11 +3070,26 @@ const routes = {
     };
   },
 
+  // ═══ GHOST MODE ═══ (Premium only)
+  'ghost/toggle': (data) => {
+    const { userId } = data;
+    if (!isPro(userId)) return { error: 'Hayalet modu sadece Premium üyelere açıktır' };
+    const u = getUser(userId);
+    const newMode = u?.ghostMode ? 0 : 1;
+    sqlite.prepare('UPDATE users SET ghostMode = ? WHERE id = ?').run(newMode, userId);
+    return { success: true, ghostMode: !!newMode };
+  },
+
+  'ghost/status': (data) => {
+    const u = getUser(data.userId);
+    return { ghostMode: !!(u?.ghostMode) };
+  },
+
   // Hafif senkronizasyon: frontend'in tier/charLimit/coins bilgisini doğrulaması için
   'tier/sync': (data) => {
     const u = getUser(data.userId);
     if (!u) return { error: 'Kullanıcı bulunamadı' };
-    return { tier: u.tier || 'free', charLimit: getCharLimit(data.userId), yankiCoins: u.yankiCoins || 0, tierExpiresAt: u.tierExpiresAt || null };
+    return { tier: u.tier || 'free', charLimit: getCharLimit(data.userId), yankiCoins: u.yankiCoins || 0, tierExpiresAt: u.tierExpiresAt || null, ghostMode: !!u.ghostMode };
   },
 
   'tier/upgrade': (data) => {
