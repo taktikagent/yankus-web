@@ -1028,6 +1028,45 @@ function initData() {
 
   // Yama notları
   const patchCount = sqlite.prepare('SELECT COUNT(*) as count FROM patchNotes').get().count;
+
+  // v3.6 yama notu
+  const has36 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.6'").get().c;
+  if (!has36) {
+    sqlite.prepare('INSERT INTO patchNotes (id, version, title, content, createdAt) VALUES (@id, @version, @title, @content, @createdAt)').run({
+      id: genId(), version: '3.6', title: 'Reklam & Boost Sistemi + Premium Paywall + Creator Economy',
+      content: JSON.stringify({
+        date: '5 Nisan 2026',
+        features: [
+          '🎯 Akıllı Boost sistemi: konum/ilgi alanı hedefleme, impression tabanlı bütçe',
+          '💰 Bahşiş (Tip) sistemi: içerik üreticilerine atomik coin transferi',
+          '🏆 Achievement Mining: günlük cron ile 50+ beğeni ve 7 gün login streak ödülleri',
+          '👻 Ghost Mode: Premium kullanıcılar DM okundu bilgisini gizleyebilir',
+          '🏷️ Otomatik rozet: Pro (mavi ✓) ve Gazeteci (sarı ✓) tick işaretleri',
+          '📌 Pin/Edit paywall: sadece Pro ve Gazeteci kullanıcılar için',
+          '📢 Native reklam: feed\'de her 10 yankıda sponsorlu içerik + rotasyon (RANDOM)',
+          '📰 Gazeteci makale modu: 300px genişletilmiş editör alanı',
+          '📱 Mobil responsive: sidebar → bottom navigation, sağ panel gizleme',
+          '🔔 askPrompt modalı: native prompt() yerine özel HTML input modalı',
+          '⚡ Admin tier yönetimi: dinamik gün sayısı ile esnek süre belirleme',
+          '❌ Gazeteci ret bildirimi: admin ret nedeni kaydedilir ve bildirim gönderilir'
+        ],
+        fixes: [
+          '🔒 Coin race condition düzeltildi: atomik SQL (UPDATE WHERE yankiCoins >= ?)',
+          '🔒 Type injection koruması: parseInt + Math.max',
+          '🔒 Bedava premium açığı kapatıldı: tier/upgrade coin kontrolü (Pro=100)',
+          '⚡ Admin analytics N+1 sorgu: 72 sorgu → 3 GROUP BY sorgusu',
+          '⚡ Boost bütçe kaçağı: modulo yerine fark hesabı (expectedCost - alreadyPaid)',
+          '🧹 Süresi dolan boost\'lar 15dk\'da bir otomatik temizlenir (cleanExpiredBoosts)',
+          '🧹 Gazeteci kalıntı verisi: tier düşürülünce journalistOrg/Expertise/Bio temizlenir',
+          '🎨 Toast üst ortaya, bildirimler sağ üst köşeye taşındı (FAB çakışması giderildi)',
+          '🎨 Admin select/option koyu tema okunabilirlik düzeltmesi',
+          '🐛 pinYanki duplicate const hatası düzeltildi (tüm JS çökmesi engellendi)'
+        ]
+      }),
+      createdAt: new Date().toISOString()
+    });
+  }
+
   // v3.2 yoksa yeni notları ekle
   const has35 = sqlite.prepare("SELECT COUNT(*) as c FROM patchNotes WHERE version = '3.5'").get().c;
   if (!has35 && patchCount > 0) {
