@@ -587,6 +587,33 @@ function achievementMining() {
 }
 achievementMining(); // Başlangıçta çalıştır
 setInterval(achievementMining, 24 * 60 * 60 * 1000); // Günde 1 kez
+
+// ═══ Zamanlanmış Yankıları Yayınla (1 dk'da bir) ═══
+function publishScheduledYankis() {
+  const now = new Date().toISOString();
+  const pending = sqlite.prepare("SELECT * FROM scheduled WHERE status = 'pending' AND scheduledAt <= ?").all(now);
+  pending.forEach(s => {
+    try {
+      if (s.threadItems) {
+        const items = JSON.parse(s.threadItems);
+        if (items && items.length > 0) {
+          routes['thread/create']({ userId: s.userId, items });
+        }
+      } else {
+        const poll = s.poll ? JSON.parse(s.poll) : null;
+        routes['yanki/create']({ userId: s.userId, text: s.text, image: s.image, poll });
+      }
+      sqlite.prepare("UPDATE scheduled SET status = 'published' WHERE id = ?").run(s.id);
+    } catch (e) {
+      console.error(`📅 Zamanlanmış yankı yayınlama hatası (${s.id}):`, e.message);
+      sqlite.prepare("UPDATE scheduled SET status = 'failed' WHERE id = ?").run(s.id);
+    }
+  });
+  if (pending.length > 0) console.log(`📅 ${pending.length} zamanlanmış yankı yayınlandı`);
+}
+publishScheduledYankis();
+setInterval(publishScheduledYankis, 60 * 1000); // Her 1 dakikada bir
+
 const getUserTier = (userId) => { const u = getUser(userId); return u?.tier || 'free'; };
 const isPro = (userId) => { const t = getUserTier(userId); return t === 'pro' || t === 'journalist'; };
 const isJournalist = (userId) => getUserTier(userId) === 'journalist';
@@ -2367,10 +2394,9 @@ const routes = {
   // ═══ EXPLORE ═══
   'explore/suggested': (data) => {
     const { userId, limit } = data;
-    const followingIds = stmts.getFollowing.all(userId).map(f => f.followingId);
-    const allUsers = stmts.getAllUsers.all().map(parseUser);
-    const users = allUsers.filter(u => u.id !== userId && !followingIds.includes(u.id))
-      .slice(0, limit || 5).map(u => ({ ...u, password: undefined }));
+    const lim = parseInt(limit) || 5;
+    const rows = sqlite.prepare('SELECT * FROM users WHERE id != ? AND id NOT IN (SELECT followingId FROM follows WHERE followerId = ?) ORDER BY RANDOM() LIMIT ?').all(userId, userId, lim);
+    const users = rows.map(r => { const u = parseUser(r); return { ...u, password: undefined }; });
     return { users };
   },
 
@@ -2809,10 +2835,10 @@ const routes = {
 
   'explore': (data) => {
     const { viewerId } = data;
-    const followingIds = viewerId ? stmts.getFollowing.all(viewerId).map(f => f.followingId) : [];
-    const allUsers = stmts.getAllUsers.all().map(parseUser);
-    const suggestedUsers = allUsers.filter(u => u.id !== viewerId && !followingIds.includes(u.id))
-      .slice(0, 5).map(u => ({ ...u, password: undefined }));
+    const suggestedRows = viewerId
+      ? sqlite.prepare('SELECT * FROM users WHERE id != ? AND id NOT IN (SELECT followingId FROM follows WHERE followerId = ?) ORDER BY RANDOM() LIMIT 5').all(viewerId, viewerId)
+      : sqlite.prepare('SELECT * FROM users ORDER BY RANDOM() LIMIT 5').all();
+    const suggestedUsers = suggestedRows.map(r => { const u = parseUser(r); return { ...u, password: undefined }; });
     const trendResult = routes['trending']();
     const all = sqlite.prepare('SELECT * FROM yankis WHERE replyToId IS NULL').all();
     const trendingYankis = all.map(y => ({
@@ -2933,7 +2959,9 @@ const routes = {
     if (followerCount >= 50) badges.push({ id: 'followers_50', name: 'Fenomen', icon: '🌟', desc: '50 takipçi!', color: '#f472b6' });
     if (totalLikes >= 10) badges.push({ id: 'likes_10', name: 'Beğenilen', icon: '❤️', desc: '10 beğeni!', color: '#f87171' });
     if (totalLikes >= 100) badges.push({ id: 'likes_100', name: 'Sevilen', icon: '💖', desc: '100 beğeni!', color: '#ec4899' });
-    if (u.verified) badges.push({ id: 'verified', name: 'Onaylı', icon: '✅', desc: 'Hesap onaylandı!', color: '#34d399' });
+    if (u.verified || u.tier === 'pro' || u.tier === 'journalist') badges.push({ id: 'verified', name: 'Onaylı', icon: '✅', desc: 'Hesap onaylandı!', color: '#34d399' });
+    if (u.tier === 'pro') badges.push({ id: 'pro', name: 'Pro', icon: '⭐', desc: 'Pro üye!', color: '#f59e0b' });
+    if (u.tier === 'journalist') badges.push({ id: 'journalist', name: 'Gazeteci', icon: '📰', desc: 'Doğrulanmış gazeteci!', color: '#3b82f6' });
     if (u.isAdmin) badges.push({ id: 'admin', name: 'Yönetici', icon: '🔧', desc: 'Platform yöneticisi', color: '#ef4444' });
     return { badges };
   },
@@ -3175,8 +3203,14 @@ const routes = {
         return { error: `Yetersiz Yankı Coin! Gereken: ${cost}, Mevcut: ${u?.yankiCoins || 0}` };
       }
     }
-    const expires = tier === 'free' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    if (tier === 'free') {
+    let expires = null;
+    if (tier !== 'free') {
+      const currentUser = getUser(userId);
+      const currentExpires = (currentUser && currentUser.tier !== 'free' && currentUser.tierExpiresAt && new Date(currentUser.tierExpiresAt) > new Date())
+        ? new Date(currentUser.tierExpiresAt).getTime() : Date.now();
+      expires = new Date(currentExpires + 30 * 24 * 60 * 60 * 1000).toISOString();
+    }
+    if (tier !== 'journalist') {
       sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = NULL, journalistExpertise = NULL, journalistBio = NULL WHERE id = ?').run(tier, expires, userId);
     } else {
       sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, userId);
@@ -3373,7 +3407,7 @@ const routes = {
         expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
       }
     }
-    if (tier === 'free') {
+    if (tier !== 'journalist') {
       sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ?, journalistOrg = NULL, journalistExpertise = NULL, journalistBio = NULL WHERE id = ?').run(tier, expires, targetUserId);
     } else {
       sqlite.prepare('UPDATE users SET tier = ?, tierExpiresAt = ? WHERE id = ?').run(tier, expires, targetUserId);

@@ -6946,7 +6946,7 @@ const injectFeedAds=(container)=>{
 const adClick=(adId, linkUrl)=>{
   api('/ads/click',{adId});
   if(linkUrl){window.open(linkUrl,'_blank');}
-  else{goPanel('subscription');loadSubscriptionPanel();}
+  else{togglePremiumPopup();}
 };
 
 // ── Sidebar Banner Reklam ──
